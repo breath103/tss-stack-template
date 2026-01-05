@@ -1,0 +1,21 @@
+{
+  "name": "@app/edge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "tsx scripts/deploy.ts"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.170.0",
+    "constructs": "^10.4.0",
+    "@aws-sdk/client-ssm": "^3.700.0"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.170.0",
+    "typescript": "^5",
+    "tsx": "^4.19.0",
+    "esbuild": "^0.24.0",
+    "@types/aws-lambda": "^8.10.145"
+  }
+}

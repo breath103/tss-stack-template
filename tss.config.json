@@ -1,0 +1,6 @@
+{
+  "project": "myapp",
+  "backendRegion": "ap-northeast-2",
+  "domain": "example.com",
+  "hostedZoneId": "Z1234567890"
+}
