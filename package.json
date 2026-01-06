@@ -6,8 +6,9 @@
   ],
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev -w @app/backend\" \"npm run dev -w @app/frontend\"",
-    "deploy:backend": "npm run deploy -w @app/backend",
-    "deploy:edge": "npm run deploy -w @app/edge"
+    "deploy:backend": "npm run deploy -w @app/backend --",
+    "deploy:edge": "npm run deploy -w @app/edge",
+    "deploy:frontend": "npm run deploy -w @app/frontend --"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

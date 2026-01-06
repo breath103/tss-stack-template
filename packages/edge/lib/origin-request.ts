@@ -4,6 +4,8 @@ import type {
   CloudFrontRequestResult,
 } from "aws-lambda";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
+import { sanitizeBranchName } from "@app/shared/branch";
+import * as SSMParameters from "@app/shared/ssm-parameters";
 
 // Injected at build time by esbuild
 const PROJECT = process.env.PROJECT!;
@@ -27,26 +29,16 @@ async function cachedFetch<V>(
 }
 
 const backendUrlCache = new Map<string, { value: string | null; expires: number }>();
-const CACHE_TTL = 60_000; // 1 minute
-
-/**
- * Extract subdomain from host header
- * feature--test.example.com → feature--test
- * example.com → main
- */
-function getSubdomain(host: string): string {
-  const parts = host.split(".");
-  return parts.length >= 3 ? parts[0] : "main";
-}
 
 /**
  * Get backend URL from SSM (with caching)
  */
 async function getBackendUrl(branch: string): Promise<string | null> {
-  return cachedFetch(backendUrlCache, branch, 60 * 1000, async (key) => {
+  const sanitizedBranchName = sanitizeBranchName(branch);
+  return cachedFetch(backendUrlCache, sanitizedBranchName, 60 * 1000, async (key) => {
     try {
       const result = await ssm.send(
-        new GetParameterCommand({ Name: `/${PROJECT}/backend/${key}` })
+        new GetParameterCommand({ Name: SSMParameters.backendUrlName({ project: PROJECT, sanitizedBranchName: key }) })
       );
       return result.Parameter?.Value ?? null;
     } catch (e) {
@@ -60,27 +52,44 @@ export const handler = async (
   event: CloudFrontRequestEvent
 ): Promise<CloudFrontRequestResult> => {
   const request = event.Records[0].cf.request;
-  const host = request.headers.host?.[0]?.value || "";
+  const uri = request.uri;
 
-  const subdomain = getSubdomain(host);
-  const backendUrl = await getBackendUrl(subdomain);
+  // Read branch from x-branch header set by CloudFront Function at viewer-request
+  // (Host header is already changed to S3 origin domain by the time we get here)
+  const branch = request.headers["x-branch"]?.[0]?.value || "main";
 
-  if (!backendUrl) {
-    const mainUrl = await getBackendUrl("main");
-    if (!mainUrl) {
-      return {
-        status: "502",
-        statusDescription: "Bad Gateway",
-        body: "Backend not configured",
-      };
+  // API requests: route to backend Lambda
+  if (uri.startsWith("/api/") || uri === "/api") {
+    const backendUrl = await getBackendUrl(branch);
+
+    if (!backendUrl) {
+      const mainUrl = await getBackendUrl("main");
+      if (!mainUrl) {
+        return {
+          status: "502",
+          statusDescription: "Bad Gateway",
+          body: "Backend not configured",
+        };
+      }
+      return rewriteToBackend(request, mainUrl);
     }
-    return rewriteOrigin(request, mainUrl);
+
+    return rewriteToBackend(request, backendUrl);
   }
 
-  return rewriteOrigin(request, backendUrl);
+  // Frontend requests: prepend branch to S3 path
+  // /dashboard → /{branch}/dashboard
+  // / → /{branch}/index.html
+  if (uri === "/" || uri === "") {
+    request.uri = `/${branch}/index.html`;
+  } else {
+    request.uri = `/${branch}${uri}`;
+  }
+
+  return request;
 };
 
-function rewriteOrigin(
+function rewriteToBackend(
   request: CloudFrontRequest,
   backendUrl: string
 ): CloudFrontRequest {

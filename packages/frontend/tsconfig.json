@@ -5,12 +5,14 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@app/backend/*": ["../backend/src/*"]
+      "@app/backend/*": ["../backend/src/*"],
+      "@app/shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "scripts", "../../tss.json"]
 }

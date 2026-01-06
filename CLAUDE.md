@@ -40,9 +40,10 @@ tss-stack-template/
 │   │       └── deploy.ts     # CDK deploy + SSM storage
 │   ├── edge/                 # CloudFront + Lambda@Edge
 │   │   ├── lib/
-│   │   │   ├── edge-router.ts  # Request routing logic
-│   │   │   └── stack.ts        # CDK stack definition
-│   │   └── scripts/deploy.ts   # Build + deploy
+│   │   │   ├── viewer-request.ts  # CloudFront Function (subdomain extraction)
+│   │   │   ├── origin-request.ts  # Lambda@Edge (request routing)
+│   │   │   └── stack.ts           # CDK stack definition
+│   │   └── scripts/deploy.ts      # Build + deploy
 │   └── frontend/             # Vite + React SPA
 │       ├── src/main.tsx
 │       └── vite.config.ts    # Dev proxy to backend

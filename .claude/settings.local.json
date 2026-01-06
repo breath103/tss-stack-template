@@ -4,7 +4,11 @@
       "Bash(curl:*)",
       "Bash(npx tsc:*)",
       "Bash(npm run dev:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(npx esbuild:*)",
+      "WebSearch"
     ]
   }
 }

@@ -4,6 +4,8 @@ import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import config from "../../../tss.json" with { type: "json" };
+import { sanitizeBranchName } from "@app/shared/branch";
+import * as SSMParameters from "@app/shared/ssm-parameters";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 
@@ -22,28 +24,14 @@ if (!name) {
   process.exit(1);
 }
 
-/**
- * Sanitize branch name to be subdomain-safe (RFC 1123)
- */
-function sanitizeBranchName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/\//g, "--")
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-{3,}/g, "--")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 63)
-    .replace(/-+$/, "");
-}
-
-const sanitizedName = sanitizeBranchName(name);
-if (!sanitizedName) {
+const sanitizedBranchName = sanitizeBranchName(name);
+if (!sanitizedBranchName) {
   console.error(`Error: branch name "${name}" sanitizes to empty string`);
   process.exit(1);
 }
 
-if (sanitizedName !== name) {
-  console.log(`Branch name sanitized: "${name}" → "${sanitizedName}"`);
+if (sanitizedBranchName !== name) {
+  console.log(`Branch name sanitized: "${name}" → "${sanitizedBranchName}"`);
 }
 
 // Build
@@ -79,13 +67,13 @@ class BackendStack extends cdk.Stack {
 }
 
 // Synthesize
-console.log(`\nDeploying ${sanitizedName} to ${config.backendRegion} (project: ${config.project})...`);
+console.log(`\nDeploying ${sanitizedBranchName} to ${config.backendRegion} (project: ${config.project})...`);
 
 const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
 
-const stackName = `${config.project}-backend-${sanitizedName}`;
+const stackName = `${config.project}-backend-${sanitizedBranchName}`;
 const stack = new BackendStack(app, stackName, {
-  aliasName: sanitizedName,
+  aliasName: sanitizedBranchName,
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: config.backendRegion,
@@ -93,7 +81,7 @@ const stack = new BackendStack(app, stackName, {
 });
 
 cdk.Tags.of(stack).add("project", config.project);
-cdk.Tags.of(stack).add("environment", sanitizedName);
+cdk.Tags.of(stack).add("environment", sanitizedBranchName);
 
 app.synth();
 
@@ -109,7 +97,8 @@ const functionUrl = execSync(
   { encoding: "utf-8" }
 ).trim();
 
-const ssmPath = `/${config.project}/backend/${sanitizedName}`;
+const ssmPath = SSMParameters.backendUrlName({ project: config.project, sanitizedBranchName });
+
 console.log(`\nStoring Function URL in SSM: ${ssmPath}`);
 execSync(
   `aws ssm put-parameter --name "${ssmPath}" --value "${functionUrl}" --type String --overwrite --region ${config.backendRegion}`,
