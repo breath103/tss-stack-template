@@ -5,7 +5,7 @@ export const route = createRoute("/api/health", "GET", {
     const user = c.get("user");
     return {
       status: "ok" as const,
-      branch: "'main' backend",
+      branch: "'branch1' backend",
       timestamp: Date.now(),
       envs: {
         REQUIRED_FOO: process.env.REQUIRED_FOO,

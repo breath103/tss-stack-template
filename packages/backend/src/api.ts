@@ -5,8 +5,8 @@ import { route as healthRoute } from "./routes/health.js";
 import { route as helloRoute } from "./routes/hello.js";
 
 export const api = routes(
-  echoRoute, 
-  healthRoute, 
+  echoRoute,
+  healthRoute,
   helloRoute
 );
 
