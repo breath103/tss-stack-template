@@ -8,7 +8,8 @@
       "Bash(npm install:*)",
       "Bash(cat:*)",
       "Bash(npx esbuild:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm ci:*)"
     ]
   }
 }

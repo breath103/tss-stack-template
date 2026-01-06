@@ -1,4 +1,5 @@
 {
+  "$schema": "./tss.schema.json",
   "project": "tsss",
   "repo": "breath103/tss-stack-template",
   "backend": {

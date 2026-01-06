@@ -13,9 +13,14 @@ If you want a simple web app (no SSR) on your own AWS infrastructure:
 
 ## Quick Start
 
-### 1. Configure
+### 1. Setup
 
-Edit `tss.json`:
+```bash
+npm install
+npm run setup
+```
+
+Or manually edit `tss.json`:
 
 ```json
 {
@@ -86,12 +91,17 @@ Runs backend on `:3001`, frontend on `:5173` with proxy to backend.
 └───────────────┘     └───────────────┘
 ```
 
-### How routing works
+### Routing
 
-1. **viewer-request** extracts branch from subdomain (`feature--auth.myapp.com` → `feature--auth`)
-2. **origin-request** checks the path:
-   - `/api/*` → Looks up Lambda URL from SSM, routes to backend
-   - `/*` → Prepends branch to path, routes to S3 (`/dashboard` → `/feature--auth/dashboard`)
+1. **viewer-request** extracts subdomain and applies `subdomainMap`:
+   - `myapp.com` → `main` (mapped from `""`)
+   - `www.myapp.com` → `main` (mapped from `"www"`)
+   - `feature--auth.myapp.com` → `feature--auth` (used as-is)
+   - `main.myapp.com` → 404 (mapped to `null` = blocked)
+
+2. **origin-request** routes by path:
+   - `/api/*` → Backend Lambda (URL from SSM)
+   - `/*` → S3 (`/{branch}/...`)
 
 ### SSM Parameter Store
 
@@ -99,7 +109,6 @@ Backend URLs are stored in SSM so Lambda@Edge can route dynamically:
 
 ```
 /{project}/backend/{branch} → Lambda Function URL
-/{project}/frontend/bucket  → S3 bucket name
 ```
 
 When you deploy backend for `feature/auth`, it stores:
@@ -131,7 +140,7 @@ This creates an OIDC identity provider and IAM role in AWS. Copy the `RoleArn` f
 ## Project Structure
 
 ```
-├── tss.json              # Config
+├── tss.json              # Config (schema: tss.schema.json)
 ├── packages/
 │   ├── backend/          # Hono API → Lambda
 │   ├── frontend/         # Vite + React → S3
