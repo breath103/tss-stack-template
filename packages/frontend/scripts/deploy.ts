@@ -2,13 +2,12 @@ import { execSync } from "child_process";
 import path from "path";
 import fs from "fs";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
-import { loadConfig } from "@app/shared/config";
+import { loadConfig, frontendBucketName } from "@app/shared/config";
 import cacheRules from "../cache.json" with { type: "json" };
 import { sanitizeBranchName } from "@app/shared/branch";
-import * as SSMParameters from "@app/shared/ssm-parameters";
 
 const config = loadConfig();
+const bucketName = frontendBucketName(config);
 
 // Convert glob pattern to regex (supports * and **)
 function globToRegex(pattern: string): RegExp {
@@ -61,18 +60,6 @@ if (sanitizedName !== name) {
 // Build frontend
 console.log("Building frontend...");
 execSync("npm run build", { stdio: "inherit", cwd: ROOT });
-
-// Get bucket name from SSM (edge stack is always in us-east-1)
-const ssm = new SSMClient({ region: "us-east-1" });
-const bucketParam = await ssm.send(
-  new GetParameterCommand({ Name: SSMParameters.frontendBucketName({ project: config.project }) })
-);
-const bucketName = bucketParam.Parameter?.Value;
-
-if (!bucketName) {
-  console.error("Error: Frontend bucket not found in SSM. Deploy edge first.");
-  process.exit(1);
-}
 
 console.log(`\nUploading to s3://${bucketName}/${sanitizedName}/...`);
 

@@ -7,10 +7,8 @@ import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import path from "path";
-import * as SSMParameters from "@app/shared/ssm-parameters";
 
 const __dirname = import.meta.dirname;
 
@@ -62,12 +60,6 @@ export class EdgeStack extends cdk.Stack {
 
     // Grant CloudFront read access to S3
     frontendBucket.grantRead(oai);
-
-    // Store bucket name in SSM for frontend deploy script
-    new ssm.StringParameter(this, "FrontendBucketParam", {
-      parameterName: SSMParameters.frontendBucketName({ project: props.project }),
-      stringValue: frontendBucket.bucketName,
-    });
 
     // Import hosted zone
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(

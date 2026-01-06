@@ -14,6 +14,10 @@ const configSchema = z.object({
 
 export type TssConfig = z.infer<typeof configSchema>;
 
+export function frontendBucketName(config: TssConfig): string {
+  return `${config.project}-frontend`;
+}
+
 function findProjectRoot(): string {
   let dir = process.cwd();
   while (dir !== "/") {
