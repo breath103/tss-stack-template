@@ -1,5 +1,6 @@
 {
   "project": "tsss",
+  "repo": "breath103/tss-stack-template",
   "backend": {
     "region": "ap-northeast-2"
   },

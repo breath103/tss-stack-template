@@ -31,7 +31,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          # Required param but not used - all stacks set their region from tss.json
+          aws-region: us-east-1
 
       - name: Get branch name
         id: branch

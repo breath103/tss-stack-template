@@ -4,6 +4,7 @@ import { z } from "zod";
 
 const configSchema = z.object({
   project: z.string(),
+  repo: z.string(),
   backend: z.object({ region: z.string() }),
   ssm: z.object({ region: z.string() }),
   domain: z.string(),

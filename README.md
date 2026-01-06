@@ -20,6 +20,7 @@ Edit `tss.json`:
 ```json
 {
   "project": "myapp",
+  "repo": "yourorg/yourrepo",
   "backend": { "region": "ap-northeast-2" },
   "ssm": { "region": "ap-northeast-2" },
   "domain": "myapp.com",
@@ -27,7 +28,8 @@ Edit `tss.json`:
 }
 ```
 
-`hostedZoneId` is from Route53. Create a hosted zone for your domain first.
+- `hostedZoneId` - from Route53. Create a hosted zone for your domain first.
+- `repo` - your GitHub repo (org/repo format). Used for CI/CD setup.
 
 ### 2. Deploy
 
@@ -107,7 +109,7 @@ When you deploy backend for `feature/auth`, it stores:
 
 Lambda@Edge reads this at runtime (cached 60s) to route API requests.
 
-## GitHub Actions
+## CI/CD
 
 Automatic deployment on push:
 - Push to any branch → deploys backend + frontend for that branch
@@ -115,10 +117,16 @@ Automatic deployment on push:
 
 ### Setup
 
-1. Create IAM role for GitHub Actions with OIDC
-2. Add to repository:
-   - Secret: `AWS_ROLE_ARN` - IAM role ARN
-   - Variable: `AWS_REGION` - e.g. `ap-northeast-2`
+1. Run bootstrap to create IAM role for GitHub Actions:
+
+```bash
+npm run bootstrap
+```
+
+This creates an OIDC identity provider and IAM role in AWS. Copy the `RoleArn` from the output.
+
+2. Add to GitHub repo (Settings → Secrets and variables → Actions):
+   - Secret: `AWS_ROLE_ARN` = the role ARN from step 1
 
 ## Project Structure
 

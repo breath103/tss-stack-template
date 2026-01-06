@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "tsx scripts/deploy.ts"
+    "deploy": "tsx scripts/deploy.ts",
+    "bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.170.0",
