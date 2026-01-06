@@ -49,7 +49,7 @@ function Home() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">TSS Stack Template</h1>
+        <h1 className="text-3xl font-bold text-gray-900">TSS Stack Template 'branch1' Branch</h1>
         <p className="mt-1 text-gray-600">Type-Safe Full Serverless Stack</p>
       </div>
 
