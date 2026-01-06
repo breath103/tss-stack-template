@@ -7,23 +7,23 @@ const api = createApiClient<ApiRoutes>();
 
 function App() {
   const [health, setHealth] = useState<Awaited<
-    ReturnType<typeof api["/api/health"]["GET"]>
+    ReturnType<typeof api.fetch<"/api/health", "GET">>
   > | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [echoResult, setEchoResult] = useState<Awaited<
-    ReturnType<typeof api["/api/echo/:id"]["POST"]>
+    ReturnType<typeof api.fetch<"/api/echo/:id", "POST">>
   > | null>(null);
 
   useEffect(() => {
-    api["/api/health"].GET().then(setHealth).catch(console.error);
+    api.fetch("/api/health", "GET").then(setHealth).catch(console.error);
 
-    api["/api/hello"]
-      .GET({ query: { name: "TypeSafe" } })
+    api
+      .fetch("/api/hello", "GET", { query: { name: "TypeSafe" } })
       .then((data) => setMessage(data.message))
       .catch(console.error);
 
-    api["/api/echo/:id"]
-      .POST({
+    api
+      .fetch("/api/echo/:id", "POST", {
         params: { id: "test-123" },
         body: { message: "Hello from frontend!", count: 42 },
       })

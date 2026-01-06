@@ -1,84 +1,62 @@
 import { z } from "zod";
 import type { Hono, Context } from "hono";
 
-// HTTP methods supported
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+type SchemaShape = Record<string, z.ZodTypeAny>;
 
-// Extract path parameter names from a path template
-// "/api/users/:userId/posts/:postId" → "userId" | "postId"
+// Extract path params: "/users/:id/posts/:postId" → "id" | "postId"
 type ExtractPathParams<T extends string> = T extends `${string}:${infer Param}/${infer Rest}`
   ? Param | ExtractPathParams<`/${Rest}`>
   : T extends `${string}:${infer Param}`
     ? Param
     : never;
 
-// Helper to extract zod inferred type or never
-type InferZodOrNever<T> = T extends z.ZodObject<z.ZodRawShape> ? z.infer<T> : never;
+// Infer from plain object shape
+type InferShape<T> = T extends SchemaShape ? { [K in keyof T]: z.infer<T[K]> } : never;
 
-// Route method config - used internally
-type RouteMethodConfig = {
-  params?: z.ZodObject<z.ZodRawShape>;
-  query?: z.ZodObject<z.ZodRawShape>;
-  body?: z.ZodObject<z.ZodRawShape>;
+// Route method definition
+type MethodDef<Path extends string> = {
+  params?: ExtractPathParams<Path> extends never
+    ? undefined
+    : { [K in ExtractPathParams<Path>]: z.ZodTypeAny };
+  query?: SchemaShape;
+  body?: SchemaShape;
   handler: (ctx: {
-    params: any;
-    query: any;
-    body: any;
+    params: ExtractPathParams<Path> extends never
+      ? Record<string, never>
+      : { [K in ExtractPathParams<Path>]: string };
+    query: Record<string, unknown>;
+    body: Record<string, unknown>;
     c: Context;
   }) => unknown | Promise<unknown>;
 };
 
-// Extract route types for frontend consumption
+// Extract route types for frontend
 export type ExtractRoutes<T> = {
-  [Path in keyof T]: {
-    [Method in keyof T[Path]]: T[Path][Method] extends { handler: infer H }
+  [Path in keyof T & string]: {
+    [Method in keyof T[Path] & string]: T[Path][Method] extends { handler: infer H }
       ? {
-          params: T[Path][Method] extends { params: infer P } ? InferZodOrNever<P> : never;
-          query: T[Path][Method] extends { query: infer Q } ? InferZodOrNever<Q> : never;
-          body: T[Path][Method] extends { body: infer B } ? InferZodOrNever<B> : never;
+          params: T[Path][Method] extends { params: infer P } ? InferShape<P> : never;
+          query: T[Path][Method] extends { query: infer Q } ? InferShape<Q> : never;
+          body: T[Path][Method] extends { body: infer B } ? InferShape<B> : never;
           response: H extends (...args: any[]) => any ? Awaited<ReturnType<H>> : never;
         }
       : never;
   };
 };
 
-// Infer type or empty object
-type InferOrEmpty<T> = T extends z.ZodObject<z.ZodRawShape> ? z.infer<T> : Record<string, never>;
-
-// Handler context type
-type HandlerCtx<Path extends string, TQuery, TBody> = {
-  params: ExtractPathParams<Path> extends never
-    ? Record<string, never>
-    : { [K in ExtractPathParams<Path>]: string };
-  query: InferOrEmpty<TQuery>;
-  body: InferOrEmpty<TBody>;
-  c: Context;
+// Runtime config type
+type RouteMethodConfig = {
+  params?: SchemaShape;
+  query?: SchemaShape;
+  body?: SchemaShape;
+  handler: (ctx: { params: any; query: any; body: any; c: Context }) => unknown | Promise<unknown>;
 };
 
-// Route definition for a single method
-type MethodDef<
-  Path extends string,
-  TQuery extends z.ZodObject<z.ZodRawShape> | undefined = undefined,
-  TBody extends z.ZodObject<z.ZodRawShape> | undefined = undefined,
-> = {
-  query?: TQuery;
-  body?: TBody;
-  handler: (ctx: HandlerCtx<Path, TQuery, TBody>) => unknown | Promise<unknown>;
-} & (ExtractPathParams<Path> extends never
-  ? {}
-  : { params: z.ZodObject<{ [K in ExtractPathParams<Path>]: z.ZodTypeAny }> });
-
-// Define routes type
-type DefineRoutes<T> = {
-  [Path in keyof T & string]: {
-    [M in keyof T[Path] & HttpMethod]?: MethodDef<Path, any, any>;
-  };
-};
-
-// Main function to create routes
-export function createRoute<
-  const T extends DefineRoutes<T>,
->(routes: T) {
+// Main createRoute function
+export function createRoute<const T extends Record<string, Record<string, MethodDef<any>>>>(
+  routes: T
+): { routes: T; register: (app: Hono) => void } {
   function register(app: Hono) {
     for (const [path, methods] of Object.entries(
       routes as Record<string, Record<string, RouteMethodConfig>>
@@ -88,40 +66,39 @@ export function createRoute<
 
         app[httpMethod](path, async (c) => {
           try {
-            // Parse and validate params
             let params = {};
             if (config.params) {
               const rawParams = c.req.param();
-              const result = config.params.safeParse(rawParams);
+              const schema = z.object(config.params);
+              const result = schema.safeParse(rawParams);
               if (!result.success) {
                 return c.json({ error: "Invalid params", details: result.error.flatten() }, 400);
               }
               params = result.data;
             }
 
-            // Parse and validate query
             let query = {};
             if (config.query) {
               const rawQuery = c.req.query();
-              const result = config.query.safeParse(rawQuery);
+              const schema = z.object(config.query);
+              const result = schema.safeParse(rawQuery);
               if (!result.success) {
                 return c.json({ error: "Invalid query", details: result.error.flatten() }, 400);
               }
               query = result.data;
             }
 
-            // Parse and validate body
             let body = {};
             if (config.body) {
               const rawBody = await c.req.json().catch(() => ({}));
-              const result = config.body.safeParse(rawBody);
+              const schema = z.object(config.body);
+              const result = schema.safeParse(rawBody);
               if (!result.success) {
                 return c.json({ error: "Invalid body", details: result.error.flatten() }, 400);
               }
               body = result.data;
             }
 
-            // Call handler
             const response = await config.handler({ params, query, body, c });
             return c.json(response);
           } catch (error) {

@@ -12,9 +12,9 @@ export const api = createRoute({
   },
   "/api/hello": {
     GET: {
-      query: z.object({
+      query: {
         name: z.string().optional(),
-      }),
+      },
       handler: ({ query }) => ({
         message: query.name ? `Hello, ${query.name}!` : "Hello from backend!",
       }),
@@ -22,13 +22,13 @@ export const api = createRoute({
   },
   "/api/echo/:id": {
     POST: {
-      params: z.object({
+      params: {
         id: z.string(),
-      }),
-      body: z.object({
+      },
+      body: {
         message: z.string(),
         count: z.number().optional(),
-      }),
+      },
       handler: ({ params, body }) => ({
         echo: {
           id: params.id,

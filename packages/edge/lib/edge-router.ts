@@ -43,7 +43,7 @@ function getSubdomain(host: string): string {
  * Get backend URL from SSM (with caching)
  */
 async function getBackendUrl(branch: string): Promise<string | null> {
-  return cachedFetch(backendUrlCache, branch, CACHE_TTL, async (key) => {
+  return cachedFetch(backendUrlCache, branch, 60 * 1000, async (key) => {
     try {
       const result = await ssm.send(
         new GetParameterCommand({ Name: `/${PROJECT}/backend/${key}` })
