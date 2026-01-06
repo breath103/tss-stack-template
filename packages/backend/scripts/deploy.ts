@@ -3,13 +3,20 @@ import path from "path";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
+import { config as dotenvConfig } from "dotenv";
 import { loadConfig } from "@app/shared/config";
 import { sanitizeBranchName } from "@app/shared/branch";
 import * as SSMParameters from "@app/shared/ssm-parameters";
+import { loadAndValidateEnv } from "@app/shared/env-parser";
 
 const config = loadConfig();
-
 const ROOT = path.resolve(import.meta.dirname, "..");
+
+// Load .env if exists (for local development)
+dotenvConfig({ path: path.join(ROOT, ".env") });
+
+// Parse and validate environment variables from env.d.ts
+const envVars = loadAndValidateEnv(path.join(ROOT, "src/env.d.ts"));
 
 // Parse CLI args
 const args = process.argv.slice(2);
@@ -53,6 +60,7 @@ class BackendStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       environment: {
         NODE_ENV: "production",
+        ...envVars,
       },
     });
 

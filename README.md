@@ -49,13 +49,43 @@ npm run deploy:backend -- --name=main
 npm run deploy:frontend -- --name=main
 ```
 
-### 3. Dev
+### 3. Environment Variables
+
+Define env vars in `src/env.d.ts`:
+
+```typescript
+// packages/backend/src/env.d.ts
+declare namespace NodeJS {
+  interface ProcessEnv {
+    DATABASE_URL: string;           // required
+    OPTIONAL_KEY: string | undefined; // optional
+  }
+}
+```
+
+**Local dev**: Create `.env` in each package (gitignored):
+
+```bash
+# packages/backend/.env
+DATABASE_URL=postgres://localhost/myapp
+```
+
+**CI/CD**: Set in `.github/workflows/deploy.yml`:
+
+```yaml
+- name: Deploy backend
+  env:
+    DATABASE_URL: "postgres://prod/myapp"
+  run: npm run deploy:backend -- --name=${{ github.ref_name }}
+```
+
+### 4. Dev
 
 ```bash
 npm run dev
 ```
 
-Runs backend on `:3001`, frontend on `:5173` with proxy to backend.
+Runs backend on `:3001`, frontend on `:3000` with proxy to backend.
 
 ## Architecture
 

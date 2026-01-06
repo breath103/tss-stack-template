@@ -3,3 +3,7 @@ dist
 cdk.out
 *.log
 .DS_Store
+
+# Environment files (contain secrets)
+.env
+packages/*/.env

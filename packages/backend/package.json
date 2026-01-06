@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx scripts/dev.ts",
     "build": "tsx scripts/build.ts",
     "deploy": "tsx scripts/deploy.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
+    "dotenv": "^16.4.0",
     "hono": "^4.0.0",
     "zod": "^4.3.5"
   },

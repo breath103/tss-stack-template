@@ -38,12 +38,24 @@ function Home() {
       .catch(console.error);
   }, []);
 
+  const frontendEnv = {
+    REQUIRED_FOO: process.env.REQUIRED_FOO,
+    OPTIONAL_FOO: process.env.OPTIONAL_FOO,
+  };
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">TSS Stack Template</h1>
         <p className="text-gray-600 mt-1">Type-Safe Full Serverless Stack</p>
       </div>
+
+      <section className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Frontend Env</h2>
+        <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
+          {JSON.stringify(frontendEnv, null, 2)}
+        </pre>
+      </section>
 
       <section className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Backend Health</h2>

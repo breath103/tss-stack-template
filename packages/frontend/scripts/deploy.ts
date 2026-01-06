@@ -7,6 +7,7 @@ import cacheRules from "../cache.json" with { type: "json" };
 import { sanitizeBranchName } from "@app/shared/branch";
 
 const config = loadConfig();
+const ROOT = path.resolve(import.meta.dirname, "..");
 const bucketName = frontendBucketName(config);
 
 // Convert glob pattern to regex (supports * and **)
@@ -29,7 +30,6 @@ function getCacheControl(filePath: string): string {
   return "public, max-age=31536000, immutable"; // default
 }
 
-const ROOT = path.resolve(import.meta.dirname, "..");
 const DIST = path.join(ROOT, "dist");
 
 // Parse CLI args
