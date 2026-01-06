@@ -3,9 +3,11 @@ import path from "path";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
-import config from "../../../tss.json" with { type: "json" };
+import { loadConfig } from "@app/shared/config";
 import { sanitizeBranchName } from "@app/shared/branch";
 import * as SSMParameters from "@app/shared/ssm-parameters";
+
+const config = loadConfig();
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 
@@ -67,7 +69,7 @@ class BackendStack extends cdk.Stack {
 }
 
 // Synthesize
-console.log(`\nDeploying ${sanitizedBranchName} to ${config.backendRegion} (project: ${config.project})...`);
+console.log(`\nDeploying ${sanitizedBranchName} to ${config.backend.region} (project: ${config.project})...`);
 
 const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
 
@@ -76,7 +78,7 @@ const stack = new BackendStack(app, stackName, {
   aliasName: sanitizedBranchName,
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: config.backendRegion,
+    region: config.backend.region,
   },
 });
 
@@ -93,7 +95,7 @@ execSync(
 
 // Get Function URL and store in SSM
 const functionUrl = execSync(
-  `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`FunctionUrl\`].OutputValue' --output text --region ${config.backendRegion}`,
+  `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`FunctionUrl\`].OutputValue' --output text --region ${config.backend.region}`,
   { encoding: "utf-8" }
 ).trim();
 
@@ -101,7 +103,7 @@ const ssmPath = SSMParameters.backendUrlName({ project: config.project, sanitize
 
 console.log(`\nStoring Function URL in SSM: ${ssmPath}`);
 execSync(
-  `aws ssm put-parameter --name "${ssmPath}" --value "${functionUrl}" --type String --overwrite --region ${config.backendRegion}`,
+  `aws ssm put-parameter --name "${ssmPath}" --value "${functionUrl}" --type String --overwrite --region ${config.ssm.region}`,
   { stdio: "inherit" }
 );
 

@@ -54,10 +54,11 @@ tss-stack-template/
 `tss.json`:
 ```json
 {
-  "project": "myapp",           // Project name (used in stack names, SSM paths)
-  "backendRegion": "ap-northeast-2",  // AWS region for backend Lambda
-  "domain": "example.com",      // Your domain
-  "hostedZoneId": "Z1234567890" // Route53 hosted zone ID
+  "project": "myapp",
+  "backend": { "region": "ap-northeast-2" },
+  "ssm": { "region": "ap-northeast-2" },
+  "domain": "example.com",
+  "hostedZoneId": "Z1234567890"
 }
 ```
 

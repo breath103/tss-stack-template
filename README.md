@@ -20,7 +20,8 @@ Edit `tss.json`:
 ```json
 {
   "project": "myapp",
-  "backendRegion": "ap-northeast-2",
+  "backend": { "region": "ap-northeast-2" },
+  "ssm": { "region": "ap-northeast-2" },
   "domain": "myapp.com",
   "hostedZoneId": "Z1234567890"
 }

@@ -3,10 +3,12 @@ import path from "path";
 import fs from "fs";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
-import config from "../../../tss.json" with { type: "json" };
+import { loadConfig } from "@app/shared/config";
 import cacheRules from "../cache.json" with { type: "json" };
 import { sanitizeBranchName } from "@app/shared/branch";
 import * as SSMParameters from "@app/shared/ssm-parameters";
+
+const config = loadConfig();
 
 // Convert glob pattern to regex (supports * and **)
 function globToRegex(pattern: string): RegExp {

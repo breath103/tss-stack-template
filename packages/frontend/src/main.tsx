@@ -32,8 +32,8 @@ function App() {
   }, []);
 
   return (
-    <div style={{ fontFamily: "system-ui", padding: "2rem" }}>
-      <h1>TSS Stack Template</h1>
+    <div style={{ fontFamily: "system-ui" }}>
+      <h1>TSS Stack Template ('main' Frontend)</h1>
       <p>Type-Safe Full Serverless Stack</p>
 
       <h2>Backend Health</h2>

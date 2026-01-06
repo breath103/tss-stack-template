@@ -6,6 +6,7 @@ export const api = createRoute({
     GET: {
       handler: () => ({
         status: "ok" as const,
+        branch: "'main' backend",
         timestamp: Date.now(),
       }),
     },

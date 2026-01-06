@@ -4,18 +4,13 @@ import path from "path";
 import fs from "fs";
 import * as cdk from "aws-cdk-lib";
 import { EdgeStack } from "../lib/stack.js";
-import config from "../../../tss.json" with { type: "json" };
+import { loadConfig } from "@app/shared/config";
+
+const config = loadConfig();
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DIST = path.join(ROOT, "dist");
 const dryRun = process.argv.includes("--dry-run");
-
-const { project, backendRegion, domain, hostedZoneId } = config;
-
-if (!project || !backendRegion || !domain || !hostedZoneId) {
-  console.error("Error: tss.json must have project, backendRegion, domain, hostedZoneId");
-  process.exit(1);
-}
 
 console.log("Building edge functions...");
 fs.rmSync(DIST, { recursive: true, force: true });
@@ -45,33 +40,34 @@ await build({
   format: "cjs",
   outfile: path.join(DIST, "origin-request/index.js"),
   define: {
-    "process.env.PROJECT": JSON.stringify(project),
-    "process.env.SSM_REGION": JSON.stringify(backendRegion),
+    "process.env.PROJECT": JSON.stringify(config.project),
+    "process.env.SSM_REGION": JSON.stringify(config.ssm.region),
   },
 });
 
-console.log(`  project: ${project}`);
-console.log(`  backendRegion: ${backendRegion}`);
-console.log(`  domain: ${domain}`);
-console.log(`  hostedZoneId: ${hostedZoneId}`);
+console.log(`  project: ${config.project}`);
+console.log(`  backend.region: ${config.backend.region}`);
+console.log(`  ssm.region: ${config.ssm.region}`);
+console.log(`  domain: ${config.domain}`);
+console.log(`  hostedZoneId: ${config.hostedZoneId}`);
 
 // Synthesize and deploy CDK stack
-console.log(`\nDeploying ${project}-edge...`);
+console.log(`\nDeploying ${config.project}-edge...`);
 
 const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
 
-const stack = new EdgeStack(app, `${project}-edge`, {
-  project,
-  ssmRegion: backendRegion,
-  domain,
-  hostedZoneId,
+const stack = new EdgeStack(app, `${config.project}-edge`, {
+  project: config.project,
+  ssmRegion: config.ssm.region,
+  domain: config.domain,
+  hostedZoneId: config.hostedZoneId,
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: "us-east-1",
   },
 });
 
-cdk.Tags.of(stack).add("project", project);
+cdk.Tags.of(stack).add("project", config.project);
 
 app.synth();
 
@@ -82,7 +78,7 @@ if (dryRun) {
   execSync(`ls -la ${DIST}`, { stdio: "inherit" });
 } else {
   execSync(
-    `npx cdk deploy ${project}-edge --app ./cdk.out --require-approval never`,
+    `npx cdk deploy ${config.project}-edge --app ./cdk.out --require-approval never`,
     { stdio: "inherit", cwd: ROOT }
   );
 }

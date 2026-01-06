@@ -1,6 +1,11 @@
 {
   "project": "tsss",
-  "backendRegion": "ap-northeast-2",
+  "backend": {
+    "region": "ap-northeast-2"
+  },
+  "ssm": {
+    "region": "ap-northeast-2"
+  },
   "domain": "tsss.cloud",
   "hostedZoneId": "Z0281460Z2VKJY4HRDWP"
 }
