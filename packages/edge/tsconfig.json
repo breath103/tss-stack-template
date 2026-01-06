@@ -4,9 +4,10 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
     "outDir": "dist"
   },
-  "include": ["lib", "scripts"]
+  "include": ["lib", "scripts", "../../tss.json"]
 }

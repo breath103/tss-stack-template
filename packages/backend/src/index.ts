@@ -1,17 +1,13 @@
 import { Hono } from "hono";
 import { handle } from "hono/aws-lambda";
+import { api } from "./api.js";
 
 const app = new Hono();
 
-app.get("/api/health", (c) => {
-  return c.json({ status: "ok", timestamp: Date.now() });
-});
+// Register all API routes
+api.register(app);
 
-app.get("/api/hello", (c) => {
-  return c.json({ message: "Hello from backend!" });
-});
-
-// Lambda handler export
+// Lambda handler export (production)
 export const handler = handle(app);
 
 // Local dev server

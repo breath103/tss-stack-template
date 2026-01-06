@@ -1,4 +1,5 @@
 import type {
+  CloudFrontRequest,
   CloudFrontRequestEvent,
   CloudFrontRequestResult,
 } from "aws-lambda";
@@ -80,9 +81,9 @@ export const handler = async (
 };
 
 function rewriteOrigin(
-  request: CloudFrontRequestResult,
+  request: CloudFrontRequest,
   backendUrl: string
-): CloudFrontRequestResult {
+): CloudFrontRequest {
   const url = new URL(backendUrl);
 
   request.origin = {

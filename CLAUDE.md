@@ -30,7 +30,7 @@ Type-Safe Full Serverless Stack - A template for deploying full-stack TypeScript
 
 ```
 tss-stack-template/
-├── tss.config.json           # Project configuration
+├── tss.json                  # Project configuration
 ├── package.json              # Workspace root
 ├── packages/
 │   ├── backend/              # Hono API on Lambda
@@ -50,7 +50,7 @@ tss-stack-template/
 
 ## Configuration
 
-`tss.config.json`:
+`tss.json`:
 ```json
 {
   "project": "myapp",           // Project name (used in stack names, SSM paths)

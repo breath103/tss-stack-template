@@ -1,17 +1,11 @@
 import { execSync } from "child_process";
-import fs from "fs";
 import path from "path";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
+import config from "../../../tss.json" with { type: "json" };
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const REPO_ROOT = path.resolve(ROOT, "../..");
-
-// Load config
-const config = JSON.parse(
-  fs.readFileSync(path.join(REPO_ROOT, "tss.config.json"), "utf-8")
-);
 
 // Parse CLI args
 const args = process.argv.slice(2);

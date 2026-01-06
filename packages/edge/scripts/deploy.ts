@@ -4,20 +4,15 @@ import path from "path";
 import fs from "fs";
 import * as cdk from "aws-cdk-lib";
 import { EdgeStack } from "../lib/stack.js";
+import config from "../../../tss.json" with { type: "json" };
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const REPO_ROOT = path.resolve(ROOT, "../..");
 const DIST = path.join(ROOT, "dist");
-
-// Load config
-const config = JSON.parse(
-  fs.readFileSync(path.join(REPO_ROOT, "tss.config.json"), "utf-8")
-);
 
 const { project, backendRegion, domain, hostedZoneId } = config;
 
 if (!project || !backendRegion || !domain || !hostedZoneId) {
-  console.error("Error: tss.config.json must have project, backendRegion, domain, hostedZoneId");
+  console.error("Error: tss.json must have project, backendRegion, domain, hostedZoneId");
   process.exit(1);
 }
 
