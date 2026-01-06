@@ -1,63 +1,19 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createApiClient } from "./lib/api-client";
-import type { ApiRoutes } from "@app/backend/api";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { routeTree } from "./routeTree.gen";
+import "./global.css";
 
-const api = createApiClient<ApiRoutes>();
+const router = createRouter({ routeTree });
 
-function App() {
-  const [health, setHealth] = useState<Awaited<
-    ReturnType<typeof api.fetch<"/api/health", "GET">>
-  > | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [echoResult, setEchoResult] = useState<Awaited<
-    ReturnType<typeof api.fetch<"/api/echo/:id", "POST">>
-  > | null>(null);
-
-  useEffect(() => {
-    api.fetch("/api/health", "GET").then(setHealth).catch(console.error);
-
-    api
-      .fetch("/api/hello", "GET", { query: { name: "TypeSafe" } })
-      .then((data) => setMessage(data.message))
-      .catch(console.error);
-
-    api
-      .fetch("/api/echo/:id", "POST", {
-        params: { id: "test-123" },
-        body: { message: "Hello from frontend!", count: 42 },
-      })
-      .then(setEchoResult)
-      .catch(console.error);
-  }, []);
-
-  return (
-    <div style={{ fontFamily: "system-ui" }}>
-      <h1>TSS Stack Template ('main' Frontend)</h1>
-      <p>Type-Safe Full Serverless Stack</p>
-
-      <h2>Backend Health</h2>
-      {health ? (
-        <pre>{JSON.stringify(health, null, 2)}</pre>
-      ) : (
-        <p>Loading...</p>
-      )}
-
-      <h2>API Response</h2>
-      {message ? <p>{message}</p> : <p>Loading...</p>}
-
-      <h2>Echo Test (POST with params + body)</h2>
-      {echoResult ? (
-        <pre>{JSON.stringify(echoResult, null, 2)}</pre>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
-  );
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
 }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </StrictMode>
 );

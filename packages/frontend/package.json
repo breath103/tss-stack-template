@@ -11,8 +11,11 @@
     "deploy": "tsx scripts/deploy.ts"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/react-router": "^1.145.7",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3",
