@@ -106,6 +106,19 @@ When you deploy backend for `feature/auth`, it stores:
 
 Lambda@Edge reads this at runtime (cached 60s) to route API requests.
 
+## GitHub Actions
+
+Automatic deployment on push:
+- Push to any branch → deploys backend + frontend for that branch
+- Edge must be deployed manually (`npm run deploy:edge`)
+
+### Setup
+
+1. Create IAM role for GitHub Actions with OIDC
+2. Add to repository:
+   - Secret: `AWS_ROLE_ARN` - IAM role ARN
+   - Variable: `AWS_REGION` - e.g. `ap-northeast-2`
+
 ## Project Structure
 
 ```

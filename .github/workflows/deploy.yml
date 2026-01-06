@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - '**'
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Get branch name
+        id: branch
+        run: echo "name=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Deploy backend
+        run: npm run deploy:backend -- --name=${{ steps.branch.outputs.name }}
+
+      - name: Deploy frontend
+        run: npm run deploy:frontend -- --name=${{ steps.branch.outputs.name }}
