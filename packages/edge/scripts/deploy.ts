@@ -28,6 +28,9 @@ await build({
   format: "esm",
   treeShaking: false,
   outfile: path.join(DIST, "viewer-request/index.js"),
+  define: {
+    SUBDOMAIN_MAP_CONFIG: JSON.stringify(config.subdomainMap),
+  },
 });
 
 // Build origin-request Lambda@Edge (runs on Node.js 24.x runtime)

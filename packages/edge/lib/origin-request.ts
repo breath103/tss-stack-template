@@ -56,22 +56,26 @@ export const handler = async (
 
   // Read branch from x-branch header set by CloudFront Function at viewer-request
   // (Host header is already changed to S3 origin domain by the time we get here)
-  const branch = request.headers["x-branch"]?.[0]?.value || "main";
+  const branch = request.headers["x-branch"]?.[0]?.value;
+
+  if (!branch) {
+    return {
+      status: "404",
+      statusDescription: "Not Found",
+      body: "Not Found",
+    };
+  }
 
   // API requests: route to backend Lambda
   if (uri.startsWith("/api/") || uri === "/api") {
     const backendUrl = await getBackendUrl(branch);
 
     if (!backendUrl) {
-      const mainUrl = await getBackendUrl("main");
-      if (!mainUrl) {
-        return {
-          status: "502",
-          statusDescription: "Bad Gateway",
-          body: "Backend not configured",
-        };
-      }
-      return rewriteToBackend(request, mainUrl);
+      return {
+        status: "404",
+        statusDescription: "Not Found",
+        body: "Not Found",
+      };
     }
 
     return rewriteToBackend(request, backendUrl);

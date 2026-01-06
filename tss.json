@@ -8,5 +8,10 @@
     "region": "ap-northeast-2"
   },
   "domain": "tsss.cloud",
-  "hostedZoneId": "Z0281460Z2VKJY4HRDWP"
+  "hostedZoneId": "Z0281460Z2VKJY4HRDWP",
+  "subdomainMap": {
+    "": "main",
+    "www": "main",
+    "main": null
+  }
 }

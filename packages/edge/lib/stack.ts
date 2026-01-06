@@ -28,7 +28,7 @@ export class EdgeStack extends cdk.Stack {
     // Lambda@Edge for routing subdomains to backend URLs
     const originRequest = new cloudfront.experimental.EdgeFunction(
       this,
-      "EdgeRouter",
+      "OriginRequestFunction",
       {
         runtime: lambda.Runtime.NODEJS_24_X,
         handler: "index.handler",
@@ -88,6 +88,20 @@ export class EdgeStack extends cdk.Stack {
 
     const domainNames = [`*.${props.domain}`, props.domain];
 
+    // Custom cache policy that includes x-branch header in cache key
+    // Without this, all subdomains share the same cache entry
+    const frontendCachePolicy = new cloudfront.CachePolicy(this, "FrontendCachePolicy", {
+      cachePolicyName: `${props.project}-frontend`,
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("x-branch"),
+      queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+      defaultTtl: cdk.Duration.days(1),
+      maxTtl: cdk.Duration.days(365),
+      minTtl: cdk.Duration.seconds(0),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+    });
+
     // S3 origin for frontend assets
     const s3Origin = origins.S3BucketOrigin.withOriginAccessIdentity(frontendBucket, {
       originAccessIdentity: oai,
@@ -95,7 +109,7 @@ export class EdgeStack extends cdk.Stack {
 
     // CloudFront Function to extract subdomain at viewer-request
     // (before Host header is changed to S3 origin domain)
-    const viewerRequestFn = new cloudfront.Function(this, "ViewerRequestFn", {
+    const ViewerRequestFunction = new cloudfront.Function(this, "ViewerRequestFunction", {
       code: cloudfront.FunctionCode.fromFile({
         filePath: path.join(__dirname, "../dist/viewer-request/index.js"),
       }),
@@ -107,10 +121,10 @@ export class EdgeStack extends cdk.Stack {
       defaultBehavior: {
         origin: s3Origin,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        cachePolicy: frontendCachePolicy,
         functionAssociations: [
           {
-            function: viewerRequestFn,
+            function: ViewerRequestFunction,
             eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
           },
         ],
@@ -132,7 +146,7 @@ export class EdgeStack extends cdk.Stack {
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           functionAssociations: [
             {
-              function: viewerRequestFn,
+              function: ViewerRequestFunction,
               eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
             },
           ],

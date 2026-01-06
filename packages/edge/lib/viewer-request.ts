@@ -2,15 +2,25 @@
 // Runs at VIEWER_REQUEST before CloudFront modifies the Host header for S3 origin
 
 import type { CloudFrontFunctionsEvent } from "aws-lambda";
+import type { TssConfig } from "@app/shared/config";
+
+// Injected at build time from tss.json
+declare const SUBDOMAIN_MAP_CONFIG: TssConfig["subdomainMap"];
+const SUBDOMAIN_MAP = SUBDOMAIN_MAP_CONFIG;
 
 function handler(event: CloudFrontFunctionsEvent) {
   const request = event.request;
   const host = request.headers.host?.value ?? "";
 
   // Extract subdomain: feature--test.example.com → feature--test
-  // example.com → main
+  // example.com → ""
   const parts = host.split(".");
-  const branch = parts.length >= 3 ? parts[0] : "main";
+  const subdomain = parts.length >= 3 ? parts[0] : "";
+
+  // Apply mapping, or use subdomain as-is
+  // null = blocked (will 404), undefined = use subdomain as-is
+  const mapped = SUBDOMAIN_MAP[subdomain];
+  const branch = mapped === null ? "" : (mapped ?? subdomain);
 
   // Store in custom header for Lambda@Edge to read at origin-request
   request.headers["x-branch"] = { value: branch };

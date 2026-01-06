@@ -9,6 +9,7 @@ const configSchema = z.object({
   ssm: z.object({ region: z.string() }),
   domain: z.string(),
   hostedZoneId: z.string(),
+  subdomainMap: z.record(z.string(), z.string().nullable()),
 });
 
 export type TssConfig = z.infer<typeof configSchema>;
