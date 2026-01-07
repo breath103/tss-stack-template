@@ -1,10 +1,10 @@
 import { createRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { createApiClient } from "../lib/api-client";
+import { ApiClient } from "../lib/api-client";
 import type { ApiRoutes } from "@app/backend/api";
 import { rootRoute } from "./__root";
 
-const api = createApiClient<ApiRoutes>();
+const api = new ApiClient<ApiRoutes>();
 
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
