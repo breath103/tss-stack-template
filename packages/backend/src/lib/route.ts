@@ -34,7 +34,7 @@ type MethodDef<Path extends string> = {
 // Extract route types for frontend
 export type ExtractRoutes<T> = {
   [Path in keyof T & string]: {
-    [Method in keyof T[Path] & string]: T[Path][Method] extends { handler: infer H }
+    [Method in keyof T[Path] & HttpMethod]: T[Path][Method] extends { handler: infer H }
       ? {
           params: T[Path][Method] extends { params: infer P } ? InferShape<P> : never;
           query: T[Path][Method] extends { query: infer Q } ? InferShape<Q> : never;
@@ -53,8 +53,11 @@ type RouteMethodConfig = {
   handler: (ctx: { params: any; query: any; body: any; c: Context }) => unknown | Promise<unknown>;
 };
 
+// Route definition type
+type RouteDef<Path extends string> = Partial<Record<HttpMethod, MethodDef<Path>>>;
+
 // Main createRoute function
-export function createRoute<const T extends Record<string, Record<string, MethodDef<any>>>>(
+export function createRoute<const T extends Record<string, RouteDef<any>>>(
   routes: T
 ): { routes: T; register: (app: Hono) => void } {
   function register(app: Hono) {
@@ -62,7 +65,7 @@ export function createRoute<const T extends Record<string, Record<string, Method
       routes as Record<string, Record<string, RouteMethodConfig>>
     )) {
       for (const [method, config] of Object.entries(methods)) {
-        const httpMethod = method.toLowerCase() as "get" | "post" | "put" | "delete" | "patch";
+        const httpMethod = method.toLowerCase() as Lowercase<HttpMethod>;
 
         app[httpMethod](path, async (c) => {
           try {
