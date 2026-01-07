@@ -33,7 +33,13 @@ function Home() {
     api
       .fetch("/api/echo/:id", "POST", {
         params: { id: "test-123" },
-        body: { message: "Hello from frontend!", count: 42 },
+        body: {
+          message: "Hello from frontend!",
+          count: 42,
+          complexPayload: {
+            tuple: ["String", 1000],
+          }
+        },
       })
       .then(setEchoResult)
       .catch(console.error);

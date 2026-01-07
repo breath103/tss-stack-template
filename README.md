@@ -92,6 +92,46 @@ npm run dev
 
 Runs backend on `:3001`, frontend on `:3000` with proxy to backend.
 
+## Type-Safe API
+
+Define routes with full type inference:
+
+```typescript
+// packages/backend/src/api.ts
+import { z } from "zod";
+import { route, routes } from "./lib/route.js";
+
+export const api = routes(
+  route("/api/users/:id", "GET", {
+    query: { include: z.string().optional() },
+    handler: ({ params, query }) => ({
+      id: params.id,  // inferred from path
+      include: query.include,
+    }),
+  }),
+
+  route("/api/users", "POST", {
+    body: { name: z.string(), email: z.string().email() },
+    handler: ({ body }) => ({ created: body.name }),
+  }),
+);
+```
+
+Frontend gets types automatically:
+
+```typescript
+// packages/frontend/src/lib/api-client.ts
+import type { ApiRoutes } from "@app/backend/api";
+
+const api = new ApiClient<ApiRoutes>();
+
+// Fully typed - params, query, body, response
+const user = await api.fetch("/api/users/:id", "GET", {
+  params: { id: "123" },
+  query: { include: "posts" },
+});
+```
+
 ## Architecture
 
 ```

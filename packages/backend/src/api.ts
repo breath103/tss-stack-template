@@ -1,48 +1,46 @@
 import { z } from "zod";
-import { createRoute, type ExtractRoutes } from "./lib/route.js";
+import { route, routes, type ExtractRoutes } from "./lib/route.js";
 
-export const api = createRoute({
-  "/api/health": {
-    GET: {
-      handler: () => ({
-        status: "ok" as const,
-        timestamp: Date.now(),
-        env: {
-          REQUIRED_FOO: process.env.REQUIRED_FOO,
-          OPTIONAL_FOO: process.env.OPTIONAL_FOO,
-        },
+export const api = routes(
+  route("/api/health", "GET", {
+    handler: () => ({
+      status: "ok" as const,
+      timestamp: Date.now(),
+      env: {
+        REQUIRED_FOO: process.env.REQUIRED_FOO,
+        OPTIONAL_FOO: process.env.OPTIONAL_FOO,
+      },
+    }),
+  }),
+
+  route("/api/hello", "GET", {
+    query: {
+      name: z.string().optional(),
+    },
+    handler: ({ query }) => ({
+      message: query.name ? `Hello, ${query.name}!` : "Hello from backend!",
+    }),
+  }),
+
+  route("/api/echo/:id", "POST", {
+    body: {
+      message: z.string(),
+      count: z.number().optional(),
+      complexPayload: z.object({
+        tuple: z.tuple([z.string(), z.number()]),
       }),
     },
-  },
-  "/api/hello": {
-    GET: {
-      query: {
-        name: z.string().optional(),
+    handler: ({ params, body }) => ({
+      echo: {
+        id: params.id,
+        message: body.message,
+        count: body.count ?? 1,
+        tupleFirst: body.complexPayload.tuple[0],
+        tupleSecond: body.complexPayload.tuple[1],
       },
-      handler: ({ query }) => ({
-        message: query.name ? `Hello, ${query.name}!` : "Hello from backend!",
-      }),
-    },
-  },
-  "/api/echo/:id": {
-    POST: {
-      params: {
-        id: z.string(),
-      },
-      body: {
-        message: z.string(),
-        count: z.number().optional(),
-      },
-      handler: ({ params, body }) => ({
-        echo: {
-          id: params.id,
-          message: body.message,
-          count: body.count ?? 1,
-        },
-      }),
-    },
-  },
-});
+    }),
+  })
+);
 
 // Export type for frontend
 export type ApiRoutes = ExtractRoutes<typeof api.routes>;

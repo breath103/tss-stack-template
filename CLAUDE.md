@@ -98,6 +98,54 @@ npm run deploy:edge
 - **Build**: esbuild bundles to ESM
 - **Handler export**: `export const handler = handle(app)`
 
+### Type-Safe API Routes
+
+Routes are defined using the `route()` function with full type inference:
+
+```typescript
+// packages/backend/src/api.ts
+import { z } from "zod";
+import { route, routes, type ExtractRoutes } from "./lib/route.js";
+
+export const api = routes(
+  // No params, no body - simple GET
+  route("/api/health", "GET", {
+    handler: () => ({ status: "ok", timestamp: Date.now() }),
+  }),
+
+  // Query params
+  route("/api/hello", "GET", {
+    query: { name: z.string().optional() },
+    handler: ({ query }) => ({
+      message: query.name ? `Hello, ${query.name}!` : "Hello!",
+    }),
+  }),
+
+  // Path params + body with complex types
+  route("/api/echo/:id", "POST", {
+    body: {
+      message: z.string(),
+      payload: z.object({ tuple: z.tuple([z.string(), z.number()]) }),
+    },
+    handler: ({ params, body }) => ({
+      id: params.id,           // string (inferred from path)
+      msg: body.message,       // string
+      first: body.payload.tuple[0],  // string (tuple element)
+    }),
+  }),
+);
+
+// Export type for frontend
+export type ApiRoutes = ExtractRoutes<typeof api.routes>;
+```
+
+Features:
+- Path params inferred from path string (`:id` → `{ id: string }`)
+- Query/body types inferred from Zod schemas
+- Complex nested types (tuples, objects) fully supported
+- Same path with different methods handled correctly
+- `ExtractRoutes` exports clean types for frontend API client
+
 ### Edge (packages/edge)
 - **Lambda@Edge**: Must be in us-east-1
 - **No env vars**: Lambda@Edge doesn't support environment variables, so `process.env.PROJECT` and `process.env.SSM_REGION` are injected at build time via esbuild's `define`
@@ -145,7 +193,5 @@ All resources tagged with:
 
 ## Future Features (TODO)
 
-- [ ] Frontend deployment to S3 + CloudFront
-- [ ] Type-safe API client generation (frontend imports backend types)
-- [ ] GitHub Actions workflow for CI/CD
+- [x] Type-safe API routes with full inference
 - [ ] `destroy` command for cleanup
