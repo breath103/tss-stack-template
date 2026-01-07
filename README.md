@@ -2,6 +2,11 @@
 
 Type-Safe Serverless Stack for deploying full-stack TypeScript apps on AWS.
 
+## Live Demo
+
+- **Production (main)**: https://www.tsss.cloud/ 
+- **Branch preview (branch1)**: https://branch1.tsss.cloud/
+
 ## Why
 
 If you want a simple web app (no SSR) on your own AWS infrastructure:
