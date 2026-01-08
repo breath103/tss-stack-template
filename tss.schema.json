@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TSS Stack Configuration",
   "type": "object",
-  "required": ["project", "repo", "backend", "ssm", "domain", "hostedZoneId", "subdomainMap"],
+  "required": ["project", "repo", "backend", "frontend", "ssm", "domain", "hostedZoneId", "subdomainMap"],
   "properties": {
     "project": {
       "type": "string",
@@ -24,6 +24,16 @@
         }
       }
     },
+    "frontend": {
+      "type": "object",
+      "required": ["bucketSuffix"],
+      "properties": {
+        "bucketSuffix": {
+          "type": "string",
+          "description": "suffix of s3 bucket to avoid duplication"
+        }
+      }
+    },    
     "ssm": {
       "type": "object",
       "required": ["region"],

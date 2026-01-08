@@ -7,11 +7,11 @@
   "scripts": {
     "setup": "tsx scripts/setup.ts",
     "dev": "concurrently -n backend,types,frontend -c blue,yellow,green \"npm run dev -w @app/backend\" \"npm run dev:types -w @app/backend\" \"npm run dev -w @app/frontend\"",
+    "deploy:edge-bootstrap": "npm run bootstrap -w @app/edge --",
+    "deploy:edge-stack": "npm run edge -w @app/edge --",
     "deploy:backend": "npm run deploy -w @app/backend --",
-    "deploy:edge": "npm run deploy -w @app/edge",
     "deploy:frontend": "npm run deploy -w @app/frontend --",
-    "build:types": "npm run build:types -w @app/backend && npm run build:types -w @app/frontend",
-    "bootstrap": "npm run bootstrap -w @app/edge --"
+    "build:types": "npm run build:types -w @app/backend && npm run build:types -w @app/frontend"
   },
   "devDependencies": {
     "@aws-sdk/client-route-53": "^3.700.0",

@@ -5,6 +5,9 @@
   "backend": {
     "region": "ap-northeast-2"
   },
+  "frontend": {
+    "bucketSuffix": ""
+  },  
   "ssm": {
     "region": "ap-northeast-2"
   },

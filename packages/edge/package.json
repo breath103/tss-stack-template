@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "tsx scripts/deploy.ts",
+    "edge": "tsx scripts/edge-stack.ts",
     "bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {

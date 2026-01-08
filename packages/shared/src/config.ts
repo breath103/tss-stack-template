@@ -6,6 +6,7 @@ const configSchema = z.object({
   project: z.string(),
   repo: z.string(),
   backend: z.object({ region: z.string() }),
+  frontend: z.object({ bucketSuffix: z.string() }),
   ssm: z.object({ region: z.string() }),
   domain: z.string(),
   hostedZoneId: z.string(),
@@ -14,8 +15,12 @@ const configSchema = z.object({
 
 export type TssConfig = z.infer<typeof configSchema>;
 
-export function frontendBucketName(config: TssConfig): string {
-  return `${config.project}-frontend`;
+export function frontendBucketName({
+  project,
+  frontend,
+}: Pick<TssConfig, "project" | "frontend">): string {
+  const suffix = frontend.bucketSuffix;
+  return suffix ? `${project}-frontend-${suffix}` : `${project}-frontend`;
 }
 
 function findProjectRoot(): string {
