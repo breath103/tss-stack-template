@@ -95,7 +95,7 @@ class EdgeStack extends cdk.Stack {
     // Without this, all subdomains share the same cache entry
     const frontendCachePolicy = new cloudfront.CachePolicy(this, "FrontendCachePolicy", {
       cachePolicyName: `${config.project}-frontend`,
-      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("x-branch"),
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("x-branch", "x-forwarded-host"),
       queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
       cookieBehavior: cloudfront.CacheCookieBehavior.none(),
       defaultTtl: cdk.Duration.days(1),

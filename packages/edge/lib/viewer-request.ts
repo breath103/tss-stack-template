@@ -22,8 +22,9 @@ function handler(event: CloudFrontFunctionsEvent) {
   const mapped = SUBDOMAIN_MAP[subdomain];
   const branch = mapped === null ? "" : (mapped ?? subdomain);
 
-  // Store in custom header for Lambda@Edge to read at origin-request
+  // Store in custom headers for Lambda@Edge to read at origin-request
   request.headers["x-branch"] = { value: branch };
+  request.headers["x-forwarded-host"] = { value: host };
 
   return request;
 }

@@ -98,6 +98,7 @@ function rewriteToBackend(
   backendUrl: string
 ): CloudFrontRequest {
   const url = new URL(backendUrl);
+  const forwardedHost = request.headers["x-forwarded-host"]?.[0]?.value;
 
   request.origin = {
     custom: {
@@ -111,6 +112,11 @@ function rewriteToBackend(
       customHeaders: {},
     },
   };
+
+  // Pass original host to backend for Auth.js redirects
+  if (forwardedHost) {
+    request.headers["x-forwarded-host"] = [{ key: "X-Forwarded-Host", value: forwardedHost }];
+  }
 
   request.headers.host = [{ key: "Host", value: url.hostname }];
 
