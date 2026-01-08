@@ -3,14 +3,17 @@ import { route, routes, type ExtractRoutes } from "./lib/route.js";
 
 export const api = routes(
   route("/api/health", "GET", {
-    handler: () => ({
-      status: "ok" as const,
-      timestamp: Date.now(),
-      env: {
-        REQUIRED_FOO: process.env.REQUIRED_FOO,
-        OPTIONAL_FOO: process.env.OPTIONAL_FOO,
-      },
-    }),
+    handler: async () => {
+      return {
+        status: "ok" as const,
+        branch: "'main' backend",
+        timestamp: Date.now(),
+        env: {
+          REQUIRED_FOO: process.env.REQUIRED_FOO,
+          OPTIONAL_FOO: process.env.OPTIONAL_FOO,
+        },
+      };
+    },
   }),
 
   route("/api/hello", "GET", {

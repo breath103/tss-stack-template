@@ -55,7 +55,7 @@ export function route<
       query: SafeInfer<Q>;
       body: SafeInfer<B>;
       c: Context;
-    }) => R;
+    }) => Promise<R> | R;
   }
 ): RouteDef<Path, Method, SafeInfer<Q>, SafeInfer<B>, R> {
   return {
