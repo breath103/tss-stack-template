@@ -28,6 +28,7 @@ export const api = routes(
     body: {
       message: z.string(),
       count: z.number().optional(),
+      optionalValue: z.number().optional(),
       complexPayload: z.object({
         tuple: z.tuple([z.string(), z.number(), z.number(), z.number()]),
       }),

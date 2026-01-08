@@ -23,8 +23,20 @@ type RouteDef<Path extends string, Method extends string, Q, B, R> = {
   bodySchema?: SchemaShape;
 };
 
-// Safe infer - returns never if T is never, otherwise infers shape
-type SafeInfer<T> = [T] extends [never] ? never : { [K in keyof T]: z.infer<T[K]> };
+// Make keys with undefined in their type optional
+type OptionalUndefined<T> = {
+  [K in keyof T as undefined extends T[K] ? never : K]: T[K]
+} & {
+  [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>
+};
+
+// Simplify intersection types for cleaner output
+type Simplify<T> = { [K in keyof T]: T[K] };
+
+// Safe infer - returns never if T is never, otherwise infers shape with optional keys
+type SafeInfer<T> = [T] extends [never]
+  ? never
+  : Simplify<OptionalUndefined<{ [K in keyof T]: z.infer<T[K]> }>>;
 
 export function route<
   const Path extends string,
