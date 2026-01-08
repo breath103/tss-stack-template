@@ -82,9 +82,19 @@ export const handler = async (
   }
 
   // Frontend requests: prepend branch to S3 path
-  // /dashboard → /{branch}/dashboard
-  // / → /{branch}/index.html
-  if (uri === "/" || uri === "") {
+  // For SPA routing: serve index.html for client-side routes (paths without file extensions)
+  // Static files (with extensions) are served directly
+  //
+  // Examples:
+  // /                    → /{branch}/index.html
+  // /dashboard           → /{branch}/index.html (client-side route)
+  // /users/123           → /{branch}/index.html (client-side route)
+  // /assets/main.js      → /{branch}/assets/main.js (static file)
+  // /favicon.ico         → /{branch}/favicon.ico (static file)
+  const filename = uri.split("/").pop() ?? "";
+  const hasExtension = filename.includes(".");
+
+  if (uri === "/" || uri === "" || !hasExtension) {
     request.uri = `/${branch}/index.html`;
   } else {
     request.uri = `/${branch}${uri}`;
