@@ -9,10 +9,11 @@
     "strict": true,
     "skipLibCheck": true,
     "baseUrl": ".",
+    "rootDir": "src",
     "paths": {
-      "@app/backend/*": ["../backend/src/*"],
+      "@app/backend/*": ["../backend/dist/*"],
       "@app/shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src", "scripts", "../../tss.json"]
+  "include": ["src"]
 }

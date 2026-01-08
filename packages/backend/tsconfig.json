@@ -8,10 +8,12 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
     "baseUrl": ".",
     "paths": {
       "@app/shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src", "scripts", "../../tss.json"]
+  "include": ["src"]
 }

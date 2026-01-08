@@ -17,9 +17,11 @@ export const api = routes(
     query: {
       name: z.string().optional(),
     },
-    handler: ({ query }) => ({
-      message: query.name ? `Hello, ${query.name}!` : "Hello from backend!",
-    }),
+    handler: ({ query }) => {
+      return {
+        message: query.name ? `Hello, ${query.name}!` : "Hello from backend!",
+      };
+    },
   }),
 
   route("/api/echo/:id", "POST", {
@@ -27,7 +29,7 @@ export const api = routes(
       message: z.string(),
       count: z.number().optional(),
       complexPayload: z.object({
-        tuple: z.tuple([z.string(), z.number()]),
+        tuple: z.tuple([z.string(), z.number(), z.number(), z.number()]),
       }),
     },
     handler: ({ params, body }) => ({

@@ -6,10 +6,11 @@
   ],
   "scripts": {
     "setup": "tsx scripts/setup.ts",
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev -w @app/backend\" \"npm run dev -w @app/frontend\"",
+    "dev": "concurrently -n backend,types,frontend -c blue,yellow,green \"npm run dev -w @app/backend\" \"npm run dev:types -w @app/backend\" \"npm run dev -w @app/frontend\"",
     "deploy:backend": "npm run deploy -w @app/backend --",
     "deploy:edge": "npm run deploy -w @app/edge",
     "deploy:frontend": "npm run deploy -w @app/frontend --",
+    "build:types": "npm run build:types -w @app/backend && npm run build:types -w @app/frontend",
     "bootstrap": "npm run bootstrap -w @app/edge --"
   },
   "devDependencies": {

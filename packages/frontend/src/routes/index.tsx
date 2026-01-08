@@ -37,7 +37,7 @@ function Home() {
           message: "Hello from frontend!",
           count: 42,
           complexPayload: {
-            tuple: ["String", 1000],
+            tuple: ["String", 1, 2, 3],
           }
         },
       })
