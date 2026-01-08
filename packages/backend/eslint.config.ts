@@ -8,6 +8,12 @@ export default [
     ignores: ["dist/**", "cdk.out/**"],
   },
   {
+    files: ["**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
       "quotes": ["error", "double"],
       "@typescript-eslint/no-explicit-any": "off",
