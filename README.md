@@ -222,3 +222,34 @@ This creates an OIDC identity provider and IAM role in AWS. Copy the `RoleArn` f
 │   ├── edge/             # CloudFront + Lambda@Edge
 │   └── shared/           # Shared utilities
 ```
+
+## Branch Name Sanitization
+
+Git branch names are sanitized to be subdomain-safe (RFC 1123):
+
+| Branch | Subdomain |
+|--------|-----------|
+| `feature/auth` | `feature--auth` |
+| `Feature_Branch` | `feature-branch` |
+| `v1.2.3` | `v1-2-3` |
+
+Rules: lowercase, `/` → `--`, non-alphanumeric → `-`, max 63 chars, no leading/trailing hyphens.
+
+## AWS Resources
+
+### Per backend deployment (`{project}-backend-{branch}`)
+- Lambda Function + Alias + Function URL
+- IAM Role
+- SSM Parameter (`/{project}/backend/{branch}`)
+
+### Per frontend deployment
+- S3 objects under `/{branch}/*`
+
+### Edge deployment (`{project}-edge`)
+- CloudFront Distribution
+- Lambda@Edge Function (us-east-1)
+- ACM Certificate (wildcard)
+- Route53 A Records (root + wildcard)
+- S3 Bucket (frontend assets)
+
+All resources tagged with `project` and `environment` (branch name).
