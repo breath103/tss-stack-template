@@ -14,6 +14,7 @@ If you want a simple web app (no SSR) on your own AWS infrastructure:
 - **Type-safe API calls** - Frontend imports backend types directly. No codegen, no runtime overhead.
 - **Branch previews** - Deploy `feature/auth` branch to `feature--auth.yourdomain.com`
 - **Single domain** - Backend API and frontend served from same domain. No CORS.
+- **Authentication** - [better-auth](https://better-auth.com) with stateless sessions (no database required).
 - **Your AWS account** - No vendor lock-in. You own everything.
 
 ## Quick Start
@@ -84,13 +85,25 @@ DATABASE_URL=postgres://localhost/myapp
   run: npm run deploy:backend -- --name=${{ github.ref_name }}
 ```
 
-### 4. Dev
+### 4. Authentication (Google OAuth)
+
+Add to `packages/backend/.env`:
+
+```bash
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+BETTER_AUTH_SECRET=random_32_char_secret
+```
+
+Set up Google OAuth at [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with callback URL: `http://localhost:3000/api/auth/callback/google`
+
+### 5. Dev
 
 ```bash
 npm run dev
 ```
 
-Runs backend on `:3001`, frontend on `:3000` with proxy to backend.
+Runs edge proxy on `:3000`, backend on `:3001`, frontend on `:3002`.
 
 ## Type-Safe API
 

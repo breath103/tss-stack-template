@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { Route53Client, ListHostedZonesByNameCommand, GetHostedZoneCommand } from "@aws-sdk/client-route-53";
 
+const ROOT = path.resolve(import.meta.dirname, "..");
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -14,37 +16,41 @@ function ask(question: string): Promise<string> {
   });
 }
 
-async function main() {
-  console.log("\n🚀 TSS Stack Setup\n");
-
-  // Project name
+async function askProject(): Promise<string> {
   const project = await ask("Project name (lowercase, no spaces): ");
   if (!/^[a-z][a-z0-9-]*$/.test(project)) {
     console.error("Error: Project name must be lowercase, start with letter, only contain a-z, 0-9, -");
     process.exit(1);
   }
+  return project;
+}
 
-  // GitHub repo
+async function askRepo(): Promise<string> {
   const repo = await ask("GitHub repo (org/repo): ");
   if (!/^[^/]+\/[^/]+$/.test(repo)) {
     console.error("Error: Repo must be in format org/repo");
     process.exit(1);
   }
+  return repo;
+}
 
-  // AWS Region
+async function askRegion(): Promise<string> {
   const defaultRegion = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
-  const region = (await ask(`AWS region for backend [${defaultRegion}]: `)) || defaultRegion;
+  return (await ask(`AWS region for backend [${defaultRegion}]: `)) || defaultRegion;
+}
 
-  // Domain
+async function askDomain(): Promise<string> {
   const domain = await ask("Domain (e.g., myapp.com): ");
   if (!domain || !domain.includes(".")) {
     console.error("Error: Invalid domain");
     process.exit(1);
   }
+  return domain;
+}
 
-  // Hosted Zone - try to find it
+async function findHostedZone(domain: string): Promise<string> {
   console.log("\nLooking up Route53 hosted zone...");
-  const route53 = new Route53Client({ region: "us-east-1" }); // Route53 is global, use us-east-1
+  const route53 = new Route53Client({ region: "us-east-1" });
 
   let hostedZoneId = "";
   try {
@@ -56,7 +62,7 @@ async function main() {
       hostedZoneId = zone.Id.replace("/hostedzone/", "");
       console.log(`Found hosted zone: ${hostedZoneId}`);
     }
-  } catch (err) {
+  } catch {
     console.log("Could not auto-detect hosted zone (check AWS credentials)");
   }
 
@@ -69,7 +75,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Verify hosted zone
+  // Verify
   try {
     const zoneResult = await route53.send(new GetHostedZoneCommand({ Id: hostedZoneId }));
     console.log(`Verified hosted zone: ${zoneResult.HostedZone?.Name}`);
@@ -78,11 +84,17 @@ async function main() {
     process.exit(1);
   }
 
-  // Build config
-  const config = {
+  return hostedZoneId;
+}
+
+function buildConfig(project: string, repo: string, region: string, domain: string, hostedZoneId: string) {
+  return {
+    $schema: "./tss.schema.json",
     project,
     repo,
-    backend: { region },
+    edge: { devPort: 3000 },
+    backend: { region, devPort: 3001 },
+    frontend: { bucketSuffix: "", devPort: 3002 },
     ssm: { region },
     domain,
     hostedZoneId,
@@ -92,8 +104,37 @@ async function main() {
       "main": null,
     },
   };
+}
 
-  // Show summary
+function writeConfig(config: ReturnType<typeof buildConfig>) {
+  const configPath = path.join(ROOT, "tss.json");
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
+  console.log(`Wrote ${configPath}`);
+}
+
+function copyEnvSamples() {
+  const packages = ["backend", "frontend"];
+  for (const pkg of packages) {
+    const samplePath = path.join(ROOT, "packages", pkg, ".env.sample");
+    const envPath = path.join(ROOT, "packages", pkg, ".env");
+    if (fs.existsSync(samplePath) && !fs.existsSync(envPath)) {
+      fs.copyFileSync(samplePath, envPath);
+      console.log(`Copied ${pkg}/.env.sample → ${pkg}/.env`);
+    }
+  }
+}
+
+async function main() {
+  console.log("\n🚀 TSS Stack Setup\n");
+
+  const project = await askProject();
+  const repo = await askRepo();
+  const region = await askRegion();
+  const domain = await askDomain();
+  const hostedZoneId = await findHostedZone(domain);
+
+  const config = buildConfig(project, repo, region, domain, hostedZoneId);
+
   console.log("\n📋 Configuration:\n");
   console.log(JSON.stringify(config, null, 2));
 
@@ -103,16 +144,15 @@ async function main() {
     process.exit(0);
   }
 
-  // Write config
-  const configPath = path.resolve(import.meta.dirname, "../tss.json");
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
-  console.log(`\n✅ Wrote ${configPath}`);
+  writeConfig(config);
+  copyEnvSamples();
 
   console.log("\nNext steps:");
-  console.log("  1. npm run bootstrap     # Set up GitHub Actions");
-  console.log("  2. npm run deploy:edge   # Deploy CloudFront + Lambda@Edge");
-  console.log("  3. npm run deploy:backend -- --name=main");
-  console.log("  4. npm run deploy:frontend -- --name=main");
+  console.log("  1. Edit packages/backend/.env with your secrets");
+  console.log("  2. npm run bootstrap     # Set up GitHub Actions");
+  console.log("  3. npm run deploy:edge   # Deploy CloudFront + Lambda@Edge");
+  console.log("  4. npm run deploy:backend -- --name=main");
+  console.log("  5. npm run deploy:frontend -- --name=main");
 
   rl.close();
 }

@@ -88,8 +88,8 @@ export type ExtractRoutes<T extends RouteDef<any, any, any, any, any>[]> = {
 // Main routes function
 export function routes<const T extends RouteDef<any, any, any, any, any>[]>(
   ...routeDefs: T
-): { routes: T; register: (app: Hono) => void } {
-  function register(app: Hono) {
+): { routes: T; register: (app: Hono<any, any, any>) => void } {
+  function register(app: Hono<any, any, any>) {
     for (const routeDef of routeDefs) {
       const { path, method, querySchema, bodySchema, handler } = routeDef;
       const httpMethod = method.toLowerCase() as Lowercase<HttpMethod>;

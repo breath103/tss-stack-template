@@ -67,3 +67,26 @@ import { loadConfig } from "@app/shared/config";
 const config = loadConfig();
 const port = config.backend.devPort;
 ```
+
+## 4. Declare env vars in `env.d.ts`—never use `!` assertion
+
+Always declare environment variables in `src/env.d.ts`. Never use `process.env.FOO!`.
+
+```typescript
+// ✅ Correct - declare in env.d.ts
+// packages/backend/src/env.d.ts
+declare namespace NodeJS {
+  interface ProcessEnv {
+    MY_VAR: string;
+    OPTIONAL_VAR?: string;
+  }
+}
+
+// Then just use it
+const value = process.env.MY_VAR; // string, no assertion needed
+```
+
+```typescript
+// ❌ Wrong - non-null assertion
+const value = process.env.MY_VAR!;
+```

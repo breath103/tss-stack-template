@@ -44,8 +44,11 @@ jobs:
       - name: Deploy backend
         env:
           # packages/backend/src/env.d.ts
-          REQUIRED_FOO: "backend-value"
-          # OPTIONAL_FOO: ""
+          REQUIRED_FOO: "required-backend-value"
+          OPTIONAL_FOO: "optional-backend-value"
+          GOOGLE_CLIENT_ID: "495965151122-nqsuprf3r5e9r8soqa5p15ini6sijhe0.apps.googleusercontent.com"
+          GOOGLE_CLIENT_SECRET: "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"
+          BETTER_AUTH_SECRET: "RHY2DJS7bHHqwc6/+gSYx5pfx+lwt+epje+7bxjIWuY="
         run: npm run deploy:backend -- --name=${{ github.ref_name }}
 
       - name: Deploy frontend
