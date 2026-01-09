@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { route, routes, type ExtractRoutes } from "./lib/route.js";
+import { route, routes } from "./lib/app-context.js";
+import type { ExtractRoutes } from "./lib/route.js";
 
 export const api = routes(
   route("/api/health", "GET", {

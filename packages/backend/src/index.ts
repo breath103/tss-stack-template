@@ -2,13 +2,10 @@ import { Hono } from "hono";
 import { handle } from "hono/aws-lambda";
 import { api } from "./api.js";
 import { auth } from "./lib/auth.js";
+import { registerToHono } from "./lib/hono-adapter.js";
+import type { AppEnv } from "./lib/app-context.js";
 
-const app = new Hono<{
-  Variables: {
-    user: typeof auth.$Infer.Session.user | null;
-    session: typeof auth.$Infer.Session.session | null;
-  };
-}>();
+const app = new Hono<AppEnv>();
 
 // Mount better-auth handler
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
@@ -22,7 +19,7 @@ app.use("*", async (c, next) => {
 });
 
 // Register all API routes
-api.register(app);
+registerToHono(app, api);
 
 // Export app for dev server
 export { app };
