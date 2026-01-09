@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TSS Stack Configuration",
   "type": "object",
-  "required": ["project", "repo", "backend", "frontend", "ssm", "domain", "hostedZoneId", "subdomainMap"],
+  "required": ["project", "repo", "edge", "backend", "frontend", "ssm", "domain", "hostedZoneId", "subdomainMap"],
   "properties": {
     "project": {
       "type": "string",
@@ -14,23 +14,41 @@
       "pattern": "^[^/]+/[^/]+$",
       "description": "GitHub repo in org/repo format"
     },
+    "edge": {
+      "type": "object",
+      "required": ["devPort"],
+      "properties": {
+        "devPort": {
+          "type": "number",
+          "description": "Local dev proxy port"
+        }
+      }
+    },
     "backend": {
       "type": "object",
-      "required": ["region"],
+      "required": ["region", "devPort"],
       "properties": {
         "region": {
           "type": "string",
           "description": "AWS region for backend Lambda"
+        },
+        "devPort": {
+          "type": "number",
+          "description": "Local dev server port"
         }
       }
     },
     "frontend": {
       "type": "object",
-      "required": ["bucketSuffix"],
+      "required": ["bucketSuffix", "devPort"],
       "properties": {
         "bucketSuffix": {
           "type": "string",
           "description": "suffix of s3 bucket to avoid duplication"
+        },
+        "devPort": {
+          "type": "number",
+          "description": "Local dev server port"
         }
       }
     },    

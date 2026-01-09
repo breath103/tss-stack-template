@@ -1,9 +1,12 @@
 import path from "path";
-import { spawn } from "child_process";
 import { config as dotenvConfig } from "dotenv";
 import { loadAndValidateEnv } from "@app/shared/env-parser";
+import { loadConfig } from "@app/shared/config";
+import { serve } from "@hono/node-server";
+import { app } from "../src/index.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
+const config = loadConfig();
 
 // Load .env
 dotenvConfig({ path: path.join(ROOT, ".env") });
@@ -14,12 +17,6 @@ loadAndValidateEnv(path.join(ROOT, "src/env.d.ts"));
 console.log("Environment variables OK\n");
 
 // Start the dev server
-const child = spawn("tsx", ["watch", "src/index.ts"], {
-  cwd: ROOT,
-  stdio: "inherit",
-  env: process.env,
-});
-
-child.on("exit", (code) => {
-  process.exit(code ?? 0);
-});
+const port = config.backend.devPort;
+console.log(`Backend running on http://localhost:${port}`);
+serve({ fetch: app.fetch, port });

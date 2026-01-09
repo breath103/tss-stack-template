@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx scripts/dev.ts",
+    "dev": "tsx watch scripts/dev.ts",
     "build": "tsx scripts/build.ts",
     "deploy": "tsx scripts/deploy.ts",
     "build:types": "tsc --emitDeclarationOnly",

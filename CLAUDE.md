@@ -58,3 +58,12 @@ interface SomeType {
 - Single source of truth for types
 - Backend changes automatically propagate to frontend
 - No drift between frontend and backend type definitions
+
+## 3. Use `loadConfig()` to read `tss.json`
+
+```typescript
+import { loadConfig } from "@app/shared/config";
+
+const config = loadConfig();
+const port = config.backend.devPort;
+```

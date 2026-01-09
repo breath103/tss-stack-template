@@ -2,11 +2,16 @@
   "$schema": "./tss.schema.json",
   "project": "tsss",
   "repo": "breath103/tss-stack-template",
+  "edge": {
+    "devPort": 3000
+  },
   "backend": {
-    "region": "ap-northeast-2"
+    "region": "ap-northeast-2",
+    "devPort": 3001
   },
   "frontend": {
-    "bucketSuffix": ""
+    "bucketSuffix": "",
+    "devPort": 3002
   },  
   "ssm": {
     "region": "ap-northeast-2"

@@ -5,8 +5,9 @@ import { z } from "zod";
 const configSchema = z.object({
   project: z.string(),
   repo: z.string(),
-  backend: z.object({ region: z.string() }),
-  frontend: z.object({ bucketSuffix: z.string() }),
+  edge: z.object({ devPort: z.number() }),
+  backend: z.object({ region: z.string(), devPort: z.number() }),
+  frontend: z.object({ bucketSuffix: z.string(), devPort: z.number() }),
   ssm: z.object({ region: z.string() }),
   domain: z.string(),
   hostedZoneId: z.string(),

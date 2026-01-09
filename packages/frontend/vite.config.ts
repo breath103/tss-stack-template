@@ -4,6 +4,9 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { config as dotenvConfig } from "dotenv";
 import { parseEnvDts, validateEnv } from "@app/shared/env-parser";
+import { loadConfig } from "@app/shared/config";
+
+const config = loadConfig();
 
 // Load .env
 dotenvConfig({ path: path.resolve(import.meta.dirname, ".env") });
@@ -25,10 +28,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: envDefines,
   server: {
-    port: 3000,
+    port: config.frontend.devPort,
     proxy: {
       "/api": {
-        target: "http://localhost:3001",
+        target: `http://localhost:${config.backend.devPort}`,
       },
     },
   },

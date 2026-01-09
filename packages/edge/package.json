@@ -4,19 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "tsx scripts/dev.ts",
     "edge": "tsx scripts/edge-stack.ts",
     "bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-ssm": "^3.700.0",
     "aws-cdk-lib": "^2.170.0",
-    "constructs": "^10.4.0",
-    "@aws-sdk/client-ssm": "^3.700.0"
+    "constructs": "^10.4.0"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/http-proxy": "^1.17.17",
     "aws-cdk": "^2.170.0",
-    "typescript": "^5",
-    "tsx": "^4.21.0",
     "esbuild": "^0.27.2",
-    "@types/aws-lambda": "^8.10.145"
+    "http-proxy": "^1.18.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
   }
 }
