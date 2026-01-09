@@ -29,10 +29,5 @@ export default defineConfig({
   define: envDefines,
   server: {
     port: config.frontend.devPort,
-    proxy: {
-      "/api": {
-        target: `http://localhost:${config.backend.devPort}`,
-      },
-    },
   },
 });
