@@ -1,7 +1,9 @@
 import { execSync } from "child_process";
 import path from "path";
 import fs from "fs";
+import { parseArgs } from "util";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { config as dotenvConfig } from "dotenv";
 import { loadConfig, frontendBucketName } from "@app/shared/config";
 import cacheRules from "../cache.json" with { type: "json" };
 import { sanitizeBranchName } from "@app/shared/branch";
@@ -33,19 +35,49 @@ function getCacheControl(filePath: string): string {
 const DIST = path.join(ROOT, "dist");
 
 // Parse CLI args
-const args = process.argv.slice(2);
-let name: string | undefined;
+const { values } = parseArgs({
+  options: {
+    name: { type: "string", short: "n" },
+    env: { type: "string", short: "e" },
+    help: { type: "boolean", short: "h" },
+  },
+  strict: true,
+});
 
-for (const arg of args) {
-  if (arg.startsWith("--name=")) {
-    name = arg.split("=")[1];
-  }
+const { name, env, help } = values;
+
+if (help) {
+  console.log(`
+Usage: npm run deploy -- [options]
+
+Deploy frontend to S3
+
+Options:
+  -n, --name <name>   Deployment name (required)
+                      Usually the branch name (e.g., main, staging, feature-x)
+  -e, --env <env>     Environment file suffix (optional)
+                      Loads .env.<env> instead of .env
+                      Example: --env=production loads .env.production
+  -h, --help          Show this help message
+
+Examples:
+  npm run deploy -- --name=main
+  npm run deploy -- --name=main --env=production
+  npm run deploy -- -n staging -e staging
+`);
+  process.exit(0);
 }
 
 if (!name) {
   console.error("Error: --name is required (e.g., --name=main)");
+  console.error("Run with --help for usage information");
   process.exit(1);
 }
+
+// Load environment file
+const envFile = env ? `.env.${env}` : ".env";
+dotenvConfig({ path: path.join(ROOT, envFile) });
+console.log(`Loaded environment from ${envFile}`);
 
 const sanitizedName = sanitizeBranchName(name);
 if (!sanitizedName) {

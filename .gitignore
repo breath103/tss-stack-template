@@ -6,4 +6,4 @@ cdk.out
 
 # Environment files (contain secrets)
 .env
-packages/*/.env
+.env.production

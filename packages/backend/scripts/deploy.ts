@@ -1,5 +1,6 @@
 import { execSync } from "child_process";
 import path from "path";
+import { parseArgs } from "util";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
@@ -12,26 +13,53 @@ import { loadAndValidateEnv } from "@app/shared/env-parser";
 const config = loadConfig();
 const ROOT = path.resolve(import.meta.dirname, "..");
 
-// Load .env if exists (for local development)
-dotenvConfig({ path: path.join(ROOT, ".env") });
-
-// Parse and validate environment variables from env.d.ts
-const envVars = loadAndValidateEnv(path.join(ROOT, "src/env.d.ts"));
-
 // Parse CLI args
-const args = process.argv.slice(2);
-let name: string | undefined;
+const { values } = parseArgs({
+  options: {
+    name: { type: "string", short: "n" },
+    env: { type: "string", short: "e" },
+    help: { type: "boolean", short: "h" },
+  },
+  strict: true,
+});
 
-for (const arg of args) {
-  if (arg.startsWith("--name=")) {
-    name = arg.split("=")[1];
-  }
+const { name, env, help } = values;
+
+if (help) {
+  console.log(`
+Usage: npm run deploy -- [options]
+
+Deploy backend to AWS Lambda
+
+Options:
+  -n, --name <name>   Deployment name (required)
+                      Usually the branch name (e.g., main, staging, feature-x)
+  -e, --env <env>     Environment file suffix (optional)
+                      Loads .env.<env> instead of .env
+                      Example: --env=production loads .env.production
+  -h, --help          Show this help message
+
+Examples:
+  npm run deploy -- --name=main
+  npm run deploy -- --name=main --env=production
+  npm run deploy -- -n staging -e staging
+`);
+  process.exit(0);
 }
 
 if (!name) {
   console.error("Error: --name is required (e.g., --name=main)");
+  console.error("Run with --help for usage information");
   process.exit(1);
 }
+
+// Load environment file
+const envFile = env ? `.env.${env}` : ".env";
+dotenvConfig({ path: path.join(ROOT, envFile) });
+console.log(`Loaded environment from ${envFile}`);
+
+// Parse and validate environment variables from env.d.ts
+const envVars = loadAndValidateEnv(path.join(ROOT, "src/env.d.ts"));
 
 const sanitizedBranchName = sanitizeBranchName(name);
 if (!sanitizedBranchName) {
