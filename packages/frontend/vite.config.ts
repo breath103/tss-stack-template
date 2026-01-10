@@ -2,16 +2,12 @@ import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { config as dotenvConfig } from "dotenv";
 import { parseEnvDts, validateEnv } from "@app/shared/env-parser";
 import { loadConfig } from "@app/shared/config";
 
 const config = loadConfig();
 
-// Load .env
-dotenvConfig({ path: path.resolve(import.meta.dirname, ".env") });
-
-// Parse env.d.ts and validate
+// Parse env.d.ts and validate against process.env (loaded by scripts/dev.ts or deploy.ts)
 const vars = parseEnvDts(path.resolve(import.meta.dirname, "src/env.d.ts"));
 const { missing, provided } = validateEnv(vars);
 

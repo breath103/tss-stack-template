@@ -19,14 +19,197 @@ import { frontendBucketName, loadConfig, type TssConfig } from "@app/shared/conf
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DIST = path.join(ROOT, "dist");
 
-interface EdgeStackProps extends cdk.StackProps {
-  config: {
-    project: string;
-    ssmRegion: string;
-    domain: string;
-    hostedZoneId: string;
-    frontendBucketName: string;    
+async function main() {
+  const { command, dryRun } = parseCliArgs();
+
+  const config = loadConfig();
+
+  await buildEdgeFunctions({
+    subdomainMap: config.subdomainMap,
+    project: config.project,
+    ssmRegion: config.ssm.region,
+  });
+
+  const stackName = synthesizeStack({
+    project: config.project,
+    ssmRegion: config.ssm.region,
+    domain: config.domain,
+    hostedZoneId: config.hostedZoneId,
+    frontendBucketName: frontendBucketName(config),
+  });
+
+  switch (command) {
+    case "deploy":
+      await deploy(stackName, dryRun);
+      break;
+    case "destroy":
+      await destroy(stackName);
+      break;
   }
+}
+
+function parseCliArgs() {
+  const { values, positionals } = parseArgs({
+    options: {
+      "dry-run": { type: "boolean" },
+      help: { type: "boolean", short: "h" },
+    },
+    allowPositionals: true,
+    strict: true,
+  });
+
+  if (values.help) {
+    showHelp();
+  }
+
+  const command = positionals[0];
+  if (command !== "deploy" && command !== "destroy") {
+    showHelp();
+  }
+
+  return { command: command as "deploy" | "destroy", dryRun: values["dry-run"] };
+}
+
+function showHelp(): never {
+  console.log(`
+Usage: npm run deploy -- <command> [options]
+
+Deploy or destroy the edge stack (CloudFront, Lambda@Edge, S3, Route53)
+
+Commands:
+  deploy              Deploy the edge stack
+  destroy             Destroy the edge stack (with confirmation)
+
+Options:
+  --dry-run           Build and synthesize only, skip actual deployment
+  -h, --help          Show this help message
+
+Examples:
+  npm run deploy -- deploy
+  npm run deploy -- deploy --dry-run
+  npm run deploy -- destroy
+`);
+  process.exit(0);
+}
+
+interface BuildOptions {
+  subdomainMap: TssConfig["subdomainMap"];
+  project: string;
+  ssmRegion: string;
+}
+
+async function buildEdgeFunctions(opts: BuildOptions): Promise<void> {
+  console.log("Building edge functions...");
+  fs.rmSync(DIST, { recursive: true, force: true });
+  fs.mkdirSync(DIST, { recursive: true });
+
+  // Build viewer-request CloudFront Function
+  await build({
+    entryPoints: [path.join(ROOT, "lib/viewer-request.ts")],
+    bundle: true,
+    platform: "neutral",
+    target: "es2019",
+    format: "esm",
+    treeShaking: false,
+    outfile: path.join(DIST, "viewer-request/index.js"),
+    define: {
+      SUBDOMAIN_MAP_CONFIG: JSON.stringify(opts.subdomainMap),
+    },
+  });
+
+  // Build origin-request Lambda@Edge
+  await build({
+    entryPoints: [path.join(ROOT, "lib/origin-request.ts")],
+    bundle: true,
+    platform: "node",
+    target: "node24",
+    format: "cjs",
+    outfile: path.join(DIST, "origin-request/index.js"),
+    define: {
+      "process.env.PROJECT": JSON.stringify(opts.project),
+      "process.env.SSM_REGION": JSON.stringify(opts.ssmRegion),
+    },
+  });
+}
+
+interface StackConfig {
+  project: string;
+  ssmRegion: string;
+  domain: string;
+  hostedZoneId: string;
+  frontendBucketName: string;
+}
+
+function synthesizeStack(config: StackConfig): string {
+  console.log(`  project: ${config.project}`);
+  console.log(`  ssm.region: ${config.ssmRegion}`);
+  console.log(`  domain: ${config.domain}`);
+  console.log(`  hostedZoneId: ${config.hostedZoneId}`);
+
+  const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
+  const stackName = `${config.project}-edge`;
+
+  const stack = new EdgeStack(app, stackName, {
+    config,
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: "us-east-1",
+    },
+  });
+
+  cdk.Tags.of(stack).add("project", config.project);
+  app.synth();
+
+  return stackName;
+}
+
+async function deploy(stackName: string, dryRun: boolean | undefined): Promise<void> {
+  console.log(`\nDeploying ${stackName}...`);
+
+  if (dryRun) {
+    console.log("\n--dry-run: Skipping CDK deploy");
+    console.log(`Built files in ${DIST}:`);
+    execSync(`ls -la ${DIST}`, { stdio: "inherit" });
+  } else {
+    execSync(
+      `npx cdk deploy ${stackName} --app ./cdk.out --require-approval never`,
+      { stdio: "inherit", cwd: ROOT }
+    );
+  }
+}
+
+async function destroy(stackName: string): Promise<void> {
+  console.log(`\nThis will destroy the stack: ${stackName}`);
+  console.log(`  - CloudFront distribution`);
+  console.log(`  - Lambda@Edge functions`);
+  console.log(`  - Route53 records`);
+  console.log(`  - ACM certificate`);
+
+  const confirmed = await confirm("\nAre you sure you want to destroy?");
+  if (!confirmed) {
+    console.log("Aborted.");
+    process.exit(0);
+  }
+
+  console.log(`\nDestroying ${stackName}...`);
+  execSync(
+    `npx cdk destroy ${stackName} --app ./cdk.out`,
+    { stdio: "inherit", cwd: ROOT }
+  );
+}
+
+async function confirm(message: string): Promise<boolean> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question(`${message} (y/N): `, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase() === "y");
+    });
+  });
+}
+
+interface EdgeStackProps extends cdk.StackProps {
+  config: StackConfig;
 }
 
 class EdgeStack extends cdk.Stack {
@@ -93,7 +276,6 @@ class EdgeStack extends cdk.Stack {
     const domainNames = [`*.${config.domain}`, config.domain];
 
     // Custom cache policy that includes x-branch header in cache key
-    // Without this, all subdomains share the same cache entry
     const frontendCachePolicy = new cloudfront.CachePolicy(this, "FrontendCachePolicy", {
       cachePolicyName: `${config.project}-frontend`,
       headerBehavior: cloudfront.CacheHeaderBehavior.allowList("x-branch"),
@@ -112,7 +294,6 @@ class EdgeStack extends cdk.Stack {
     });
 
     // CloudFront Function to extract subdomain at viewer-request
-    // (before Host header is changed to S3 origin domain)
     const ViewerRequestFunction = new cloudfront.Function(this, "ViewerRequestFunction", {
       code: cloudfront.FunctionCode.fromFile({
         filePath: path.join(DIST, "viewer-request/index.js"),
@@ -140,9 +321,8 @@ class EdgeStack extends cdk.Stack {
         ],
       },
       additionalBehaviors: {
-        // API behavior: Lambda@Edge rewrites origin to backend Lambda URL at runtime
         "/api/*": {
-          origin: s3Origin, // Placeholder - Lambda@Edge overwrites this in origin-request.ts
+          origin: s3Origin,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -194,185 +374,6 @@ class EdgeStack extends cdk.Stack {
     new cdk.CfnOutput(this, "FrontendBucketName", {
       value: frontendBucket.bucketName,
     });
-  }
-}
-
-interface BuildOptions {
-  subdomainMap: TssConfig["subdomainMap"];
-  project: string;
-  ssmRegion: string;
-}
-
-async function buildEdgeFunctions(opts: BuildOptions) {
-  console.log("Building edge functions...");
-  fs.rmSync(DIST, { recursive: true, force: true });
-  fs.mkdirSync(DIST, { recursive: true });
-
-  // Build viewer-request CloudFront Function
-  // CloudFront Functions require a global `handler` function (no exports).
-  // treeShaking must be disabled because esbuild removes unexported functions as dead code.
-  // Target ES2019 to compile away ?. and ?? (not supported in CloudFront Functions runtime).
-  await build({
-    entryPoints: [path.join(ROOT, "lib/viewer-request.ts")],
-    bundle: true,
-    platform: "neutral",
-    target: "es2019",
-    format: "esm",
-    treeShaking: false,
-    outfile: path.join(DIST, "viewer-request/index.js"),
-    define: {
-      SUBDOMAIN_MAP_CONFIG: JSON.stringify(opts.subdomainMap),
-    },
-  });
-
-  // Build origin-request Lambda@Edge (runs on Node.js 24.x runtime)
-  // CJS format for simpler Lambda compatibility (auto-detects exports.handler)
-  await build({
-    entryPoints: [path.join(ROOT, "lib/origin-request.ts")],
-    bundle: true,
-    platform: "node",
-    target: "node24",
-    format: "cjs",
-    outfile: path.join(DIST, "origin-request/index.js"),
-    define: {
-      "process.env.PROJECT": JSON.stringify(opts.project),
-      "process.env.SSM_REGION": JSON.stringify(opts.ssmRegion),
-    },
-  });
-}
-
-function synthesizeStack(config: EdgeStackProps["config"]) {
-  console.log(`  project: ${config.project}`);
-  console.log(`  ssm.region: ${config.ssmRegion}`);
-  console.log(`  domain: ${config.domain}`);
-  console.log(`  hostedZoneId: ${config.hostedZoneId}`);
-
-  const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
-
-  const stackName = `${config.project}-edge`;
-  const stack = new EdgeStack(app, stackName, {
-    config,
-    env: {
-      account: process.env.CDK_DEFAULT_ACCOUNT,
-      region: "us-east-1",
-    },
-  });
-
-  cdk.Tags.of(stack).add("project", config.project);
-
-  app.synth();
-
-  return stackName;
-}
-
-async function confirm(message: string): Promise<boolean> {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => {
-    rl.question(`${message} (y/N): `, (answer) => {
-      rl.close();
-      resolve(answer.toLowerCase() === "y");
-    });
-  });
-}
-
-function showHelp() {
-  console.log(`
-Usage: npm run deploy -- <command> [options]
-
-Deploy or destroy the edge stack (CloudFront, Lambda@Edge, S3, Route53)
-
-Commands:
-  deploy              Deploy the edge stack
-  destroy             Destroy the edge stack (with confirmation)
-
-Options:
-  --dry-run           Build and synthesize only, skip actual deployment
-  -h, --help          Show this help message
-
-Examples:
-  npm run deploy -- deploy
-  npm run deploy -- deploy --dry-run
-  npm run deploy -- destroy
-`);
-}
-
-async function main() {
-  const { values, positionals } = parseArgs({
-    options: {
-      "dry-run": { type: "boolean" },
-      help: { type: "boolean", short: "h" },
-    },
-    allowPositionals: true,
-    strict: true,
-  });
-
-  if (values.help) {
-    showHelp();
-    process.exit(0);
-  }
-
-  const command = positionals[0];
-
-  if (command !== "deploy" && command !== "destroy") {
-    showHelp();
-    process.exit(1);
-  }
-
-  const config = loadConfig();
-  const dryRun = values["dry-run"];
-
-  // Sort of stupid but even for destroy this is needed
-  await buildEdgeFunctions({
-    subdomainMap: config.subdomainMap,
-    project: config.project,
-    ssmRegion: config.ssm.region,
-  });
-
-  const stackName = synthesizeStack({
-    project: config.project,
-    ssmRegion: config.ssm.region,
-    domain: config.domain,
-    hostedZoneId: config.hostedZoneId,
-    frontendBucketName: frontendBucketName(config),
-  });
-
-  switch (command) {
-    case "deploy": {
-      console.log(`\nDeploying ${stackName}...`);
-
-      if (dryRun) {
-        console.log("\n--dry-run: Skipping CDK deploy");
-        console.log(`Built files in ${DIST}:`);
-        execSync(`ls -la ${DIST}`, { stdio: "inherit" });
-      } else {
-        execSync(
-          `npx cdk deploy ${stackName} --app ./cdk.out --require-approval never`,
-          { stdio: "inherit", cwd: ROOT }
-        );
-      }
-      break;
-    }
-
-    case "destroy": {
-      console.log(`\nThis will destroy the stack: ${stackName}`);
-      console.log(`  - CloudFront distribution`);
-      console.log(`  - Lambda@Edge functions`);
-      console.log(`  - Route53 records`);
-      console.log(`  - ACM certificate`);
-
-      const confirmed = await confirm("\nAre you sure you want to destroy?");
-      if (!confirmed) {
-        console.log("Aborted.");
-        process.exit(0);
-      }
-
-      console.log(`\nDestroying ${stackName}...`);
-      execSync(
-        `npx cdk destroy ${stackName} --app ./cdk.out`,
-        { stdio: "inherit", cwd: ROOT }
-      );
-      break;
-    }
   }
 }
 

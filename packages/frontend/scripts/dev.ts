@@ -1,20 +1,18 @@
+import path from "path";
 import { parseArgs } from "util";
-import { loadConfig } from "@app/shared/config";
-import { serve } from "@hono/node-server";
-import { loadEnv } from "./lib/env.js";
+import { execSync } from "child_process";
+import { config as dotenvConfig } from "dotenv";
 
-async function main() {
+const ROOT = path.resolve(import.meta.dirname, "..");
+
+function main() {
   const env = parseCliArgs();
 
-  loadEnv(env);
+  const envFile = typeof env === "string" ? `.env.${env}` : ".env";
+  dotenvConfig({ path: path.join(ROOT, envFile) });
+  console.log(`Loaded environment from ${envFile}`);
 
-  // Dynamic import AFTER env is loaded
-  const { app } = await import("../src/index.js");
-
-  const config = loadConfig();
-  const port = config.backend.devPort;
-  console.log(`Backend running on http://localhost:${port}`);
-  serve({ fetch: app.fetch, port });
+  execSync("vite", { stdio: "inherit", env: process.env });
 }
 
 function parseCliArgs() {
@@ -23,7 +21,7 @@ function parseCliArgs() {
       env: { type: "string", short: "e" },
       help: { type: "boolean", short: "h" },
     },
-    strict: true,
+    strict: false, // Allow other flags to pass through to vite
   });
 
   if (values.help) {
@@ -37,7 +35,7 @@ function showHelp(): never {
   console.log(`
 Usage: npm run dev -- [options]
 
-Start backend dev server
+Start frontend dev server
 
 Options:
   -e, --env <env>     Environment file suffix (optional)

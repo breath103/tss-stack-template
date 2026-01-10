@@ -4,28 +4,62 @@ import { parseArgs } from "util";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
-import { config as dotenvConfig } from "dotenv";
 import { loadConfig } from "@app/shared/config";
 import { sanitizeBranchName } from "@app/shared/branch";
 import * as SSMParameters from "@app/shared/ssm-parameters";
-import { loadAndValidateEnv } from "@app/shared/env-parser";
+import { loadEnv } from "./lib/env.js";
 
-const config = loadConfig();
 const ROOT = path.resolve(import.meta.dirname, "..");
 
-// Parse CLI args
-const { values } = parseArgs({
-  options: {
-    name: { type: "string", short: "n" },
-    env: { type: "string", short: "e" },
-    help: { type: "boolean", short: "h" },
-  },
-  strict: true,
-});
+async function main() {
+  const { name, env } = parseCliArgs();
 
-const { name, env, help } = values;
+  const envVars = loadEnv(env);
+  build();
 
-if (help) {
+  const config = loadConfig();
+  const stackName = synthesizeStack(config, name, envVars);
+
+  deploy(stackName);
+  storeUrlInSsm(stackName, config);
+
+  console.log(`\n✅ Deployed backend: ${name}`);
+}
+
+function parseCliArgs() {
+  const { values } = parseArgs({
+    options: {
+      name: { type: "string", short: "n" },
+      env: { type: "string", short: "e" },
+      help: { type: "boolean", short: "h" },
+    },
+    strict: true,
+  });
+
+  if (values.help) {
+    showHelp();
+  }
+
+  if (!values.name) {
+    console.error("Error: --name is required (e.g., --name=main)");
+    console.error("Run with --help for usage information");
+    process.exit(1);
+  }
+
+  const sanitizedName = sanitizeBranchName(values.name);
+  if (!sanitizedName) {
+    console.error(`Error: branch name "${values.name}" sanitizes to empty string`);
+    process.exit(1);
+  }
+
+  if (sanitizedName !== values.name) {
+    console.log(`Branch name sanitized: "${values.name}" → "${sanitizedName}"`);
+  }
+
+  return { name: sanitizedName, env: values.env };
+}
+
+function showHelp(): never {
   console.log(`
 Usage: npm run deploy -- [options]
 
@@ -47,37 +81,71 @@ Examples:
   process.exit(0);
 }
 
-if (!name) {
-  console.error("Error: --name is required (e.g., --name=main)");
-  console.error("Run with --help for usage information");
-  process.exit(1);
+function build(): void {
+  console.log("Building...");
+  execSync("npm run build", { stdio: "inherit", cwd: ROOT });
 }
 
-// Load environment file
-const envFile = env ? `.env.${env}` : ".env";
-dotenvConfig({ path: path.join(ROOT, envFile) });
-console.log(`Loaded environment from ${envFile}`);
+function synthesizeStack(
+  config: ReturnType<typeof loadConfig>,
+  name: string,
+  envVars: Record<string, string>
+): string {
+  console.log(`\nDeploying ${name} to ${config.backend.region} (project: ${config.project})...`);
 
-// Parse and validate environment variables from env.d.ts
-const envVars = loadAndValidateEnv(path.join(ROOT, "src/env.d.ts"));
+  const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
+  const stackName = `${config.project}-backend-${name}`;
 
-const sanitizedBranchName = sanitizeBranchName(name);
-if (!sanitizedBranchName) {
-  console.error(`Error: branch name "${name}" sanitizes to empty string`);
-  process.exit(1);
+  const stack = new BackendStack(app, stackName, {
+    aliasName: name,
+    envVars,
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: config.backend.region,
+    },
+  });
+
+  cdk.Tags.of(stack).add("project", config.project);
+  cdk.Tags.of(stack).add("environment", name);
+
+  app.synth();
+  return stackName;
 }
 
-if (sanitizedBranchName !== name) {
-  console.log(`Branch name sanitized: "${name}" → "${sanitizedBranchName}"`);
+function deploy(stackName: string): void {
+  execSync(
+    `npx cdk deploy ${stackName} --app ./cdk.out --require-approval never`,
+    { stdio: "inherit", cwd: ROOT }
+  );
 }
 
-// Build
-console.log("Building...");
-execSync("npm run build", { stdio: "inherit", cwd: ROOT });
+function storeUrlInSsm(stackName: string, config: ReturnType<typeof loadConfig>): void {
+  const functionUrl = execSync(
+    `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`FunctionUrl\`].OutputValue' --output text --region ${config.backend.region}`,
+    { encoding: "utf-8" }
+  ).trim();
 
-// CDK Stack
+  const ssmPath = SSMParameters.backendUrlName({
+    project: config.project,
+    sanitizedBranchName: stackName.split("-").pop()!,
+  });
+
+  console.log(`\nStoring Function URL in SSM: ${ssmPath}`);
+  execSync(
+    `aws ssm put-parameter --name "${ssmPath}" --value "${functionUrl}" --type String --overwrite --region ${config.ssm.region}`,
+    { stdio: "inherit" }
+  );
+
+  console.log(`\n✅ Deployed: ${functionUrl}`);
+}
+
+interface BackendStackProps extends cdk.StackProps {
+  aliasName: string;
+  envVars: Record<string, string>;
+}
+
 class BackendStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: cdk.StackProps & { aliasName: string }) {
+  constructor(scope: Construct, id: string, props: BackendStackProps) {
     super(scope, id, props);
 
     const fn = new lambda.Function(this, "Handler", {
@@ -88,7 +156,7 @@ class BackendStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       environment: {
         NODE_ENV: "production",
-        ...envVars,
+        ...props.envVars,
       },
     });
 
@@ -104,43 +172,4 @@ class BackendStack extends cdk.Stack {
   }
 }
 
-// Synthesize
-console.log(`\nDeploying ${sanitizedBranchName} to ${config.backend.region} (project: ${config.project})...`);
-
-const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
-
-const stackName = `${config.project}-backend-${sanitizedBranchName}`;
-const stack = new BackendStack(app, stackName, {
-  aliasName: sanitizedBranchName,
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: config.backend.region,
-  },
-});
-
-cdk.Tags.of(stack).add("project", config.project);
-cdk.Tags.of(stack).add("environment", sanitizedBranchName);
-
-app.synth();
-
-// Deploy
-execSync(
-  `npx cdk deploy ${stackName} --app ./cdk.out --require-approval never`,
-  { stdio: "inherit", cwd: ROOT }
-);
-
-// Get Function URL and store in SSM
-const functionUrl = execSync(
-  `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`FunctionUrl\`].OutputValue' --output text --region ${config.backend.region}`,
-  { encoding: "utf-8" }
-).trim();
-
-const ssmPath = SSMParameters.backendUrlName({ project: config.project, sanitizedBranchName });
-
-console.log(`\nStoring Function URL in SSM: ${ssmPath}`);
-execSync(
-  `aws ssm put-parameter --name "${ssmPath}" --value "${functionUrl}" --type String --overwrite --region ${config.ssm.region}`,
-  { stdio: "inherit" }
-);
-
-console.log(`\n✅ Deployed: ${functionUrl}`);
+main();

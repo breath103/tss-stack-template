@@ -2,51 +2,49 @@ import { execSync } from "child_process";
 import path from "path";
 import fs from "fs";
 import { parseArgs } from "util";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { config as dotenvConfig } from "dotenv";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { loadConfig, frontendBucketName } from "@app/shared/config";
 import cacheRules from "../cache.json" with { type: "json" };
 import { sanitizeBranchName } from "@app/shared/branch";
 
-const config = loadConfig();
 const ROOT = path.resolve(import.meta.dirname, "..");
-const bucketName = frontendBucketName(config);
-
-// Convert glob pattern to regex (supports * and **)
-function globToRegex(pattern: string): RegExp {
-  const escaped = pattern
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*\*/g, "{{GLOBSTAR}}")
-    .replace(/\*/g, "[^/]*")
-    .replace(/{{GLOBSTAR}}/g, ".*");
-  return new RegExp(`^${escaped}$`);
-}
-
-// Find first matching cache control rule
-function getCacheControl(filePath: string): string {
-  for (const rule of cacheRules) {
-    if (globToRegex(rule.pattern).test(filePath)) {
-      return rule.cacheControl;
-    }
-  }
-  return "public, max-age=31536000, immutable"; // default
-}
-
 const DIST = path.join(ROOT, "dist");
 
-// Parse CLI args
-const { values } = parseArgs({
-  options: {
-    name: { type: "string", short: "n" },
-    env: { type: "string", short: "e" },
-    help: { type: "boolean", short: "h" },
-  },
-  strict: true,
-});
+function parseCliArgs() {
+  const { values } = parseArgs({
+    options: {
+      name: { type: "string", short: "n" },
+      env: { type: "string", short: "e" },
+      help: { type: "boolean", short: "h" },
+    },
+    strict: true,
+  });
 
-const { name, env, help } = values;
+  if (values.help) {
+    showHelp();
+  }
 
-if (help) {
+  if (!values.name) {
+    console.error("Error: --name is required (e.g., --name=main)");
+    console.error("Run with --help for usage information");
+    process.exit(1);
+  }
+
+  const sanitizedName = sanitizeBranchName(values.name);
+  if (!sanitizedName) {
+    console.error(`Error: branch name "${values.name}" sanitizes to empty string`);
+    process.exit(1);
+  }
+
+  if (sanitizedName !== values.name) {
+    console.log(`Branch name sanitized: "${values.name}" → "${sanitizedName}"`);
+  }
+
+  return { name: sanitizedName, env: values.env };
+}
+
+function showHelp(): never {
   console.log(`
 Usage: npm run deploy -- [options]
 
@@ -68,37 +66,65 @@ Examples:
   process.exit(0);
 }
 
-if (!name) {
-  console.error("Error: --name is required (e.g., --name=main)");
-  console.error("Run with --help for usage information");
-  process.exit(1);
+function loadEnvAndBuild(env: string | undefined): void {
+  const envFile = env ? `.env.${env}` : ".env";
+  dotenvConfig({ path: path.join(ROOT, envFile) });
+  console.log(`Building frontend with ${envFile}...`);
+  execSync("npx vite build", { stdio: "inherit", cwd: ROOT, env: process.env });
 }
 
-// Load environment file
-const envFile = env ? `.env.${env}` : ".env";
-dotenvConfig({ path: path.join(ROOT, envFile) });
-console.log(`Loaded environment from ${envFile}`);
+async function uploadDir(
+  s3: S3Client,
+  bucketName: string,
+  deployName: string,
+  dir: string,
+  prefix: string
+): Promise<void> {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-const sanitizedName = sanitizeBranchName(name);
-if (!sanitizedName) {
-  console.error(`Error: branch name "${name}" sanitizes to empty string`);
-  process.exit(1);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      await uploadDir(s3, bucketName, deployName, fullPath, `${prefix}${entry.name}/`);
+    } else {
+      const filePath = `${prefix}${entry.name}`;
+      const cacheControl = getCacheControl(filePath);
+      const key = `${deployName}/${filePath}`;
+
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucketName,
+          Key: key,
+          Body: fs.readFileSync(fullPath),
+          ContentType: getContentType(entry.name),
+          CacheControl: cacheControl,
+        })
+      );
+      console.log(`  ${key} (${cacheControl.split(",")[0]})`);
+    }
+  }
 }
 
-if (sanitizedName !== name) {
-  console.log(`Branch name sanitized: "${name}" → "${sanitizedName}"`);
+function getCacheControl(filePath: string): string {
+  for (const rule of cacheRules) {
+    if (globToRegex(rule.pattern).test(filePath)) {
+      return rule.cacheControl;
+    }
+  }
+  return "public, max-age=31536000, immutable";
 }
 
-// Build frontend
-console.log("Building frontend...");
-execSync("npm run build", { stdio: "inherit", cwd: ROOT });
+function globToRegex(pattern: string): RegExp {
+  const escaped = pattern
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*\*/g, "{{GLOBSTAR}}")
+    .replace(/\*/g, "[^/]*")
+    .replace(/{{GLOBSTAR}}/g, ".*");
+  return new RegExp(`^${escaped}$`);
+}
 
-console.log(`\nUploading to s3://${bucketName}/${sanitizedName}/...`);
-
-// Upload dist/ to S3 (bucket is in us-east-1 with edge stack)
-const s3 = new S3Client({ region: "us-east-1" });
-
-const mimeTypes: Record<string, string> = {
+const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",
   ".js": "application/javascript",
   ".css": "text/css",
@@ -115,35 +141,23 @@ const mimeTypes: Record<string, string> = {
   ".eot": "application/vnd.ms-fontobject",
 };
 
-async function uploadDir(dir: string, prefix: string) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-
-    if (entry.isDirectory()) {
-      await uploadDir(fullPath, `${prefix}${entry.name}/`);
-    } else {
-      const filePath = `${prefix}${entry.name}`;
-      const ext = path.extname(entry.name).toLowerCase();
-      const contentType = mimeTypes[ext] || "application/octet-stream";
-      const cacheControl = getCacheControl(filePath);
-      const key = `${sanitizedName}/${filePath}`;
-
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucketName,
-          Key: key,
-          Body: fs.readFileSync(fullPath),
-          ContentType: contentType,
-          CacheControl: cacheControl,
-        })
-      );
-      console.log(`  ${key} (${cacheControl.split(",")[0]})`);
-    }
-  }
+function getContentType(filename: string): string {
+  const ext = path.extname(filename).toLowerCase();
+  return MIME_TYPES[ext] || "application/octet-stream";
 }
 
-await uploadDir(DIST, "");
+async function main() {
+  const { name, env } = parseCliArgs();
 
-console.log(`\n✅ Deployed to s3://${bucketName}/${sanitizedName}/`);
+  loadEnvAndBuild(env);
+
+  const config = loadConfig();
+  const bucketName = frontendBucketName(config);
+  const s3 = new S3Client({ region: "us-east-1" });
+
+  console.log(`\nUploading to s3://${bucketName}/${name}/...`);
+  await uploadDir(s3, bucketName, name, DIST, "");
+
+  console.log(`\n✅ Deployed to s3://${bucketName}/${name}/`);
+}
+main();
