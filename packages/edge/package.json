@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx scripts/dev.ts",
-    "edge": "tsx scripts/edge-stack.ts",
+    "deploy": "tsx scripts/deploy.ts",
     "bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {

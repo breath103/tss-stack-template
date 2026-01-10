@@ -7,8 +7,8 @@
   "scripts": {
     "setup": "tsx scripts/setup.ts",
     "dev": "concurrently -n edge,backend,types,frontend -c magenta,blue,yellow,green \"npm run dev -w @app/edge\" \"npm run dev -w @app/backend\" \"npm run dev:types -w @app/backend\" \"npm run dev -w @app/frontend\"",
-    "deploy:edge-bootstrap": "npm run bootstrap -w @app/edge --",
-    "deploy:edge-stack": "npm run edge -w @app/edge --",
+    "deploy:bootstrap": "npm run bootstrap -w @app/edge --",
+    "deploy:edge": "npm run deploy -w @app/edge --",
     "deploy:backend": "npm run deploy -w @app/backend --",
     "deploy:frontend": "npm run deploy -w @app/frontend --",
     "lint": "npm run lint -w @app/backend && npm run lint -w @app/frontend",

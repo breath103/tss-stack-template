@@ -66,6 +66,20 @@ export const handler = async (
     };
   }
 
+  // Debug endpoint: uncomment to inspect headers at edge layer
+  // if (uri === "/api/edge-echo") {
+  //   const headers: Record<string, string> = {};
+  //   for (const [key, values] of Object.entries(request.headers)) {
+  //     headers[key] = values.map((v) => v.value).join(", ");
+  //   }
+  //   return {
+  //     status: "200",
+  //     statusDescription: "OK",
+  //     headers: { "content-type": [{ key: "Content-Type", value: "application/json" }] },
+  //     body: JSON.stringify({ layer: "edge-origin-request", uri, branch, headers }, null, 2),
+  //   };
+  // }
+
   // API requests: route to backend Lambda
   if (uri.startsWith("/api/") || uri === "/api") {
     const backendUrl = await getBackendUrl(branch);
@@ -108,7 +122,6 @@ function rewriteToBackend(
   backendUrl: string
 ): CloudFrontRequest {
   const url = new URL(backendUrl);
-  const forwardedHost = request.headers["x-forwarded-host"]?.[0]?.value;
 
   request.origin = {
     custom: {
@@ -122,11 +135,6 @@ function rewriteToBackend(
       customHeaders: {},
     },
   };
-
-  // Pass original host to backend for Auth.js redirects
-  if (forwardedHost) {
-    request.headers["x-forwarded-host"] = [{ key: "X-Forwarded-Host", value: forwardedHost }];
-  }
 
   request.headers.host = [{ key: "Host", value: url.hostname }];
 

@@ -22,6 +22,17 @@ export const api = routes(
     },
   }),
 
+  // Debug endpoint: uncomment to inspect headers at backend layer
+  // route("/api/backend-echo", "GET", {
+  //   handler: ({ c }) => {
+  //     const headers: Record<string, string> = {};
+  //     c.req.raw.headers.forEach((value, key) => {
+  //       headers[key] = value;
+  //     });
+  //     return { layer: "backend", url: c.req.url, headers };
+  //   },
+  // }),
+
   route("/api/hello", "GET", {
     query: {
       name: z.string().optional(),

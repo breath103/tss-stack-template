@@ -1,6 +1,7 @@
 import { execSync } from "child_process";
 import { build } from "esbuild";
 import { createInterface } from "readline";
+import { parseArgs } from "util";
 import path from "path";
 import fs from "fs";
 import * as cdk from "aws-cdk-lib";
@@ -95,7 +96,7 @@ class EdgeStack extends cdk.Stack {
     // Without this, all subdomains share the same cache entry
     const frontendCachePolicy = new cloudfront.CachePolicy(this, "FrontendCachePolicy", {
       cachePolicyName: `${config.project}-frontend`,
-      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("x-branch", "x-forwarded-host"),
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("x-branch"),
       queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
       cookieBehavior: cloudfront.CacheCookieBehavior.none(),
       defaultTtl: cdk.Duration.days(1),
@@ -142,7 +143,6 @@ class EdgeStack extends cdk.Stack {
         // API behavior: Lambda@Edge rewrites origin to backend Lambda URL at runtime
         "/api/*": {
           origin: s3Origin, // Placeholder - Lambda@Edge overwrites this in origin-request.ts
-
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -275,15 +275,51 @@ async function confirm(message: string): Promise<boolean> {
   });
 }
 
+function showHelp() {
+  console.log(`
+Usage: npm run deploy -- <command> [options]
+
+Deploy or destroy the edge stack (CloudFront, Lambda@Edge, S3, Route53)
+
+Commands:
+  deploy              Deploy the edge stack
+  destroy             Destroy the edge stack (with confirmation)
+
+Options:
+  --dry-run           Build and synthesize only, skip actual deployment
+  -h, --help          Show this help message
+
+Examples:
+  npm run deploy -- deploy
+  npm run deploy -- deploy --dry-run
+  npm run deploy -- destroy
+`);
+}
+
 async function main() {
-  const config = loadConfig();
-  const command = process.argv[2];
-  const dryRun = process.argv.includes("--dry-run");
+  const { values, positionals } = parseArgs({
+    options: {
+      "dry-run": { type: "boolean" },
+      help: { type: "boolean", short: "h" },
+    },
+    allowPositionals: true,
+    strict: true,
+  });
+
+  if (values.help) {
+    showHelp();
+    process.exit(0);
+  }
+
+  const command = positionals[0];
 
   if (command !== "deploy" && command !== "destroy") {
-    console.error(`Usage: tsx scripts/edge-stack.ts <deploy|destroy> [--dry-run]`);
+    showHelp();
     process.exit(1);
   }
+
+  const config = loadConfig();
+  const dryRun = values["dry-run"];
 
   // Sort of stupid but even for destroy this is needed
   await buildEdgeFunctions({
