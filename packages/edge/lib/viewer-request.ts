@@ -2,12 +2,14 @@
 // Runs at VIEWER_REQUEST before CloudFront modifies the Host header for S3 origin
 
 import type { CloudFrontFunctionsEvent } from "aws-lambda";
+
 import type { TssConfig } from "@app/shared/config";
 
 // Injected at build time from tss.json
 declare const SUBDOMAIN_MAP_CONFIG: TssConfig["subdomainMap"];
 const SUBDOMAIN_MAP = SUBDOMAIN_MAP_CONFIG;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function handler(event: CloudFrontFunctionsEvent) {
   const request = event.request;
   const host = request.headers.host?.value ?? "";

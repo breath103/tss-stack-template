@@ -1,12 +1,15 @@
-import { execSync } from "child_process";
-import path from "path";
-import { parseArgs } from "util";
+import { execSync } from "node:child_process";
+import path from "node:path";
+import { parseArgs } from "node:util";
+
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
-import { loadConfig } from "@app/shared/config";
+
 import { sanitizeBranchName } from "@app/shared/branch";
+import { loadConfig } from "@app/shared/config";
 import * as SSMParameters from "@app/shared/ssm-parameters";
+
 import { loadEnv } from "./lib/env.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");

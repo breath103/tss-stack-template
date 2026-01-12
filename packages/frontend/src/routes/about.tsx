@@ -1,5 +1,5 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createRoute } from "@tanstack/react-router";
+
 import { rootRoute } from "./__root";
 
 export const aboutRoute = createRoute({

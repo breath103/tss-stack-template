@@ -1,4 +1,3 @@
-import reactHooks from "eslint-plugin-react-hooks";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unicorn from "eslint-plugin-unicorn";
 import tseslint from "typescript-eslint";
@@ -6,7 +5,7 @@ import tseslint from "typescript-eslint";
 import eslint from "@eslint/js";
 
 export default [
-  { ignores: ["dist/**"] },
+  { ignores: ["dist/**", "cdk.out/**"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -16,16 +15,13 @@ export default [
       },
     },
     plugins: {
-      "react-hooks": reactHooks,
       "simple-import-sort": simpleImportSort,
       "unicorn": unicorn,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
       "quotes": ["error", "double", { avoidEscape: true }],
       "comma-spacing": ["error", { before: false, after: true }],
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/require-await": "off",
       "simple-import-sort/imports": ["error", {
         groups: [
@@ -38,6 +34,13 @@ export default [
       }],
       "simple-import-sort/exports": "error",
       "unicorn/prefer-node-protocol": "error",
+    },
+  },
+  // Disable node: protocol for lib/ (CloudFront Functions & Lambda@Edge runtimes)
+  {
+    files: ["lib/**/*.ts"],
+    rules: {
+      "unicorn/prefer-node-protocol": "off",
     },
   },
 ];

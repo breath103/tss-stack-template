@@ -1,8 +1,9 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ApiClient } from "../lib/api-client";
+
 import type { ApiRoutes } from "@app/backend/api";
+import { createRoute } from "@tanstack/react-router";
+
+import { ApiClient } from "../lib/api-client";
 import { rootRoute } from "./__root";
 
 const api = new ApiClient<ApiRoutes>();

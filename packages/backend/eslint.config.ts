@@ -1,22 +1,39 @@
-import eslint from "@eslint/js";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import unicorn from "eslint-plugin-unicorn";
 import tseslint from "typescript-eslint";
 
+import eslint from "@eslint/js";
+
 export default [
+  { ignores: ["dist/**", "cdk.out/**"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["dist/**", "cdk.out/**"],
-  },
-  {
-    files: ["**/*.ts"],
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+      "unicorn": unicorn,
+    },
     rules: {
-      "quotes": ["error", "double"],
+      "quotes": ["error", "double", { avoidEscape: true }],
+      "comma-spacing": ["error", { before: false, after: true }],
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/require-await": "off",
+      "simple-import-sort/imports": ["error", {
+        groups: [
+          ["^node:"],
+          ["^[a-z]"],
+          ["^@(?!/)"],
+          ["^@/"],
+          ["^\\."],
+        ],
+      }],
+      "simple-import-sort/exports": "error",
+      "unicorn/prefer-node-protocol": "error",
     },
   },
 ];

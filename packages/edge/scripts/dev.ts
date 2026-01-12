@@ -1,5 +1,7 @@
-import http from "http";
+import http from "node:http";
+
 import httpProxy from "http-proxy";
+
 import { loadConfig } from "@app/shared/config";
 
 const config = loadConfig();

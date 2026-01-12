@@ -1,19 +1,21 @@
-import { execSync } from "child_process";
-import { build } from "esbuild";
-import { createInterface } from "readline";
-import { parseArgs } from "util";
-import path from "path";
-import fs from "fs";
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { createInterface } from "node:readline";
+import { parseArgs } from "node:util";
+
 import * as cdk from "aws-cdk-lib";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
+import { build } from "esbuild";
+
 import { frontendBucketName, loadConfig, type TssConfig } from "@app/shared/config";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -180,10 +182,10 @@ async function deploy(stackName: string, dryRun: boolean | undefined): Promise<v
 
 async function destroy(stackName: string): Promise<void> {
   console.log(`\nThis will destroy the stack: ${stackName}`);
-  console.log(`  - CloudFront distribution`);
-  console.log(`  - Lambda@Edge functions`);
-  console.log(`  - Route53 records`);
-  console.log(`  - ACM certificate`);
+  console.log("  - CloudFront distribution");
+  console.log("  - Lambda@Edge functions");
+  console.log("  - Route53 records");
+  console.log("  - ACM certificate");
 
   const confirmed = await confirm("\nAre you sure you want to destroy?");
   if (!confirmed) {

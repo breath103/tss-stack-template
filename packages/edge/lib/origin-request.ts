@@ -3,9 +3,10 @@ import type {
   CloudFrontRequestEvent,
   CloudFrontRequestResult,
 } from "aws-lambda";
-import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
+
 import { sanitizeBranchName } from "@app/shared/branch";
 import * as SSMParameters from "@app/shared/ssm-parameters";
+import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 // Injected at build time by esbuild
 const PROJECT = process.env.PROJECT!;

@@ -1,6 +1,7 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import { build } from "esbuild";
-import fs from "fs";
-import path from "path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DIST = path.join(ROOT, "dist");

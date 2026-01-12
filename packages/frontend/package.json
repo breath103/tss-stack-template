@@ -7,7 +7,7 @@
     "dev": "tsx scripts/dev.ts",
     "build:types": "tsc --noEmit",
     "type-check": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "eslint src scripts",
     "deploy": "tsx scripts/deploy.ts"
   },
   "dependencies": {
@@ -28,7 +28,9 @@
     "@vitejs/plugin-react": "^4.3.0",
     "eslint": "^9.39.2",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-unicorn": "^59.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "typescript-eslint": "^8.52.0",

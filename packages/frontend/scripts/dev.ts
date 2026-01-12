@@ -1,6 +1,7 @@
-import path from "path";
-import { parseArgs } from "util";
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
+import path from "node:path";
+import { parseArgs } from "node:util";
+
 import { config as dotenvConfig } from "dotenv";
 
 const ROOT = path.resolve(import.meta.dirname, "..");

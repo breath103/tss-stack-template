@@ -1,12 +1,15 @@
-import { execSync } from "child_process";
-import path from "path";
-import fs from "fs";
-import { parseArgs } from "util";
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { parseArgs } from "node:util";
+
 import { config as dotenvConfig } from "dotenv";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { loadConfig, frontendBucketName } from "@app/shared/config";
-import cacheRules from "../cache.json" with { type: "json" };
+
 import { sanitizeBranchName } from "@app/shared/branch";
+import { frontendBucketName, loadConfig } from "@app/shared/config";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+
+import cacheRules from "../cache.json" with { type: "json" };
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DIST = path.join(ROOT, "dist");

@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { handle } from "hono/aws-lambda";
+
 import { api } from "./api.js";
+import type { AppEnv } from "./lib/app-context.js";
 import { auth } from "./lib/auth.js";
 import { registerToHono } from "./lib/hono-adapter.js";
-import type { AppEnv } from "./lib/app-context.js";
 
 const app = new Hono<AppEnv>();
 

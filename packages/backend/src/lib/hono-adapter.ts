@@ -1,6 +1,7 @@
+import type { Context, Env, Hono } from "hono";
 import { z } from "zod";
-import type { Hono, Env, Context } from "hono";
-import type { RouteDef, RouteCollection } from "./route.js";
+
+import type { RouteCollection, RouteDef } from "./route.js";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 type SchemaShape = Record<string, z.ZodTypeAny>;

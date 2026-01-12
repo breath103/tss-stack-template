@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx scripts/dev.ts",
     "deploy": "tsx scripts/deploy.ts",
-    "bootstrap": "tsx scripts/bootstrap.ts"
+    "bootstrap": "tsx scripts/bootstrap.ts",
+    "lint": "eslint lib scripts"
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.700.0",
@@ -14,12 +15,17 @@
     "constructs": "^10.4.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/aws-lambda": "^8.10.145",
     "@types/http-proxy": "^1.17.17",
     "aws-cdk": "^2.170.0",
     "esbuild": "^0.27.2",
+    "eslint": "^9.39.2",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unicorn": "^59.0.1",
     "http-proxy": "^1.18.1",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.52.0"
   }
 }

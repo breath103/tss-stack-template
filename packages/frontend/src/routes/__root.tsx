@@ -1,5 +1,6 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
-import { useSession, signIn, signOut } from "../lib/auth-client";
+
+import { signIn, signOut, useSession } from "../lib/auth-client";
 
 function RootComponent() {
   const { data: session } = useSession();
