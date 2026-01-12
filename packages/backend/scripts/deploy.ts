@@ -3,13 +3,12 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 
 import * as cdk from "aws-cdk-lib";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import { Construct } from "constructs";
 
 import { sanitizeBranchName } from "@app/shared/branch";
 import { loadConfig } from "@app/shared/config";
 import * as SSMParameters from "@app/shared/ssm-parameters";
 
+import { BackendStack } from "./lib/backend-stack.js";
 import { loadEnv } from "./lib/env.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -97,10 +96,11 @@ function synthesizeStack(
   console.log(`\nDeploying ${name} to ${config.backend.region} (project: ${config.project})...`);
 
   const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
-  const stackName = `${config.project}-backend-${name}`;
+  const stackId = BackendStack.id({ project: config.project, name });
 
-  const stack = new BackendStack(app, stackName, {
-    aliasName: name,
+  const stack = new BackendStack(app, {
+    project: config.project,
+    name,
     envVars,
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -112,7 +112,7 @@ function synthesizeStack(
   cdk.Tags.of(stack).add("environment", name);
 
   app.synth();
-  return stackName;
+  return stackId;
 }
 
 function deploy(stackName: string): void {
@@ -140,39 +140,6 @@ function storeUrlInSsm(stackName: string, config: ReturnType<typeof loadConfig>)
   );
 
   console.log(`\n✅ Deployed: ${functionUrl}`);
-}
-
-interface BackendStackProps extends cdk.StackProps {
-  aliasName: string;
-  envVars: Record<string, string>;
-}
-
-class BackendStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: BackendStackProps) {
-    super(scope, id, props);
-
-    const fn = new lambda.Function(this, "Handler", {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "index.handler",
-      code: lambda.Code.fromAsset(path.join(ROOT, "dist")),
-      memorySize: 512,
-      timeout: cdk.Duration.seconds(30),
-      environment: {
-        NODE_ENV: "production",
-        ...props.envVars,
-      },
-    });
-
-    const alias = fn.addAlias(props.aliasName);
-    const aliasUrl = alias.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
-    });
-
-    new cdk.CfnOutput(this, "FunctionUrl", {
-      value: aliasUrl.url,
-      description: `Function URL for alias: ${props.aliasName}`,
-    });
-  }
 }
 
 main();

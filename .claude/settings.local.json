@@ -14,7 +14,9 @@
       "Bash(npm run lint)",
       "Bash(npx eslint:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(npm run deploy:*)"
+      "Bash(npm run deploy:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run logs:*)"
     ]
   }
 }

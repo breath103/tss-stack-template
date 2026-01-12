@@ -126,3 +126,13 @@ export const auth = betterAuth({
 - TypeScript types are the source of truth for config shape
 - Wrong option placement silently fails (option is ignored, no error)
 - Debugging misplaced options wastes significant time
+
+## 6. Always run ESLint with `--fix`
+
+When running lint, always use `--fix` to auto-fix issues like import sorting:
+
+```bash
+npm run lint -- --fix
+```
+
+Never run `npm run lint` without `--fix` and then manually fix auto-fixable issues.
