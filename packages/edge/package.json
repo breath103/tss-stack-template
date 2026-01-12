@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx scripts/dev.ts",
     "deploy": "tsx scripts/deploy.ts",
+    "logs": "tsx scripts/logs.ts",
     "bootstrap": "tsx scripts/bootstrap.ts",
     "lint": "eslint lib scripts"
   },
@@ -15,6 +16,7 @@
     "constructs": "^10.4.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3",
     "@eslint/js": "^9.39.2",
     "@types/aws-lambda": "^8.10.145",
     "@types/http-proxy": "^1.17.17",

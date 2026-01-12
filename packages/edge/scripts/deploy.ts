@@ -5,18 +5,11 @@ import { createInterface } from "node:readline";
 import { parseArgs } from "node:util";
 
 import * as cdk from "aws-cdk-lib";
-import * as acm from "aws-cdk-lib/aws-certificatemanager";
-import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
-import * as iam from "aws-cdk-lib/aws-iam";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as route53 from "aws-cdk-lib/aws-route53";
-import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import { Construct } from "constructs";
 import { build } from "esbuild";
 
 import { frontendBucketName, loadConfig, type TssConfig } from "@app/shared/config";
+
+import { EdgeStack } from "./lib/edge-stack.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DIST = path.join(ROOT, "dist");
@@ -32,7 +25,7 @@ async function main() {
     ssmRegion: config.ssm.region,
   });
 
-  const stackName = synthesizeStack({
+  const stackId = synthesizeStack({
     project: config.project,
     ssmRegion: config.ssm.region,
     domain: config.domain,
@@ -42,10 +35,10 @@ async function main() {
 
   switch (command) {
     case "deploy":
-      await deploy(stackName, dryRun);
+      await deploy(stackId, dryRun);
       break;
     case "destroy":
-      await destroy(stackName);
+      await destroy(stackId);
       break;
   }
 }
@@ -134,39 +127,30 @@ async function buildEdgeFunctions(opts: BuildOptions): Promise<void> {
   });
 }
 
-interface StackConfig {
-  project: string;
-  ssmRegion: string;
-  domain: string;
-  hostedZoneId: string;
-  frontendBucketName: string;
-}
+import type { EdgeStackConfig } from "./lib/edge-stack.js";
 
-function synthesizeStack(config: StackConfig): string {
+function synthesizeStack(config: EdgeStackConfig): string {
   console.log(`  project: ${config.project}`);
   console.log(`  ssm.region: ${config.ssmRegion}`);
   console.log(`  domain: ${config.domain}`);
   console.log(`  hostedZoneId: ${config.hostedZoneId}`);
 
   const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
-  const stackName = `${config.project}-edge`;
+  const stackId = EdgeStack.id({ project: config.project });
 
-  const stack = new EdgeStack(app, stackName, {
+  const stack = new EdgeStack(app, {
     config,
-    env: {
-      account: process.env.CDK_DEFAULT_ACCOUNT,
-      region: "us-east-1",
-    },
+    env: { account: process.env.CDK_DEFAULT_ACCOUNT },
   });
 
   cdk.Tags.of(stack).add("project", config.project);
   app.synth();
 
-  return stackName;
+  return stackId;
 }
 
-async function deploy(stackName: string, dryRun: boolean | undefined): Promise<void> {
-  console.log(`\nDeploying ${stackName}...`);
+async function deploy(stackId: string, dryRun: boolean | undefined): Promise<void> {
+  console.log(`\nDeploying ${stackId}...`);
 
   if (dryRun) {
     console.log("\n--dry-run: Skipping CDK deploy");
@@ -174,14 +158,14 @@ async function deploy(stackName: string, dryRun: boolean | undefined): Promise<v
     execSync(`ls -la ${DIST}`, { stdio: "inherit" });
   } else {
     execSync(
-      `npx cdk deploy ${stackName} --app ./cdk.out --require-approval never`,
+      `npx cdk deploy ${stackId} --app ./cdk.out --require-approval never`,
       { stdio: "inherit", cwd: ROOT }
     );
   }
 }
 
-async function destroy(stackName: string): Promise<void> {
-  console.log(`\nThis will destroy the stack: ${stackName}`);
+async function destroy(stackId: string): Promise<void> {
+  console.log(`\nThis will destroy the stack: ${stackId}`);
   console.log("  - CloudFront distribution");
   console.log("  - Lambda@Edge functions");
   console.log("  - Route53 records");
@@ -193,9 +177,9 @@ async function destroy(stackName: string): Promise<void> {
     process.exit(0);
   }
 
-  console.log(`\nDestroying ${stackName}...`);
+  console.log(`\nDestroying ${stackId}...`);
   execSync(
-    `npx cdk destroy ${stackName} --app ./cdk.out`,
+    `npx cdk destroy ${stackId} --app ./cdk.out`,
     { stdio: "inherit", cwd: ROOT }
   );
 }
@@ -208,175 +192,6 @@ async function confirm(message: string): Promise<boolean> {
       resolve(answer.toLowerCase() === "y");
     });
   });
-}
-
-interface EdgeStackProps extends cdk.StackProps {
-  config: StackConfig;
-}
-
-class EdgeStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: EdgeStackProps) {
-    super(scope, id, props);
-
-    const { config } = props;
-
-    // Lambda@Edge for routing subdomains to backend URLs
-    const originRequest = new cloudfront.experimental.EdgeFunction(
-      this,
-      "OriginRequestFunction",
-      {
-        runtime: lambda.Runtime.NODEJS_24_X,
-        handler: "index.handler",
-        code: lambda.Code.fromAsset(path.join(DIST, "origin-request")),
-        timeout: cdk.Duration.seconds(5),
-      }
-    );
-
-    // Allow Lambda@Edge to read SSM parameters
-    originRequest.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ssm:GetParameter"],
-        resources: [
-          `arn:aws:ssm:${config.ssmRegion}:${this.account}:parameter/${config.project}/backend/*`,
-        ],
-      })
-    );
-
-    // S3 bucket for frontend assets
-    const frontendBucket = new s3.Bucket(this, "FrontendBucket", {
-      bucketName: config.frontendBucketName,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-    });
-
-    // Origin Access Identity for CloudFront to access S3
-    const oai = new cloudfront.OriginAccessIdentity(this, "OAI", {
-      comment: `OAI for ${config.project} frontend`,
-    });
-
-    // Grant CloudFront read access to S3
-    frontendBucket.grantRead(oai);
-
-    // Import hosted zone
-    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
-      this,
-      "HostedZone",
-      {
-        hostedZoneId: config.hostedZoneId,
-        zoneName: config.domain,
-      }
-    );
-
-    // Create wildcard certificate for subdomains
-    const certificate = new acm.Certificate(this, "Certificate", {
-      domainName: `*.${config.domain}`,
-      subjectAlternativeNames: [config.domain],
-      validation: acm.CertificateValidation.fromDns(hostedZone),
-    });
-
-    const domainNames = [`*.${config.domain}`, config.domain];
-
-    // Custom cache policy that includes x-branch header in cache key
-    const frontendCachePolicy = new cloudfront.CachePolicy(this, "FrontendCachePolicy", {
-      cachePolicyName: `${config.project}-frontend`,
-      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("x-branch"),
-      queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
-      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
-      defaultTtl: cdk.Duration.days(1),
-      maxTtl: cdk.Duration.days(365),
-      minTtl: cdk.Duration.seconds(0),
-      enableAcceptEncodingGzip: true,
-      enableAcceptEncodingBrotli: true,
-    });
-
-    // S3 origin for frontend assets
-    const s3Origin = origins.S3BucketOrigin.withOriginAccessIdentity(frontendBucket, {
-      originAccessIdentity: oai,
-    });
-
-    // CloudFront Function to extract subdomain at viewer-request
-    const ViewerRequestFunction = new cloudfront.Function(this, "ViewerRequestFunction", {
-      code: cloudfront.FunctionCode.fromFile({
-        filePath: path.join(DIST, "viewer-request/index.js"),
-      }),
-      runtime: cloudfront.FunctionRuntime.JS_2_0,
-    });
-
-    // CloudFront distribution
-    const distribution = new cloudfront.Distribution(this, "Distribution", {
-      defaultBehavior: {
-        origin: s3Origin,
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: frontendCachePolicy,
-        functionAssociations: [
-          {
-            function: ViewerRequestFunction,
-            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-          },
-        ],
-        edgeLambdas: [
-          {
-            functionVersion: originRequest.currentVersion,
-            eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
-          },
-        ],
-      },
-      additionalBehaviors: {
-        "/api/*": {
-          origin: s3Origin,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          functionAssociations: [
-            {
-              function: ViewerRequestFunction,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-          edgeLambdas: [
-            {
-              functionVersion: originRequest.currentVersion,
-              eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
-            },
-          ],
-        },
-      },
-      certificate,
-      domainNames,
-    });
-
-    // Wildcard record for subdomains
-    new route53.ARecord(this, "WildcardARecord", {
-      zone: hostedZone,
-      recordName: `*.${config.domain}`,
-      target: route53.RecordTarget.fromAlias(
-        new route53Targets.CloudFrontTarget(distribution)
-      ),
-    });
-
-    // Root domain record
-    new route53.ARecord(this, "RootARecord", {
-      zone: hostedZone,
-      recordName: config.domain,
-      target: route53.RecordTarget.fromAlias(
-        new route53Targets.CloudFrontTarget(distribution)
-      ),
-    });
-
-    new cdk.CfnOutput(this, "DistributionId", {
-      value: distribution.distributionId,
-    });
-
-    new cdk.CfnOutput(this, "Domain", {
-      value: `https://${config.domain}`,
-    });
-
-    new cdk.CfnOutput(this, "FrontendBucketName", {
-      value: frontendBucket.bucketName,
-    });
-  }
 }
 
 main();
