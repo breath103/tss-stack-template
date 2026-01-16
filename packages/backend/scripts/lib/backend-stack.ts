@@ -32,7 +32,7 @@ export class BackendStack extends cdk.Stack {
 
     const fn = new lambda.Function(this, "Handler", {
       functionName: BackendStack.functionName({ project: props.project, name: props.name }),
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: "index.handler",
       code: lambda.Code.fromAsset(path.join(ROOT, "dist")),
       memorySize: 512,
