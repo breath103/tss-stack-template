@@ -13,7 +13,7 @@ import { loadEnv } from "./lib/env.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 
-async function main() {
+function main() {
   const { name, env } = parseCliArgs();
 
   const envVars = loadEnv(env);

@@ -15,13 +15,13 @@ type Routes = {
 
 // Build options type based on what the route needs
 type FetchOptions<T> = (IsNever<T extends { params: infer P } ? P : never> extends true
-  ? {}
+  ? unknown
   : { params: T extends { params: infer P } ? P : never }) &
   (IsNever<T extends { query: infer Q } ? Q : never> extends true
-    ? {}
+    ? unknown
     : { query: T extends { query: infer Q } ? Q : never }) &
   (IsNever<T extends { body: infer B } ? B : never> extends true
-    ? {}
+    ? unknown
     : { body: T extends { body: infer B } ? B : never });
 
 // Check if options are required

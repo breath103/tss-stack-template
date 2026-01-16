@@ -2,7 +2,7 @@ import { parseArgs } from "node:util";
 
 import { sanitizeBranchName } from "@app/shared/branch";
 import { loadConfig } from "@app/shared/config";
-import { CloudWatchLogsClient, FilterLogEventsCommand } from "@aws-sdk/client-cloudwatch-logs";
+import { CloudWatchLogsClient, FilterLogEventsCommand, ResourceNotFoundException } from "@aws-sdk/client-cloudwatch-logs";
 
 import { BackendStack } from "./lib/backend-stack.js";
 
@@ -112,8 +112,8 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
         console.log(`${ts}  ${msg}`);
         startTime = event.timestamp! + 1;
       }
-    } catch (err: any) {
-      if (err.name === "ResourceNotFoundException") {
+    } catch (err) {
+      if (err instanceof ResourceNotFoundException) {
         if (!tail) {
           console.log("Log group not found.");
           return;

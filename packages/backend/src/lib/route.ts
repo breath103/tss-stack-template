@@ -24,18 +24,27 @@ type SafeInfer<T> = [T] extends [never]
   ? never
   : Simplify<OptionalUndefined<{ [K in keyof T]: z.infer<T[K]> }>>;
 
-export interface RouteContext<C, Path extends string, Q, B> {
+export interface RouteContext<Context, Path extends string, Query, Body> {
   params: { [K in ExtractPathParams<Path>]: string };
-  query: Q;
-  body: B;
-  c: C;
+  query: Query;
+  body: Body;
+  c: Context;
 }
 
-export type RouteDef<C, Path extends string, Method extends string, Q, B, R> = {
+export type RouteDef<
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  Context = any,
+  Path extends string = any,
+  Method extends string = any,
+  Query = any,
+  Body = any,
+  Response = any,
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+> = {
   path: Path;
   method: Method;
-  _types: { query: Q; body: B; response: R }; // type-level only (for ExtractRoutes)
-  handler: (ctx: { params: any; query: any; body: any; c: C }) => Promise<R> | R;
+  // Method syntax is bivariant, avoiding contravariance issues when collecting routes
+  handler(ctx: RouteContext<Context, Path, Query, Body>): Promise<Response> | Response;
   querySchema?: SchemaShape;
   bodySchema?: SchemaShape;
 };
@@ -59,40 +68,41 @@ export function routeFactory<C>() {
     return {
       path,
       method,
-      _types: null as any,
-      handler: config.handler as any,
+      handler: config.handler,
       querySchema: config.query,
       bodySchema: config.body,
     };
   };
 }
 
-export type RouteCollection<C, T extends RouteDef<C, any, any, any, any, any>[]> = {
+export type RouteCollection<C, T extends RouteDef<C>[]> = {
   routes: T;
 };
 
 export function routesFactory<C>() {
-  return function routes<const T extends RouteDef<C, any, any, any, any, any>[]>(
+  return function routes<const T extends RouteDef<C>[]>(
     ...routeDefs: T
   ): RouteCollection<C, T> {
     return { routes: routeDefs };
   };
 }
 
-export type ExtractRoutes<T extends RouteDef<any, any, any, any, any, any>[]> = {
+export type ExtractRoutes<T extends RouteDef[]> = {
   [Path in T[number]["path"]]: {
     [Method in Extract<T[number], { path: Path }>["method"]]: Extract<
       T[number],
       { path: Path; method: Method }
-    >["_types"] extends { query: infer Q; body: infer B; response: infer R }
-      ? {
-          params: ExtractPathParams<Path> extends never
-            ? never
-            : { [K in ExtractPathParams<Path>]: string };
-          query: Q;
-          body: B;
-          response: R;
-        }
+    >["handler"] extends (ctx: infer Ctx) => infer Response
+      ? Ctx extends { query: infer Query; body: infer Body }
+        ? {
+            params: ExtractPathParams<Path> extends never
+              ? never
+              : { [K in ExtractPathParams<Path>]: string };
+            query: Query;
+            body: Body;
+            response: Awaited<Response>;
+          }
+        : never
       : never;
   };
 };

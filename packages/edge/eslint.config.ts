@@ -11,6 +11,9 @@ export default [
   {
     languageOptions: {
       parserOptions: {
+        projectService: {
+          allowDefaultProject: ["*.config.ts"],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -21,8 +24,8 @@ export default [
     rules: {
       "quotes": ["error", "double", { avoidEscape: true }],
       "comma-spacing": ["error", { before: false, after: true }],
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/require-await": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/require-await": "warn",
       "simple-import-sort/imports": ["error", {
         groups: [
           ["^node:"],

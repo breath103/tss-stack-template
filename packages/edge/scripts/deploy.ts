@@ -35,7 +35,7 @@ async function main() {
 
   switch (command) {
     case "deploy":
-      await deploy(stackId, dryRun);
+      deploy(stackId, dryRun);
       break;
     case "destroy":
       await destroy(stackId);
@@ -93,7 +93,7 @@ interface BuildOptions {
   ssmRegion: string;
 }
 
-async function buildEdgeFunctions(opts: BuildOptions): Promise<void> {
+async function buildEdgeFunctions(opts: BuildOptions) {
   console.log("Building edge functions...");
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
@@ -149,7 +149,7 @@ function synthesizeStack(config: EdgeStackConfig): string {
   return stackId;
 }
 
-async function deploy(stackId: string, dryRun: boolean | undefined): Promise<void> {
+function deploy(stackId: string, dryRun: boolean | undefined) {
   console.log(`\nDeploying ${stackId}...`);
 
   if (dryRun) {
@@ -164,7 +164,7 @@ async function deploy(stackId: string, dryRun: boolean | undefined): Promise<voi
   }
 }
 
-async function destroy(stackId: string): Promise<void> {
+async function destroy(stackId: string) {
   console.log(`\nThis will destroy the stack: ${stackId}`);
   console.log("  - CloudFront distribution");
   console.log("  - Lambda@Edge functions");

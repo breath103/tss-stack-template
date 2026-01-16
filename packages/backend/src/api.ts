@@ -5,7 +5,7 @@ import type { ExtractRoutes } from "./lib/route.js";
 
 export const api = routes(
   route("/api/health", "GET", {
-    handler: async ({ c }) => {
+    handler: ({ c }) => {
       const user = c.get("user");
       return {
         status: "ok" as const,

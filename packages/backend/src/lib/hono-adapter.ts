@@ -8,7 +8,7 @@ type SchemaShape = Record<string, z.ZodTypeAny>;
 
 export function registerToHono<E extends Env>(
   app: Hono<E>,
-  routeCollection: RouteCollection<Context<E>, RouteDef<any, any, any, any, any, any>[]>
+  routeCollection: RouteCollection<Context<E>, RouteDef[]>
 ): void {
   for (const routeDef of routeCollection.routes) {
     const { path, method, querySchema, bodySchema, handler } = routeDef;
