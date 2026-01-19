@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx scripts/dev.ts",
+    "dev": "npm run script:watch -- scripts/dev.ts",
+    "deploy": "npm run script -- scripts/deploy.ts",
+    "script": "tsx --tsconfig scripts/tsconfig.json",
+    "script:watch": "tsx watch --tsconfig scripts/tsconfig.json",
     "build:types": "tsc --noEmit",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src scripts",
-    "deploy": "tsx scripts/deploy.ts"
+    "lint": "eslint src scripts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
