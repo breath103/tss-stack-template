@@ -28,6 +28,7 @@ export default [
       "quotes": ["error", "double", { avoidEscape: true }],
       "comma-spacing": ["error", { before: false, after: true }],
       "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-inferrable-types": "error",
       "@typescript-eslint/require-await": "warn",
       "simple-import-sort/imports": ["error", {
         groups: [
