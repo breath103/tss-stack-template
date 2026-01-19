@@ -7,7 +7,6 @@
     "dev": "npm run script:watch -- scripts/dev.ts",
     "deploy": "npm run script -- scripts/deploy.ts",
     "logs": "npm run script -- scripts/logs.ts",
-    "bootstrap": "npm run script -- scripts/bootstrap.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
     "script:watch": "tsx watch --tsconfig scripts/tsconfig.json",
     "lint": "eslint lib scripts"

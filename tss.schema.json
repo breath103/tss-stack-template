@@ -21,6 +21,10 @@
         "devPort": {
           "type": "number",
           "description": "Local dev proxy port"
+        },
+        "githubActionsIamRole": {
+          "type": "boolean",
+          "description": "Create IAM role for GitHub Actions CI/CD (includes OIDC provider)"
         }
       }
     },
