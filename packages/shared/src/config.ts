@@ -5,7 +5,10 @@ import { z } from "zod";
 const configSchema = z.object({
   project: z.string(),
   repo: z.string(),
-  edge: z.object({ devPort: z.number() }),
+  edge: z.object({
+    devPort: z.number(),
+    githubActionsIamRole: z.boolean().default(false),
+  }),
   backend: z.object({ region: z.string(), devPort: z.number() }),
   frontend: z.object({ bucketSuffix: z.string(), devPort: z.number() }),
   ssm: z.object({ region: z.string() }),

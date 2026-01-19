@@ -11,6 +11,8 @@ import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
+import { GitHubActionsIam } from "./github-actions-iam.js";
+
 const ROOT = path.resolve(import.meta.dirname, "../..");
 const DIST = path.join(ROOT, "dist");
 
@@ -20,6 +22,7 @@ export interface EdgeStackConfig {
   domain: string;
   hostedZoneId: string;
   frontendBucketName: string;
+  githubActionsIamRole?: { repo: string };
 }
 
 interface EdgeStackProps extends cdk.StackProps {
@@ -57,6 +60,13 @@ export class EdgeStack extends cdk.Stack {
     const distribution = this.createDistribution(config, originRequestFunction, viewerRequestFunction, bucket, oai, certificate);
     this.createDnsRecords(config, hostedZone, distribution);
     this.createOutputs(config, distribution, bucket);
+
+    if (config.githubActionsIamRole) {
+      new GitHubActionsIam(this, "GitHubActionsIam", {
+        project: config.project,
+        repo: config.githubActionsIamRole.repo,
+      });
+    }
   }
 
   private createOriginRequestFunction(config: EdgeStackConfig): cloudfront.experimental.EdgeFunction {

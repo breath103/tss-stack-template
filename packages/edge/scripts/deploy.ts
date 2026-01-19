@@ -31,6 +31,9 @@ async function main() {
     domain: config.domain,
     hostedZoneId: config.hostedZoneId,
     frontendBucketName: frontendBucketName(config),
+    githubActionsIamRole: config.edge.githubActionsIamRole
+      ? { repo: config.repo }
+      : undefined,
   });
 
   switch (command) {
