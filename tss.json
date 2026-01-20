@@ -3,7 +3,8 @@
   "project": "tsss",
   "repo": "breath103/tss-stack-template",
   "edge": {
-    "devPort": 3000
+    "devPort": 3000,
+    "githubActionsIamRole": true
   },
   "backend": {
     "region": "ap-northeast-2",
@@ -19,7 +20,7 @@
   "domain": "tsss.cloud",
   "hostedZoneId": "Z0281460Z2VKJY4HRDWP",
   "subdomainMap": {
-    "": "main",
+    "": { "redirect": "www" },
     "www": "main",
     "main": null
   }

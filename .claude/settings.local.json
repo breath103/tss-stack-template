@@ -16,7 +16,15 @@
       "mcp__ide__getDiagnostics",
       "Bash(npm run deploy:*)",
       "Bash(npm run lint:*)",
-      "Bash(npm run logs:*)"
+      "Bash(npm run logs:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Skill(review)",
+      "Bash(npm test:*)",
+      "Bash(npm run deploy:edge:*)"
     ]
   }
 }

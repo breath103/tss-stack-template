@@ -8,6 +8,7 @@ import * as cdk from "aws-cdk-lib";
 import { build } from "esbuild";
 
 import { frontendBucketName, loadConfig, type TssConfig } from "@app/shared/config";
+import { validateSubdomainMap } from "@app/shared/subdomain-validation";
 
 import { EdgeStack } from "./lib/edge-stack.js";
 
@@ -19,8 +20,17 @@ async function main() {
 
   const config = loadConfig();
 
+  // Validate subdomainMap for cycles and invalid redirect chains
+  const validation = validateSubdomainMap(config.subdomainMap);
+  if (!validation.valid) {
+    console.error("Error: Invalid subdomainMap configuration");
+    validation.errors.forEach((e) => console.error(`  - ${e}`));
+    process.exit(1);
+  }
+
   await buildEdgeFunctions({
     subdomainMap: config.subdomainMap,
+    domain: config.domain,
     project: config.project,
     ssmRegion: config.ssm.region,
   });
@@ -92,6 +102,7 @@ Examples:
 
 interface BuildOptions {
   subdomainMap: TssConfig["subdomainMap"];
+  domain: string;
   project: string;
   ssmRegion: string;
 }
@@ -103,7 +114,7 @@ async function buildEdgeFunctions(opts: BuildOptions) {
 
   // Build viewer-request CloudFront Function
   await build({
-    entryPoints: [path.join(ROOT, "lib/viewer-request.ts")],
+    entryPoints: [path.join(ROOT, "src/viewer-request/index.ts")],
     bundle: true,
     platform: "neutral",
     target: "es2019",
@@ -112,12 +123,13 @@ async function buildEdgeFunctions(opts: BuildOptions) {
     outfile: path.join(DIST, "viewer-request/index.js"),
     define: {
       SUBDOMAIN_MAP_CONFIG: JSON.stringify(opts.subdomainMap),
+      DOMAIN_CONFIG: JSON.stringify(opts.domain),
     },
   });
 
   // Build origin-request Lambda@Edge
   await build({
-    entryPoints: [path.join(ROOT, "lib/origin-request.ts")],
+    entryPoints: [path.join(ROOT, "src/origin-request/index.ts")],
     bundle: true,
     platform: "node",
     target: "node24",

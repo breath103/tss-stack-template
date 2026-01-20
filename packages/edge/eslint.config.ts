@@ -40,9 +40,9 @@ export default [
       "unicorn/prefer-node-protocol": "error",
     },
   },
-  // Disable node: protocol for lib/ (CloudFront Functions & Lambda@Edge runtimes)
+  // Disable node: protocol for src/ (CloudFront Functions & Lambda@Edge runtimes)
   {
-    files: ["lib/**/*.ts"],
+    files: ["src/**/*.ts"],
     rules: {
       "unicorn/prefer-node-protocol": "off",
     },

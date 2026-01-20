@@ -2,6 +2,15 @@ import fs from "fs";
 import path from "path";
 import { z } from "zod";
 
+// Subdomain mapping value: deployment name, null (blocked), or redirect
+const subdomainMapValue = z.union([
+  z.string(),
+  z.null(),
+  z.object({ redirect: z.string() }),
+]);
+
+export type SubdomainMapValue = z.infer<typeof subdomainMapValue>;
+
 const configSchema = z.object({
   project: z.string(),
   repo: z.string(),
@@ -14,7 +23,7 @@ const configSchema = z.object({
   ssm: z.object({ region: z.string() }),
   domain: z.string(),
   hostedZoneId: z.string(),
-  subdomainMap: z.record(z.string(), z.string().nullable()),
+  subdomainMap: z.record(z.string(), subdomainMapValue),
 });
 
 export type TssConfig = z.infer<typeof configSchema>;
