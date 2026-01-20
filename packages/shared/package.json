@@ -6,7 +6,13 @@
   "exports": {
     "./*": "./src/*.ts"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "typescript": "^5"
+  },
+  "devDependencies": {
+    "vitest": "^3"
   }
 }

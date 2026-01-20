@@ -1,9 +1,14 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "../../..",
-    "declaration": false,
-    "noEmit": true
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "rootDir": "../../.."
   },
-  "include": [".", "../lib"]
+  "include": [".", "../src", "../../../tss.json"]
 }

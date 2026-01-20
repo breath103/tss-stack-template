@@ -77,9 +77,23 @@
     "subdomainMap": {
       "type": "object",
       "additionalProperties": {
-        "type": ["string", "null"]
+        "oneOf": [
+          { "type": "string" },
+          { "type": "null" },
+          {
+            "type": "object",
+            "required": ["redirect"],
+            "properties": {
+              "redirect": {
+                "type": "string",
+                "description": "Subdomain to redirect to (301)"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       },
-      "description": "Subdomain to branch mapping. Use \"\" for root domain, null to block a subdomain."
+      "description": "Subdomain to branch mapping. Use \"\" for root domain, null to block, { redirect: \"target\" } for 301 redirect."
     }
   }
 }
