@@ -1,13 +1,18 @@
-import { execSync } from "node:child_process";
 import { parseArgs } from "node:util";
 
 import { sanitizeBranchName } from "@app/shared/branch";
 import { loadConfig } from "@app/shared/config";
 import * as SSMParameters from "@app/shared/ssm-parameters";
+import {
+  CloudFormationClient,
+  DeleteStackCommand,
+  waitUntilStackDeleteComplete,
+} from "@aws-sdk/client-cloudformation";
+import { DeleteParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 import { BackendStack } from "./lib/backend-stack.js";
 
-function main() {
+async function main() {
   const { name } = parseCliArgs();
 
   const config = loadConfig();
@@ -15,8 +20,8 @@ function main() {
 
   console.log(`\nDestroying backend stack: ${stackName}`);
 
-  deleteStack(stackName, config.backend.region);
-  deleteSsmParameter(config, name);
+  await deleteStack(stackName, config.backend.region);
+  await deleteSsmParameter(config, name);
 
   console.log(`\n✅ Destroyed backend: ${name}`);
 }
@@ -71,29 +76,36 @@ Examples:
   process.exit(0);
 }
 
-function deleteStack(stackName: string, region: string): void {
+async function deleteStack(stackName: string, region: string): Promise<void> {
+  const client = new CloudFormationClient({ region });
+
   console.log(`Deleting CloudFormation stack: ${stackName}...`);
 
   try {
-    execSync(
-      `aws cloudformation delete-stack --stack-name ${stackName} --region ${region}`,
-      { stdio: "inherit" }
-    );
+    await client.send(new DeleteStackCommand({ StackName: stackName }));
 
     console.log("Waiting for stack deletion to complete...");
-    execSync(
-      `aws cloudformation wait stack-delete-complete --stack-name ${stackName} --region ${region}`,
-      { stdio: "inherit" }
+    await waitUntilStackDeleteComplete(
+      { client, maxWaitTime: 600 },
+      { StackName: stackName }
     );
 
     console.log(`Stack ${stackName} deleted successfully`);
-  } catch {
+  } catch (error) {
     // Stack might not exist, which is fine
-    console.log(`Note: Stack ${stackName} may not exist or already deleted`);
+    if (error instanceof Error && error.name === "ValidationError") {
+      console.log(`Note: Stack ${stackName} does not exist`);
+    } else {
+      throw error;
+    }
   }
 }
 
-function deleteSsmParameter(config: ReturnType<typeof loadConfig>, name: string): void {
+async function deleteSsmParameter(
+  config: ReturnType<typeof loadConfig>,
+  name: string
+): Promise<void> {
+  const client = new SSMClient({ region: config.ssm.region });
   const ssmPath = SSMParameters.backendUrlName({
     project: config.project,
     sanitizedBranchName: name,
@@ -102,14 +114,15 @@ function deleteSsmParameter(config: ReturnType<typeof loadConfig>, name: string)
   console.log(`\nDeleting SSM parameter: ${ssmPath}`);
 
   try {
-    execSync(
-      `aws ssm delete-parameter --name "${ssmPath}" --region ${config.ssm.region}`,
-      { stdio: "inherit" }
-    );
+    await client.send(new DeleteParameterCommand({ Name: ssmPath }));
     console.log(`SSM parameter ${ssmPath} deleted successfully`);
-  } catch {
+  } catch (error) {
     // Parameter might not exist, which is fine
-    console.log(`Note: SSM parameter ${ssmPath} may not exist or already deleted`);
+    if (error instanceof Error && error.name === "ParameterNotFound") {
+      console.log(`Note: SSM parameter ${ssmPath} does not exist`);
+    } else {
+      throw error;
+    }
   }
 }
 

@@ -23,7 +23,7 @@ function main() {
   const stackName = synthesizeStack(config, name, envVars);
 
   deploy(stackName);
-  storeUrlInSsm(stackName, config);
+  storeUrlInSsm(stackName, name, config);
 
   console.log(`\n✅ Deployed backend: ${name}`);
 }
@@ -122,7 +122,11 @@ function deploy(stackName: string): void {
   );
 }
 
-function storeUrlInSsm(stackName: string, config: ReturnType<typeof loadConfig>): void {
+function storeUrlInSsm(
+  stackName: string,
+  name: string,
+  config: ReturnType<typeof loadConfig>
+): void {
   const functionUrl = execSync(
     `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`FunctionUrl\`].OutputValue' --output text --region ${config.backend.region}`,
     { encoding: "utf-8" }
@@ -130,7 +134,7 @@ function storeUrlInSsm(stackName: string, config: ReturnType<typeof loadConfig>)
 
   const ssmPath = SSMParameters.backendUrlName({
     project: config.project,
-    sanitizedBranchName: stackName.split("-").pop()!,
+    sanitizedBranchName: name,
   });
 
   console.log(`\nStoring Function URL in SSM: ${ssmPath}`);
