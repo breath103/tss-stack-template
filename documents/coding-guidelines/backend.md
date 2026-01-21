@@ -61,6 +61,38 @@ This does NOT apply to runtime code (`src/`) which runs in Lambda and may not ha
 
 ---
 
+## Use typed AWS SDK error classes
+
+AWS SDK v3 exports typed error classes. Use `instanceof` instead of duck typing `error.name`.
+
+```typescript
+// ✅ Correct - use typed error class
+import { ParameterNotFound } from "@aws-sdk/client-ssm";
+
+try {
+  await client.send(new GetParameterCommand({ Name: path }));
+} catch (error) {
+  if (error instanceof ParameterNotFound) {
+    console.log("Parameter not found");
+  } else {
+    throw error;
+  }
+}
+```
+
+```typescript
+// ❌ Wrong - duck typing error.name
+try {
+  await client.send(new GetParameterCommand({ Name: path }));
+} catch (error) {
+  if (error instanceof Error && error.name === "ParameterNotFound") {
+    console.log("Parameter not found");
+  }
+}
+```
+
+---
+
 ## Run ESLint with --fix
 
 ```bash

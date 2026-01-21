@@ -8,7 +8,11 @@ import {
   DeleteStackCommand,
   waitUntilStackDeleteComplete,
 } from "@aws-sdk/client-cloudformation";
-import { DeleteParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import {
+  DeleteParameterCommand,
+  ParameterNotFound,
+  SSMClient,
+} from "@aws-sdk/client-ssm";
 
 import { BackendStack } from "./lib/backend-stack.js";
 
@@ -117,8 +121,7 @@ async function deleteSsmParameter(
     await client.send(new DeleteParameterCommand({ Name: ssmPath }));
     console.log(`SSM parameter ${ssmPath} deleted successfully`);
   } catch (error) {
-    // Parameter might not exist, which is fine
-    if (error instanceof Error && error.name === "ParameterNotFound") {
+    if (error instanceof ParameterNotFound) {
       console.log(`Note: SSM parameter ${ssmPath} does not exist`);
     } else {
       throw error;
