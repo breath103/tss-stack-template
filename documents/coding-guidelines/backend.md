@@ -61,9 +61,9 @@ This does NOT apply to runtime code (`src/`) which runs in Lambda and may not ha
 
 ---
 
-## Use typed AWS SDK error classes
+## Use typed error classes when available
 
-AWS SDK v3 exports typed error classes. Use `instanceof` instead of duck typing `error.name`.
+When catching errors, use `instanceof` with typed error classes instead of duck typing `error.name` or `error.code`.
 
 ```typescript
 // ✅ Correct - use typed error class
