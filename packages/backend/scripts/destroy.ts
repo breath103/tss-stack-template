@@ -85,24 +85,15 @@ async function deleteStack(stackName: string, region: string): Promise<void> {
 
   console.log(`Deleting CloudFormation stack: ${stackName}...`);
 
-  try {
-    await client.send(new DeleteStackCommand({ StackName: stackName }));
+  await client.send(new DeleteStackCommand({ StackName: stackName }));
 
-    console.log("Waiting for stack deletion to complete...");
-    await waitUntilStackDeleteComplete(
-      { client, maxWaitTime: 600 },
-      { StackName: stackName }
-    );
+  console.log("Waiting for stack deletion to complete...");
+  await waitUntilStackDeleteComplete(
+    { client, maxWaitTime: 600 },
+    { StackName: stackName }
+  );
 
-    console.log(`Stack ${stackName} deleted successfully`);
-  } catch (error) {
-    // Stack might not exist, which is fine
-    if (error instanceof Error && error.name === "ValidationError") {
-      console.log(`Note: Stack ${stackName} does not exist`);
-    } else {
-      throw error;
-    }
-  }
+  console.log(`Stack ${stackName} deleted successfully`);
 }
 
 async function deleteSsmParameter(
