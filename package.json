@@ -11,6 +11,8 @@
     "deploy:edge": "npm run deploy -w @app/edge --",
     "deploy:backend": "npm run deploy -w @app/backend --",
     "deploy:frontend": "npm run deploy -w @app/frontend --",
+    "destroy:backend": "npm run destroy -w @app/backend --",
+    "destroy:frontend": "npm run destroy -w @app/frontend --",
     "lint": "npm run lint -w @app/backend && npm run lint -w @app/frontend",
     "build:types": "npm run build:types -w @app/backend && npm run build:types -w @app/frontend",
     "test": "npm test -w @app/shared"

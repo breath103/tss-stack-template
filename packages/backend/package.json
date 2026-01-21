@@ -7,6 +7,7 @@
     "dev": "npm run script:watch -- scripts/dev.ts",
     "build": "npm run script -- scripts/build.ts",
     "deploy": "npm run script -- scripts/deploy.ts",
+    "destroy": "npm run script -- scripts/destroy.ts",
     "logs": "npm run script -- scripts/logs.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
     "script:watch": "tsx watch --tsconfig scripts/tsconfig.json",
@@ -23,7 +24,9 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudformation": "^3",
     "@aws-sdk/client-cloudwatch-logs": "^3",
+    "@aws-sdk/client-ssm": "^3",
     "@eslint/js": "^9.39.2",
     "@types/node": "^22",
     "aws-cdk-lib": "^2.170.0",
