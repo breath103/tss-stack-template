@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "setup": "tsx scripts/setup.ts",
-    "dev": "concurrently -n edge,backend,types,frontend -c magenta,blue,yellow,green \"npm run dev -w @app/edge\" \"npm run dev -w @app/backend\" \"npm run dev:types -w @app/backend\" \"npm run dev -w @app/frontend\"",
+    "dev": "./scripts/dev.sh",
     "deploy:bootstrap": "npm run bootstrap -w @app/edge --",
     "deploy:edge": "npm run deploy -w @app/edge --",
     "deploy:backend": "npm run deploy -w @app/backend --",
