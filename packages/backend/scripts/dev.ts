@@ -1,5 +1,4 @@
 import type { ChildProcess } from "node:child_process";
-
 import { spawn } from "node:child_process";
 import { watch } from "node:fs";
 import path from "node:path";
