@@ -1,3 +1,5 @@
+import { watch } from "node:fs";
+import path from "node:path";
 import { parseArgs } from "node:util";
 
 import { loadConfig } from "@app/shared/config";
@@ -10,6 +12,11 @@ async function main() {
 
   loadEnv(env);
 
+  // Watch .env file for changes
+  const envFile = typeof env === "string" ? `.env.${env}` : ".env";
+  const envPath = path.join(import.meta.dirname, "..", envFile);
+  watchEnvFile(envPath);
+
   // Dynamic import AFTER env is loaded
   const { app } = await import("../src/index.js");
 
@@ -17,6 +24,20 @@ async function main() {
   const port = config.backend.devPort;
   console.log(`Backend running on http://localhost:${port}`);
   serve({ fetch: app.fetch, port });
+}
+
+function watchEnvFile(envPath: string) {
+  let debounceTimer: NodeJS.Timeout | null = null;
+
+  watch(envPath, () => {
+    // Debounce to avoid multiple restarts for rapid changes
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      console.log(`\nEnv file changed: ${path.basename(envPath)}`);
+      console.log("Restarting backend server...\n");
+      process.exit(0); // tsx watch will restart the process
+    }, 100);
+  });
 }
 
 function parseCliArgs() {

@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "setup": "tsx scripts/setup.ts",
-    "dev": "./scripts/dev.sh",
+    "dev": "tsx scripts/dev.ts",
     "deploy:bootstrap": "npm run bootstrap -w @app/edge --",
     "deploy:edge": "npm run deploy -w @app/edge --",
     "deploy:backend": "npm run deploy -w @app/backend --",
