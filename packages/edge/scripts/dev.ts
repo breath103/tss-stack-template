@@ -1,23 +1,26 @@
 import http from "node:http";
+import { parseArgs } from "node:util";
 
 import httpProxy from "http-proxy";
-import open from "open";
 
 import { loadConfig } from "@app/shared/config";
+
+parseArgs({
+  options: { env: { type: "string", short: "e" } },
+  strict: false,
+});
 
 const config = loadConfig();
 const { edge, backend, frontend } = config;
 
-const proxy = httpProxy.createProxyServer({
-  xfwd: true, // Adds x-forwarded-* headers
-});
+const proxy = httpProxy.createProxyServer({ xfwd: true });
+proxy.on("error", () => {});
 
 const server = http.createServer((req, res) => {
   const target = req.url?.startsWith("/api")
     ? `http://localhost:${backend.devPort}`
     : `http://localhost:${frontend.devPort}`;
 
-  // Set x-forwarded-proto (xfwd only sets x-forwarded-for/host/port)
   req.headers["x-forwarded-proto"] = "http";
   req.headers["x-forwarded-host"] = `localhost:${edge.devPort}`;
 
@@ -27,18 +30,12 @@ const server = http.createServer((req, res) => {
   });
 });
 
-// Handle WebSocket for HMR
 server.on("upgrade", (req, socket, head) => {
-  proxy.ws(req, socket, head, {
-    target: `http://localhost:${frontend.devPort}`,
-  });
+  proxy.ws(req, socket, head, { target: `http://localhost:${frontend.devPort}` });
 });
 
 server.listen(edge.devPort, () => {
   console.log(`Edge proxy running on http://localhost:${edge.devPort}`);
   console.log(`  /api/* → http://localhost:${backend.devPort}`);
   console.log(`  /*     → http://localhost:${frontend.devPort}`);
-
-  // Open browser after server starts
-  open(`http://localhost:${edge.devPort}`);
 });

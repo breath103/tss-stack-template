@@ -4,11 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run script:watch -- scripts/dev.ts",
+    "dev": "npm run script -- scripts/dev.ts",
     "deploy": "npm run script -- scripts/deploy.ts",
     "destroy": "npm run script -- scripts/destroy.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
-    "script:watch": "tsx watch --tsconfig scripts/tsconfig.json",
     "build:types": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "lint": "eslint src scripts"
