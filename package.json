@@ -14,6 +14,7 @@
     "destroy:backend": "npm run destroy -w @app/backend --",
     "destroy:frontend": "npm run destroy -w @app/frontend --",
     "lint": "npm run lint -w @app/backend && npm run lint -w @app/frontend",
+    "rebase:template": "./scripts/rebase-template.sh",
     "build:types": "npm run build:types -w @app/backend && npm run build:types -w @app/frontend",
     "test": "npm test -w @app/shared"
   },
