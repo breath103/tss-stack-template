@@ -4,52 +4,27 @@ import { parseArgs } from "node:util";
 
 import { config as dotenvConfig } from "dotenv";
 
-const ROOT = path.resolve(import.meta.dirname, "..");
-
 function main() {
   const env = parseCliArgs();
 
-  const envFile = typeof env === "string" ? `.env.${env}` : ".env";
-  dotenvConfig({ path: path.join(ROOT, envFile) });
-  console.log(`Loaded environment from ${envFile}`);
+  // Load env vars before Vite starts (needed for vite.config.ts validation)
+  const envFile = env ? `.env.${env}` : ".env";
+  dotenvConfig({ path: path.resolve(import.meta.dirname, "..", envFile) });
 
-  execSync("vite", { stdio: "inherit", env: process.env });
+  // Pass --mode to Vite for runtime env loading
+  const modeFlag = env ? `--mode ${env}` : "";
+  execSync(`vite ${modeFlag}`, { stdio: "inherit" });
 }
 
 function parseCliArgs() {
   const { values } = parseArgs({
     options: {
       env: { type: "string", short: "e" },
-      help: { type: "boolean", short: "h" },
     },
-    strict: false, // Allow other flags to pass through to vite
+    strict: false,
   });
 
-  if (values.help) {
-    showHelp();
-  }
-
   return values.env;
-}
-
-function showHelp(): never {
-  console.log(`
-Usage: npm run dev -- [options]
-
-Start frontend dev server
-
-Options:
-  -e, --env <env>     Environment file suffix (optional)
-                      Loads .env.<env> instead of .env
-                      Example: --env=production loads .env.production
-  -h, --help          Show this help message
-
-Examples:
-  npm run dev
-  npm run dev -- --env=production
-  npm run dev -- -e staging
-`);
-  process.exit(0);
 }
 
 main();
