@@ -7,3 +7,6 @@ cdk.out
 # Environment files (contain secrets)
 .env
 .env.production
+
+# Claude local settings
+.claude/settings.local.json
