@@ -1,11 +1,14 @@
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { parseArgs } from "node:util";
+
+import open from "open";
+
+import { loadConfig } from "@app/shared/config";
 
 function main() {
   const envArg = parseCliArgs();
   const envFlag = envArg ? ` -- --env=${envArg}` : "";
 
-  // Build commands with optional env flag
   const commands = [
     `"npm run dev -w @app/edge${envFlag}"`,
     `"npm run dev -w @app/backend${envFlag}"`,
@@ -21,14 +24,46 @@ function main() {
     commands,
   ].join(" ");
 
-  // Using spawnSync with shell - signals are properly forwarded to the shell process
-  // and concurrently's --kill-others handles cleaning up child processes
-  const result = spawnSync(fullCommand, {
-    stdio: "inherit",
+  const child = spawn(fullCommand, {
+    stdio: ["inherit", "pipe", "pipe"],
     shell: true,
   });
 
-  process.exit(result.status ?? 0);
+  // Track which servers are ready
+  let backendReady = false;
+  let frontendReady = false;
+  let browserOpened = false;
+
+  const config = loadConfig();
+
+  const checkAndOpenBrowser = () => {
+    if (backendReady && frontendReady && !browserOpened) {
+      browserOpened = true;
+      console.log("\nAll servers ready, opening browser...\n");
+      open(`http://localhost:${config.edge.devPort}`);
+    }
+  };
+
+  const handleOutput = (data: Buffer) => {
+    const text = data.toString();
+    process.stdout.write(data);
+
+    if (text.includes("Backend running on")) {
+      backendReady = true;
+      checkAndOpenBrowser();
+    }
+    if (text.includes("VITE") && text.includes("ready in")) {
+      frontendReady = true;
+      checkAndOpenBrowser();
+    }
+  };
+
+  child.stdout?.on("data", handleOutput);
+  child.stderr?.on("data", (data) => process.stderr.write(data));
+
+  child.on("exit", (code) => {
+    process.exit(code ?? 0);
+  });
 }
 
 function parseCliArgs() {
@@ -37,7 +72,7 @@ function parseCliArgs() {
       env: { type: "string", short: "e" },
       help: { type: "boolean", short: "h" },
     },
-    strict: false, // Allow other flags to pass through
+    strict: false,
   });
 
   if (values.help) {
