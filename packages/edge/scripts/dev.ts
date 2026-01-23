@@ -1,6 +1,7 @@
 import http from "node:http";
 
 import httpProxy from "http-proxy";
+import open from "open";
 
 import { loadConfig } from "@app/shared/config";
 
@@ -37,4 +38,7 @@ server.listen(edge.devPort, () => {
   console.log(`Edge proxy running on http://localhost:${edge.devPort}`);
   console.log(`  /api/* → http://localhost:${backend.devPort}`);
   console.log(`  /*     → http://localhost:${frontend.devPort}`);
+
+  // Open browser after server starts
+  open(`http://localhost:${edge.devPort}`);
 });
