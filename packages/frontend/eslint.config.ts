@@ -1,3 +1,4 @@
+import betterTailwindcss from "eslint-plugin-better-tailwindcss";
 import reactHooks from "eslint-plugin-react-hooks";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unicorn from "eslint-plugin-unicorn";
@@ -9,6 +10,7 @@ export default [
   { ignores: ["dist/**"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  betterTailwindcss.configs["recommended"],
   {
     languageOptions: {
       parserOptions: {
@@ -41,6 +43,12 @@ export default [
       }],
       "simple-import-sort/exports": "error",
       "unicorn/prefer-node-protocol": "error",
+      // Tailwind CSS
+      "better-tailwindcss/enforce-consistent-line-wrapping": "off",
+      "better-tailwindcss/enforce-consistent-class-order": ["warn", { entryPoint: "src/global.css" }],
+      "better-tailwindcss/no-deprecated-classes": ["warn", { entryPoint: "src/global.css" }],
+      "better-tailwindcss/enforce-shorthand-classes": ["warn", { entryPoint: "src/global.css" }],
+      "better-tailwindcss/enforce-canonical-classes": ["warn", { entryPoint: "src/global.css" }],
     },
   },
 ];

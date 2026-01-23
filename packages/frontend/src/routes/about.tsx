@@ -14,22 +14,22 @@ function About() {
       <h1 className="text-3xl font-bold text-gray-900">About</h1>
       <p className="text-gray-600">TSS Stack Template - Type-Safe Serverless Stack</p>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="rounded-lg bg-white p-6 shadow-sm">
         <ul className="space-y-3 text-gray-700">
           <li className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span className="size-2 rounded-full bg-blue-500"></span>
             Frontend: React + Vite + Tailwind
           </li>
           <li className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span className="size-2 rounded-full bg-blue-500"></span>
             Backend: Hono on AWS Lambda
           </li>
           <li className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span className="size-2 rounded-full bg-blue-500"></span>
             Routing: CloudFront + Lambda@Edge
           </li>
           <li className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span className="size-2 rounded-full bg-blue-500"></span>
             Type-safe API calls between frontend and backend
           </li>
         </ul>
