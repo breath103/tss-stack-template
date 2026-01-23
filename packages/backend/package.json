@@ -4,13 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run script:watch -- scripts/dev.ts",
+    "dev": "npm run script -- scripts/dev.ts",
     "build": "npm run script -- scripts/build.ts",
     "deploy": "npm run script -- scripts/deploy.ts",
     "destroy": "npm run script -- scripts/destroy.ts",
     "logs": "npm run script -- scripts/logs.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
-    "script:watch": "tsx watch --tsconfig scripts/tsconfig.json",
     "build:types": "tsc --emitDeclarationOnly",
     "dev:types": "tsc --watch --preserveWatchOutput --emitDeclarationOnly",
     "type-check": "tsc --noEmit",
@@ -21,6 +20,7 @@
     "better-auth": "^1.4.10",
     "dotenv": "^16.4.0",
     "hono": "^4.0.0",
+    "rxjs": "^7.8.2",
     "zod": "^4.3.5"
   },
   "devDependencies": {

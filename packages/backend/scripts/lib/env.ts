@@ -8,7 +8,7 @@ const ROOT = path.resolve(import.meta.dirname, "../..");
 
 export function loadEnv(env: string | undefined): Record<string, string> {
   const envFile = env ? `.env.${env}` : ".env";
-  dotenvConfig({ path: path.join(ROOT, envFile) });
+  dotenvConfig({ path: path.join(ROOT, envFile), override: true });
   console.log(`Loaded environment from ${envFile}`);
 
   console.log("Validating environment variables...");

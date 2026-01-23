@@ -4,11 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run script:watch -- scripts/dev.ts",
+    "dev": "npm run script -- scripts/dev.ts",
     "deploy": "npm run script -- scripts/deploy.ts",
     "logs": "npm run script -- scripts/logs.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
-    "script:watch": "tsx watch --tsconfig scripts/tsconfig.json",
     "lint": "eslint lib scripts"
   },
   "dependencies": {
@@ -27,7 +26,6 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unicorn": "^59.0.1",
     "http-proxy": "^1.18.1",
-    "open": "^11.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "typescript-eslint": "^8.52.0"

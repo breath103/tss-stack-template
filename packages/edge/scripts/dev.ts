@@ -5,22 +5,15 @@ import httpProxy from "http-proxy";
 
 import { loadConfig } from "@app/shared/config";
 
-// Parse args to accept --env flag for consistency (not used by edge)
 parseArgs({
-  options: {
-    env: { type: "string", short: "e" },
-  },
+  options: { env: { type: "string", short: "e" } },
   strict: false,
 });
 
 const config = loadConfig();
 const { edge, backend, frontend } = config;
 
-const proxy = httpProxy.createProxyServer({
-  xfwd: true, // Adds x-forwarded-* headers
-});
-
-// Ignore proxy errors (connection resets during dev are normal)
+const proxy = httpProxy.createProxyServer({ xfwd: true });
 proxy.on("error", () => {});
 
 const server = http.createServer((req, res) => {
@@ -28,7 +21,6 @@ const server = http.createServer((req, res) => {
     ? `http://localhost:${backend.devPort}`
     : `http://localhost:${frontend.devPort}`;
 
-  // Set x-forwarded-proto (xfwd only sets x-forwarded-for/host/port)
   req.headers["x-forwarded-proto"] = "http";
   req.headers["x-forwarded-host"] = `localhost:${edge.devPort}`;
 
@@ -38,11 +30,8 @@ const server = http.createServer((req, res) => {
   });
 });
 
-// Handle WebSocket for HMR
 server.on("upgrade", (req, socket, head) => {
-  proxy.ws(req, socket, head, {
-    target: `http://localhost:${frontend.devPort}`,
-  });
+  proxy.ws(req, socket, head, { target: `http://localhost:${frontend.devPort}` });
 });
 
 server.listen(edge.devPort, () => {
