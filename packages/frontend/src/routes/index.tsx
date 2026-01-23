@@ -50,12 +50,12 @@ function Home() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">TSS Stack Template</h1>
-        <p className="text-gray-600 mt-1">Type-Safe Full Serverless Stack</p>
+        <p className="mt-1 text-gray-600">Type-Safe Full Serverless Stack</p>
       </div>
 
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Frontend Env</h2>
-        <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
+      <section className="rounded-lg bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">Frontend Env</h2>
+        <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">
           {JSON.stringify({
             REQUIRED_FOO: process.env.REQUIRED_FOO,
             OPTIONAL_FOO: process.env.OPTIONAL_FOO,
@@ -63,10 +63,10 @@ function Home() {
         </pre>
       </section>
 
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Backend Health</h2>
+      <section className="rounded-lg bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">Backend Health</h2>
         {health ? (
-          <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
+          <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">
             {JSON.stringify(health, null, 2)}
           </pre>
         ) : (
@@ -74,8 +74,8 @@ function Home() {
         )}
       </section>
 
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">API Response</h2>
+      <section className="rounded-lg bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">API Response</h2>
         {message ? (
           <p className="text-gray-700">{message}</p>
         ) : (
@@ -83,10 +83,10 @@ function Home() {
         )}
       </section>
 
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Echo Test (POST with params + body)</h2>
+      <section className="rounded-lg bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">Echo Test (POST with params + body)</h2>
         {echoResult ? (
-          <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
+          <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">
             {JSON.stringify(echoResult, null, 2)}
           </pre>
         ) : (
