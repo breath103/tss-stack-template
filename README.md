@@ -134,7 +134,7 @@ Frontend gets types automatically:
 
 ```typescript
 // packages/frontend/src/lib/api-client.ts
-import type { ApiRoutes } from "@app/backend/api";
+import type { ApiRoutes } from "backend/api";
 
 const api = new ApiClient<ApiRoutes>();
 

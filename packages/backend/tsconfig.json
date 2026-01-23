@@ -12,7 +12,7 @@
     "declaration": true,
     "baseUrl": ".",
     "paths": {
-      "@app/shared/*": ["../shared/src/*"]
+      "shared/*": ["../shared/src/*"]
     }
   },
   "include": ["src"]

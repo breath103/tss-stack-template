@@ -3,7 +3,7 @@
 
 import type { CloudFrontFunctionsEvent } from "aws-lambda";
 
-import type { SubdomainMapValue, TssConfig } from "@app/shared/config";
+import type { SubdomainMapValue, TssConfig } from "shared/config";
 
 // Injected at build time from tss.json
 declare const SUBDOMAIN_MAP_CONFIG: TssConfig["subdomainMap"];

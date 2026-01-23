@@ -53,7 +53,7 @@ export const auth = betterAuth({
 In scripts (e.g., `scripts/dev.ts`, `scripts/deploy.ts`, `scripts/build.ts`), use `loadConfig()` to read `tss.json`:
 
 ```typescript
-import { loadConfig } from "@app/shared/config";
+import { loadConfig } from "shared/config";
 const config = loadConfig();
 ```
 

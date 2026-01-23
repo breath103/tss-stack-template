@@ -4,9 +4,9 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 
 import { config as dotenvConfig } from "dotenv";
+import { sanitizeBranchName } from "shared/branch";
+import { frontendBucketName, loadConfig } from "shared/config";
 
-import { sanitizeBranchName } from "@app/shared/branch";
-import { frontendBucketName, loadConfig } from "@app/shared/config";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 import cacheRules from "../cache.json" with { type: "json" };

@@ -1,7 +1,8 @@
 import { parseArgs } from "node:util";
 
-import { sanitizeBranchName } from "@app/shared/branch";
-import { loadConfig } from "@app/shared/config";
+import { sanitizeBranchName } from "shared/branch";
+import { loadConfig } from "shared/config";
+
 import { CloudWatchLogsClient, FilterLogEventsCommand, ResourceNotFoundException } from "@aws-sdk/client-cloudwatch-logs";
 
 import { BackendStack } from "./lib/backend-stack.js";

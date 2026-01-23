@@ -7,8 +7,8 @@ import { parseArgs } from "node:util";
 import * as cdk from "aws-cdk-lib";
 import { build } from "esbuild";
 
-import { frontendBucketName, loadConfig, type TssConfig } from "@app/shared/config";
-import { validateSubdomainMap } from "@app/shared/subdomain-validation";
+import { frontendBucketName, loadConfig, type TssConfig } from "shared/config";
+import { validateSubdomainMap } from "shared/subdomain-validation";
 
 import { EdgeStack } from "./lib/edge-stack.js";
 

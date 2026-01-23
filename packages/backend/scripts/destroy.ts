@@ -1,8 +1,9 @@
 import { parseArgs } from "node:util";
 
-import { sanitizeBranchName } from "@app/shared/branch";
-import { loadConfig } from "@app/shared/config";
-import * as SSMParameters from "@app/shared/ssm-parameters";
+import { sanitizeBranchName } from "shared/branch";
+import { loadConfig } from "shared/config";
+import * as SSMParameters from "shared/ssm-parameters";
+
 import {
   CloudFormationClient,
   DeleteStackCommand,

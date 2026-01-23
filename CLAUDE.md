@@ -21,34 +21,34 @@ npm run test             # Run tests
 
 ### Running scripts in specific packages
 
-Use `-w @app/<package>` to target a specific workspace:
+Use `-w <package>` to target a specific workspace:
 
 ```bash
-npm run <script> -w @app/<package>
+npm run <script> -w <package>
 ```
 
 Available packages:
-- `@app/backend` - Backend API (Hono on Lambda)
-- `@app/frontend` - Frontend (React/Vite)
-- `@app/edge` - Edge proxy (CloudFront/Lambda@Edge)
-- `@app/shared` - Shared utilities and types
+- `backend` - Backend API (Hono on Lambda)
+- `frontend` - Frontend (React/Vite)
+- `edge` - Edge proxy (CloudFront/Lambda@Edge)
+- `shared` - Shared utilities and types
 
 ### Examples
 
 ```bash
 # Run backend dev server only
-npm run dev -w @app/backend
+npm run dev -w backend
 
 # Run frontend dev server only
-npm run dev -w @app/frontend
+npm run dev -w frontend
 
 # Deploy backend with arguments
-npm run deploy -w @app/backend -- --hotswap
+npm run deploy -w backend -- --hotswap
 
 # Run tests in shared package
-npm test -w @app/shared
+npm test -w shared
 
 # Install a package to a specific workspace
-npm install <package> -w @app/backend
-npm install -D <package> -w @app/frontend  # as devDependency
+npm install <package> -w backend
+npm install -D <package> -w frontend  # as devDependency
 ```

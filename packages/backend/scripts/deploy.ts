@@ -3,10 +3,9 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 
 import * as cdk from "aws-cdk-lib";
-
-import { sanitizeBranchName } from "@app/shared/branch";
-import { loadConfig } from "@app/shared/config";
-import * as SSMParameters from "@app/shared/ssm-parameters";
+import { sanitizeBranchName } from "shared/branch";
+import { loadConfig } from "shared/config";
+import * as SSMParameters from "shared/ssm-parameters";
 
 import { BackendStack } from "./lib/backend-stack.js";
 import { loadEnv } from "./lib/env.js";

@@ -3,7 +3,7 @@ import { parseArgs } from "node:util";
 
 import httpProxy from "http-proxy";
 
-import { loadConfig } from "@app/shared/config";
+import { loadConfig } from "shared/config";
 
 parseArgs({
   options: { env: { type: "string", short: "e" } },

@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 
-import { loadConfig } from "@app/shared/config";
+import { loadConfig } from "shared/config";
+
 import { serve } from "@hono/node-server";
 
 import { loadEnv } from "./lib/env.js";

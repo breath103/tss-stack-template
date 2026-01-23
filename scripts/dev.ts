@@ -11,10 +11,10 @@ const { values } = parseArgs({
 const envFlag = values.env ? ["--", `--env=${values.env}`] : [];
 
 const procs = [
-  { name: "edge", color: "\x1b[35m", args: ["run", "dev", "-w", "@app/edge"] },
-  { name: "backend", color: "\x1b[34m", args: ["run", "dev", "-w", "@app/backend", ...envFlag] },
-  { name: "types", color: "\x1b[33m", args: ["run", "dev:types", "-w", "@app/backend"] },
-  { name: "frontend", color: "\x1b[32m", args: ["run", "dev", "-w", "@app/frontend", ...envFlag] },
+  { name: "edge", color: "\x1b[35m", args: ["run", "dev", "-w", "edge"] },
+  { name: "backend", color: "\x1b[34m", args: ["run", "dev", "-w", "backend", ...envFlag] },
+  { name: "types", color: "\x1b[33m", args: ["run", "dev:types", "-w", "backend"] },
+  { name: "frontend", color: "\x1b[32m", args: ["run", "dev", "-w", "frontend", ...envFlag] },
 ];
 
 const children = procs.map(({ name, color, args }) => {

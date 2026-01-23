@@ -2,8 +2,8 @@ import path from "node:path";
 
 import { defineConfig } from "vite";
 
-import { loadConfig } from "@app/shared/config";
-import { parseEnvDts, validateEnv } from "@app/shared/env-parser";
+import { loadConfig } from "shared/config";
+import { parseEnvDts, validateEnv } from "shared/env-parser";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 

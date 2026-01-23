@@ -1,8 +1,7 @@
 import path from "node:path";
 
 import { config as dotenvConfig } from "dotenv";
-
-import { loadAndValidateEnv } from "@app/shared/env-parser";
+import { loadAndValidateEnv } from "shared/env-parser";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
 

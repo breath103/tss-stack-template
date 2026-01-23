@@ -1,7 +1,8 @@
 import { parseArgs } from "node:util";
 
-import { sanitizeBranchName } from "@app/shared/branch";
-import { frontendBucketName, loadConfig } from "@app/shared/config";
+import { sanitizeBranchName } from "shared/branch";
+import { frontendBucketName, loadConfig } from "shared/config";
+
 import {
   DeleteObjectsCommand,
   ListObjectsV2Command,

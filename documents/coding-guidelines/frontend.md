@@ -9,7 +9,7 @@ Never use raw `fetch()`. Use `ApiClient` from `packages/frontend/src/lib/api-cli
 ```typescript
 // ✅ Correct
 import { ApiClient } from "../lib/api-client";
-import type { ApiRoutes } from "@app/backend/api";
+import type { ApiRoutes } from "backend/api";
 
 const api = new ApiClient<ApiRoutes>();
 const health = await api.fetch("/api/health", "GET");
@@ -29,7 +29,7 @@ Never duplicate types that exist in backend. Import them directly.
 
 ```typescript
 // ✅ Correct
-import type { SomeType } from "@app/backend/lib/some-type";
+import type { SomeType } from "backend/lib/some-type";
 ```
 
 ```typescript
@@ -47,7 +47,7 @@ interface SomeType {
 In scripts (e.g., `scripts/dev.ts`, `scripts/deploy.ts`), use `loadConfig()` to read `tss.json`:
 
 ```typescript
-import { loadConfig } from "@app/shared/config";
+import { loadConfig } from "shared/config";
 const config = loadConfig();
 ```
 

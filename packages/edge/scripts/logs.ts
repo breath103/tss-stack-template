@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 
-import { loadConfig } from "@app/shared/config";
+import { loadConfig } from "shared/config";
 import { CloudWatchLogsClient, FilterLogEventsCommand, ResourceNotFoundException } from "@aws-sdk/client-cloudwatch-logs";
 
 import { EdgeStack } from "./lib/edge-stack.js";

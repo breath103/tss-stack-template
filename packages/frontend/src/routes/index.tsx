@@ -1,6 +1,6 @@
+import type { ApiRoutes } from "backend/api";
 import { useEffect, useState } from "react";
 
-import type { ApiRoutes } from "@app/backend/api";
 import { createRoute } from "@tanstack/react-router";
 
 import { ApiClient } from "../lib/api-client";

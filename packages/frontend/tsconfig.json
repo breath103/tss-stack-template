@@ -11,8 +11,8 @@
     "baseUrl": ".",
     "rootDir": "src",
     "paths": {
-      "@app/backend/*": ["../backend/dist/*"],
-      "@app/shared/*": ["../shared/src/*"]
+      "backend/*": ["../backend/dist/*"],
+      "shared/*": ["../shared/src/*"]
     }
   },
   "include": ["src"]
