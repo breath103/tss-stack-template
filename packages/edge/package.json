@@ -8,7 +8,7 @@
     "deploy": "npm run script -- scripts/deploy.ts",
     "logs": "npm run script -- scripts/logs.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
-    "lint": "eslint lib scripts"
+    "lint": "eslint src scripts"
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.700.0",

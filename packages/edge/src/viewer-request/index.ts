@@ -2,7 +2,6 @@
 // Runs at VIEWER_REQUEST before CloudFront modifies the Host header for S3 origin
 
 import type { CloudFrontFunctionsEvent } from "aws-lambda";
-
 import type { SubdomainMapValue, TssConfig } from "shared/config";
 
 // Injected at build time from tss.json

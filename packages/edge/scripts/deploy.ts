@@ -6,7 +6,6 @@ import { parseArgs } from "node:util";
 
 import * as cdk from "aws-cdk-lib";
 import { build } from "esbuild";
-
 import { frontendBucketName, loadConfig, type TssConfig } from "shared/config";
 import { validateSubdomainMap } from "shared/subdomain-validation";
 

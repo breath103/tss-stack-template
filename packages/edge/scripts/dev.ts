@@ -2,7 +2,6 @@ import http from "node:http";
 import { parseArgs } from "node:util";
 
 import httpProxy from "http-proxy";
-
 import { loadConfig } from "shared/config";
 
 parseArgs({

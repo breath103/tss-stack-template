@@ -3,9 +3,9 @@ import type {
   CloudFrontRequestEvent,
   CloudFrontRequestResult,
 } from "aws-lambda";
-
 import { sanitizeBranchName } from "shared/branch";
 import * as SSMParameters from "shared/ssm-parameters";
+
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 // Injected at build time by esbuild
