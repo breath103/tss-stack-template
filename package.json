@@ -15,10 +15,12 @@
     "destroy:frontend": "npm run destroy -w frontend --",
     "lint": "npm run lint -w backend && npm run lint -w frontend",
     "build:types": "npm run build:types -w backend && npm run build:types -w frontend",
-    "test": "npm test -w shared"
+    "test": "npm test -w shared",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@aws-sdk/client-route-53": "^3.700.0",
+    "husky": "^9.1.7",
     "rxjs": "^7.8.2",
     "tsx": "^4.21.0"
   }
