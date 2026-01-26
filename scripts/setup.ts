@@ -1,9 +1,10 @@
 import * as readline from "readline";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { Route53Client, ListHostedZonesByNameCommand, GetHostedZoneCommand } from "@aws-sdk/client-route-53";
 
-const ROOT = path.resolve(import.meta.dirname, "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const rl = readline.createInterface({
   input: process.stdin,
