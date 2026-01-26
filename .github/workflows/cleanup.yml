@@ -1,9 +1,6 @@
 name: Cleanup
 
-on:
-  delete:
-    branches:
-      - "**"
+on: delete
 
 jobs:
   cleanup:
