@@ -7,12 +7,13 @@
   "scripts": {
     "setup": "tsx scripts/setup.ts",
     "dev": "tsx scripts/dev.ts",
-    "lint": "npm run lint -w backend && npm run lint -w frontend",
+    "lint": "sh -c 'concurrently \"npm run lint -w backend -- $*\" \"npm run lint -w frontend -- $*\"' --",
     "build:types": "npm run build:types -w backend && npm run build:types -w frontend",
     "prepare": "husky"
   },
   "devDependencies": {
     "@aws-sdk/client-route-53": "^3.700.0",
+    "concurrently": "^9.2.1",
     "husky": "^9.1.7",
     "rxjs": "^7.8.2",
     "tsx": "^4.21.0"
