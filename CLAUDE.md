@@ -11,12 +11,8 @@ This monorepo uses npm workspaces. Commands can be run from the root directory.
 ### Root-level scripts (run from root)
 
 ```bash
-npm run dev              # Start all dev servers (frontend, backend, edge proxy)
-npm run deploy:backend   # Deploy backend to AWS
-npm run deploy:frontend  # Deploy frontend to AWS
-npm run deploy:edge      # Deploy edge (CloudFront) to AWS
-npm run lint             # Run linters across packages
-npm run test             # Run tests
+npm run dev   # Start all dev servers (frontend, backend, edge proxy)
+npm run lint  # Run linters across packages
 ```
 
 ### Running scripts in specific packages

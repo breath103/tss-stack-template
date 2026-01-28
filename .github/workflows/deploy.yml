@@ -28,12 +28,10 @@ jobs:
       - run: npm ci
 
       - name: Lint backend
-        run: npm run lint
-        working-directory: packages/backend
+        run: npm run lint -w backend
 
       - name: Lint frontend
-        run: npm run lint
-        working-directory: packages/frontend
+        run: npm run lint -w frontend
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -49,11 +47,11 @@ jobs:
           GOOGLE_CLIENT_ID: "495965151122-nqsuprf3r5e9r8soqa5p15ini6sijhe0.apps.googleusercontent.com"
           GOOGLE_CLIENT_SECRET: "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"
           BETTER_AUTH_SECRET: "RHY2DJS7bHHqwc6/+gSYx5pfx+lwt+epje+7bxjIWuY="
-        run: npm run deploy:backend -- --name=${{ github.ref_name }}
+        run: npm run deploy -w backend -- --name=${{ github.ref_name }}
 
       - name: Deploy frontend
         env:
           # packages/frontend/src/env.d.ts
           REQUIRED_FOO: "frontend-value"
           # OPTIONAL_FOO: ""
-        run: npm run deploy:frontend -- --name=${{ github.ref_name }}
+        run: npm run deploy -w frontend -- --name=${{ github.ref_name }}

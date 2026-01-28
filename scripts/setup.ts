@@ -150,10 +150,10 @@ async function main() {
 
   console.log("\nNext steps:");
   console.log("  1. Edit packages/backend/.env with your secrets");
-  console.log("  2. npm run bootstrap     # Set up GitHub Actions");
-  console.log("  3. npm run deploy:edge   # Deploy CloudFront + Lambda@Edge");
-  console.log("  4. npm run deploy:backend -- --name=main");
-  console.log("  5. npm run deploy:frontend -- --name=main");
+  console.log("  2. npm run bootstrap -w edge  # Set up GitHub Actions");
+  console.log("  3. npm run deploy -w edge  # Deploy CloudFront + Lambda@Edge");
+  console.log("  4. npm run deploy -w backend -- --name=main");
+  console.log("  5. npm run deploy -w frontend -- --name=main");
 
   rl.close();
 }

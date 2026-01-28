@@ -28,7 +28,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Destroy backend
-        run: npm run destroy:backend -- --name=${{ github.event.ref }}
+        run: npm run destroy -w backend -- --name=${{ github.event.ref }}
 
       - name: Destroy frontend
-        run: npm run destroy:frontend -- --name=${{ github.event.ref }}
+        run: npm run destroy -w frontend -- --name=${{ github.event.ref }}

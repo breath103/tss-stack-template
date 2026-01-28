@@ -7,15 +7,8 @@
   "scripts": {
     "setup": "tsx scripts/setup.ts",
     "dev": "tsx scripts/dev.ts",
-    "deploy:bootstrap": "npm run bootstrap -w edge --",
-    "deploy:edge": "npm run deploy -w edge --",
-    "deploy:backend": "npm run deploy -w backend --",
-    "deploy:frontend": "npm run deploy -w frontend --",
-    "destroy:backend": "npm run destroy -w backend --",
-    "destroy:frontend": "npm run destroy -w frontend --",
     "lint": "npm run lint -w backend && npm run lint -w frontend",
     "build:types": "npm run build:types -w backend && npm run build:types -w frontend",
-    "test": "npm test -w shared",
     "prepare": "husky"
   },
   "devDependencies": {

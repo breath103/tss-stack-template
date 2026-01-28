@@ -46,13 +46,13 @@ Or manually edit `tss.json`:
 
 ```bash
 # Edge (CloudFront + Lambda@Edge) - run once
-npm run deploy:edge
+npm run deploy -w edge
 
 # Backend
-npm run deploy:backend -- --name=main
+npm run deploy -w backend -- --name=main
 
 # Frontend
-npm run deploy:frontend -- --name=main
+npm run deploy -w frontend -- --name=main
 ```
 
 ### 3. Environment Variables
@@ -82,7 +82,7 @@ DATABASE_URL=postgres://localhost/myapp
 - name: Deploy backend
   env:
     DATABASE_URL: "postgres://prod/myapp"
-  run: npm run deploy:backend -- --name=${{ github.ref_name }}
+  run: npm run deploy -w backend -- --name=${{ github.ref_name }}
 ```
 
 ### 4. Authentication (Google OAuth)
@@ -217,7 +217,7 @@ Automatic deployment on push:
 1. Run bootstrap to create IAM role for GitHub Actions:
 
 ```bash
-npm run bootstrap
+npm run bootstrap -w edge
 ```
 
 This creates an OIDC identity provider and IAM role in AWS. Copy the `RoleArn` from the output.
