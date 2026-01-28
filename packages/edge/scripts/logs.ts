@@ -1,10 +1,23 @@
 import { parseArgs } from "node:util";
 
+import { askConfirmation, parseDuration, sleep } from "shared/cli-utils";
 import { loadConfig } from "shared/config";
 
 import { CloudWatchLogsClient, FilterLogEventsCommand, ResourceNotFoundException } from "@aws-sdk/client-cloudwatch-logs";
 
 import { EdgeStack } from "./lib/edge-stack.js";
+
+const FETCH_LIMIT = 100;
+const MAX_EVENTS_BEFORE_CONFIRMATION = 100;
+
+type FunctionType = "origin-request" | "viewer-request";
+
+interface CliArgs {
+  function: FunctionType;
+  startTime: number;
+  tail: boolean;
+  region: string;
+}
 
 async function main() {
   const args = parseCliArgs();
@@ -14,15 +27,6 @@ async function main() {
 
   console.log(`${args.tail ? "Tailing" : "Fetching"} logs from ${logGroupName}...\n`);
   await fetchLogs(logGroupName, region, args.startTime, args.tail);
-}
-
-type FunctionType = "origin-request" | "viewer-request";
-
-interface CliArgs {
-  function: FunctionType;
-  startTime: number;
-  tail: boolean;
-  region: string;
 }
 
 function getLogConfig(fn: FunctionType, project: string, argRegion: string): { logGroupName: string; region: string } {
@@ -61,8 +65,8 @@ Options:
   -r, --region <region>   CloudWatch region to query (required for origin-request)
                           Logs are stored in the region where the edge executed
   -s, --startTime <dur>   How far back to fetch logs (default: 1m)
-                          Format: <number><unit> where unit is s/m/h
-                          Examples: 30s, 5m, 1h (max: 1h)
+                          Format: <number><unit> where unit is s/m/h/d
+                          Examples: 30s, 5m, 1h, 7d
   -t, --tail              Keep tailing logs (default: fetch once and exit)
   -h, --help              Show this help message
 
@@ -90,52 +94,55 @@ Examples:
     process.exit(1);
   }
 
-  const startTime = parseDuration(values.startTime ?? "1m");
-
   return {
     function: values.function as FunctionType,
-    startTime,
+    startTime: parseDuration(values.startTime ?? "1m"),
     tail: values.tail ?? false,
     region: values.region ?? "us-east-1",
   };
 }
 
-function parseDuration(input: string): number {
-  const match = input.match(/^(\d+)(s|m|h)$/);
-  if (!match) {
-    console.error(`Error: invalid duration "${input}". Use format: <number><s|m|h>`);
-    process.exit(1);
-  }
-
-  const value = parseInt(match[1], 10);
-  const unit = match[2];
-
-  const ms = unit === "s" ? value * 1000 : unit === "m" ? value * 60_000 : value * 3600_000;
-  const maxMs = 3600_000; // 1 hour
-
-  if (ms > maxMs) {
-    console.error("Error: max startTime is 1h");
-    process.exit(1);
-  }
-
-  return Date.now() - ms;
-}
-
 async function fetchLogs(logGroupName: string, region: string, startTime: number, tail: boolean): Promise<void> {
   const logs = new CloudWatchLogsClient({ region });
+  let totalEvents = 0;
+  let askedConfirmation = false;
+  let nextToken: string | undefined;
 
   while (true) {
     try {
-      const { events } = await logs.send(
-        new FilterLogEventsCommand({ logGroupName, startTime, limit: 100 })
+      const response = await logs.send(
+        new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: FETCH_LIMIT })
       );
 
-      for (const event of events ?? []) {
+      const events = response.events ?? [];
+
+      for (const event of events) {
         const ts = new Date(event.timestamp!).toISOString();
         const msg = event.message?.trimEnd() ?? "";
         console.log(`${ts}  ${msg}`);
         startTime = event.timestamp! + 1;
       }
+
+      totalEvents += events.length;
+      nextToken = response.nextToken;
+
+      // If we've hit the threshold and there's more, ask for confirmation
+      if (totalEvents >= MAX_EVENTS_BEFORE_CONFIRMATION && nextToken && !askedConfirmation) {
+        const lastTs = events.at(-1)?.timestamp;
+        const lastTime = lastTs ? new Date(lastTs).toISOString() : "N/A";
+        const confirmed = await askConfirmation(
+          `\nRead ${totalEvents} events so far (last: ${lastTime}). Continue until now? (y/n): `
+        );
+        if (!confirmed) {
+          console.log("Stopped.");
+          return;
+        }
+        askedConfirmation = true;
+      }
+
+      if (nextToken) continue;
+      if (!tail) return;
+      await sleep(1000);
     } catch (err) {
       if (err instanceof ResourceNotFoundException) {
         if (!tail) {
@@ -143,18 +150,12 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
           return;
         }
         console.log("Waiting for log group to be created...");
+        await sleep(1000);
       } else {
         throw err;
       }
     }
-
-    if (!tail) return;
-    await sleep(1000);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 main();
