@@ -33,6 +33,9 @@ jobs:
       - name: Lint frontend
         run: npm run lint -w frontend
 
+      - name: Test backend
+        run: npm test -w backend
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
