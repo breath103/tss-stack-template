@@ -45,6 +45,7 @@ export class BackendStack extends cdk.Stack {
 
     const fnUrl = fn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
+      invokeMode: lambda.InvokeMode.RESPONSE_STREAM,
     });
 
     new cdk.CfnOutput(this, "FunctionUrl", {

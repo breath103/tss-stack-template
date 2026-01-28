@@ -29,6 +29,7 @@
     "@aws-sdk/client-cloudwatch-logs": "^3",
     "@aws-sdk/client-ssm": "^3",
     "@eslint/js": "^9.39.2",
+    "@types/aws-lambda": "^8.10.160",
     "@types/node": "^22",
     "aws-cdk-lib": "^2.170.0",
     "constructs": "^10.4.0",
