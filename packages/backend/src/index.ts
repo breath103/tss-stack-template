@@ -1,7 +1,4 @@
-/// <reference types="aws-lambda" />
-
 import { Hono } from "hono";
-import { handle } from "hono/aws-lambda";
 import { HTTPException } from "hono/http-exception";
 
 import { api } from "./api.js";
@@ -36,28 +33,4 @@ app.use("*", async (c, next) => {
 // Register all API routes
 registerToHono(app, api);
 
-// Export app for dev server
 export { app };
-
-// Standard Hono handler (used internally)
-const honoHandler = handle(app);
-
-// Lambda streaming handler - allows background tasks after response is sent
-export const handler = awslambda.streamifyResponse(async (event, responseStream, context) => {
-  // Get response from Hono
-  const result = await honoHandler(event, context);
-
-  const httpStream = awslambda.HttpResponseStream.from(responseStream, {
-    statusCode: result.statusCode,
-    headers: result.headers,
-  });
-
-  // Write body and end stream (sends response to client)
-  if (result.body) {
-    httpStream.write(result.body);
-  }
-  httpStream.end();
-
-  // Background tasks run AFTER response is sent to client
-  // Example: await analytics.flush();
-});
