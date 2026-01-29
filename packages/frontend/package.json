@@ -4,15 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run script -- scripts/dev.ts",
+    "dev": "../../scripts/with-env.sh vite",
     "deploy": "npm run script -- scripts/deploy.ts",
     "destroy": "npm run script -- scripts/destroy.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
     "build:types": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "lint": "eslint src scripts",
-    "test": "dotenv -e .env.test -- vitest run",
-    "test:watch": "dotenv -e .env.test -- vitest"
+    "test": "../../scripts/with-env.sh --env=test vitest run",
+    "test:watch": "../../scripts/with-env.sh --env=test vitest"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -30,7 +30,6 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
-    "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.2",
     "eslint-plugin-better-tailwindcss": "^4.0.1",
     "eslint-plugin-react-hooks": "^7.0.1",

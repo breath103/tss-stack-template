@@ -1,17 +1,12 @@
-import { parseArgs } from "node:util";
+import path from "node:path";
 
 import { loadConfig } from "shared/config";
+import { loadAndValidateEnv } from "shared/env-parser";
 
 import { serve } from "@hono/node-server";
 
-import { loadEnv } from "./lib/env.js";
-
-const { values } = parseArgs({
-  options: { env: { type: "string", short: "e" } },
-  strict: true,
-});
-
-loadEnv(values.env);
+// Validate env vars (already loaded by with-env.sh)
+loadAndValidateEnv(path.join(import.meta.dirname, "../src/env.d.ts"));
 
 const { app } = await import("../src/index.js");
 const { backend } = loadConfig();
