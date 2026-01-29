@@ -36,6 +36,9 @@ jobs:
       - name: Test backend
         run: npm test -w backend
 
+      - name: Test frontend
+        run: npm test -w frontend
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
