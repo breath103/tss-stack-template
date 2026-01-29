@@ -1,9 +1,10 @@
+/// <reference types="vitest/config" />
 import path from "node:path";
-
-import { defineConfig } from "vite";
 
 import { loadConfig } from "shared/config";
 import { parseEnvDts, validateEnv } from "shared/env-parser";
+import { defineConfig } from "vite";
+
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 
@@ -27,5 +28,8 @@ export default defineConfig({
   define: envDefines,
   server: {
     port: config.frontend.devPort,
+  },
+  test: {
+    include: ["src/**/__tests__/*.ts"],
   },
 });

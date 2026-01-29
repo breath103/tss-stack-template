@@ -10,7 +10,9 @@
     "script": "tsx --tsconfig scripts/tsconfig.json",
     "build:types": "tsc --noEmit",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src scripts"
+    "lint": "eslint src scripts",
+    "test": "dotenv -e .env.test -- vitest run",
+    "test:watch": "dotenv -e .env.test -- vitest"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -28,6 +30,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.2",
     "eslint-plugin-better-tailwindcss": "^4.0.1",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -38,6 +41,7 @@
     "typescript": "^5",
     "typescript-eslint": "^8.52.0",
     "vite": "^6.0.0",
+    "vitest": "^3.2.4",
     "zod": "^4.3.5"
   }
 }
