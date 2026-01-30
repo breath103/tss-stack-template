@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, BetterAuthOptions } from "better-auth";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -14,4 +14,4 @@ export const auth = betterAuth({
   },
   // No database = automatic stateless mode
   // Session stored in signed cookie
-});
+} satisfies BetterAuthOptions);
