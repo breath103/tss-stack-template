@@ -9,11 +9,7 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "rootDir": "src",
-    "declaration": true,
-    "baseUrl": ".",
-    "paths": {
-      "shared/*": ["../shared/src/*"]
-    }
+    "declaration": true
   },
   "include": ["src"]
 }

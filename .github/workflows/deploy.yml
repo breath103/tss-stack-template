@@ -11,7 +11,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Build & Lint & Test backend
+            command: (npm run build:types -w backend) && (npm run lint -w backend) && (npm test -w backend)
+          - name: Build & Lint & Test frontend
+            command: (npm run build:types -w backend) && (npm run build:types -w frontend) && (npm run lint -w frontend) && (npm test -w frontend)
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: ${{ matrix.command }}
+
   deploy:
+    needs: check
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -19,25 +45,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "npm"
-
-      - run: npm ci
-
-      - name: Lint backend
-        run: npm run lint -w backend
-
-      - name: Lint frontend
-        run: npm run lint -w frontend
-
-      - name: Test backend
-        run: npm test -w backend
-
-      - name: Test frontend
-        run: npm test -w frontend
+          node-version-file: ".nvmrc"
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -61,3 +78,19 @@ jobs:
           REQUIRED_FOO: "frontend-value"
           # OPTIONAL_FOO: ""
         run: npm run deploy -w frontend -- --name=${{ github.ref_name }}
+
+  # notify:
+  #   needs: [check, deploy]
+  #   if: always() && (failure() || (success() && github.ref == 'refs/heads/main'))
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Notify Telegram
+  #       run: |
+  #         STATUS="${{ needs.deploy.result == 'success' && '✅ Deploy Success' || '❌ CI Failed' }}"
+  #         curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+  #           -H "Content-Type: application/json" \
+  #           -d '{
+  #             "chat_id": 647533447,
+  #             "parse_mode": "Markdown",
+  #             "text": "*'"$STATUS"'*\n\nBranch: `${{ github.ref_name }}`\nCommit: `${{ github.sha }}`\n\n[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+  #           }'            
