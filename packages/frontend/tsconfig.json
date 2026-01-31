@@ -9,10 +9,10 @@
     "strict": true,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "rootDir": "src",
+    "rootDir": "..",
     "paths": {
-      "backend/*": ["../backend/dist/*"],
-      "shared/*": ["../shared/src/*"]
+      "@/*": ["src/*"],
+      "@backend/*": ["../backend/dist/*"]
     }
   },
   "include": ["src"]

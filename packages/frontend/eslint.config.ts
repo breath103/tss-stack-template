@@ -43,6 +43,18 @@ export default [
       }],
       "simple-import-sort/exports": "error",
       "unicorn/prefer-node-protocol": "error",
+      "@typescript-eslint/no-restricted-imports": ["error", {
+        paths: [{
+          name: "@backend",
+          message: "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
+          allowTypeImports: true,
+        }],
+        patterns: [{
+          regex: "^@backend/",
+          message: "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
+          allowTypeImports: true,
+        }],
+      }],
       // Tailwind CSS
       "better-tailwindcss/enforce-consistent-line-wrapping": "off",
       "better-tailwindcss/enforce-consistent-class-order": ["warn", { entryPoint: "src/global.css" }],

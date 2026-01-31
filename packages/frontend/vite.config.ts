@@ -26,6 +26,11 @@ const envDefines = Object.fromEntries(
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: envDefines,
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "src"),
+    },
+  },
   server: {
     port: config.frontend.devPort,
   },
