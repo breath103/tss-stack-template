@@ -10,7 +10,20 @@ export default [
   { ignores: ["dist/**"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  betterTailwindcss.configs["recommended"],
+  {
+    ...betterTailwindcss.configs.recommended,
+    settings: {
+      "better-tailwindcss": {
+        entryPoint: "./src/global.css",
+      },
+    },
+    rules: {
+      ...betterTailwindcss.configs.recommended.rules,
+
+      // Tailwind CSS
+      "better-tailwindcss/enforce-consistent-line-wrapping": "off"      
+    },
+  },
   {
     languageOptions: {
       parserOptions: {
@@ -43,6 +56,8 @@ export default [
       }],
       "simple-import-sort/exports": "error",
       "unicorn/prefer-node-protocol": "error",
+      
+      // Custom rule for @backend import
       "@typescript-eslint/no-restricted-imports": ["error", {
         paths: [{
           name: "@backend",
@@ -55,12 +70,6 @@ export default [
           allowTypeImports: true,
         }],
       }],
-      // Tailwind CSS
-      "better-tailwindcss/enforce-consistent-line-wrapping": "off",
-      "better-tailwindcss/enforce-consistent-class-order": ["warn", { entryPoint: "src/global.css" }],
-      "better-tailwindcss/no-deprecated-classes": ["warn", { entryPoint: "src/global.css" }],
-      "better-tailwindcss/enforce-shorthand-classes": ["warn", { entryPoint: "src/global.css" }],
-      "better-tailwindcss/enforce-canonical-classes": ["warn", { entryPoint: "src/global.css" }],
     },
   },
 ];
