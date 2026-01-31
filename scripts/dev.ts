@@ -3,8 +3,13 @@ import { parseArgs } from "node:util";
 
 import { fromEvent, merge, take } from "rxjs";
 
+import config from "../tss.json";
+
 const { values } = parseArgs({
-  options: { env: { type: "string", short: "e" } },
+  options: { 
+    env: { type: "string", short: "e" },
+    open: { type: "boolean", short: "o", default: false },   
+  },
   strict: false,
 });
 
@@ -35,3 +40,7 @@ merge(
   fromEvent(process, "SIGINT"),
   fromEvent(process, "SIGTERM"),
 ).pipe(take(1)).subscribe(killAll);
+
+if (values.open) {
+  spawn("./scripts/open-chrome.sh", [`http://localhost:${config.edge.devPort}`], { stdio: "inherit" });
+}
