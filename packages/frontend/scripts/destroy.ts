@@ -113,4 +113,4 @@ async function deletePrefix(s3: S3Client, bucket: string, prefix: string): Promi
   }
 }
 
-main();
+void main();

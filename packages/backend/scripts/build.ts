@@ -15,7 +15,12 @@ function main() {
   execSync("npx tsc --outDir dist", { cwd: ROOT, stdio: "inherit" });
 
   // Copy package.json with only production dependencies
-  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8"));
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8")) as {
+    name: string;
+    version: string;
+    type: string;
+    dependencies: Record<string, string>;
+  };
   fs.writeFileSync(path.join(DIST, "package.json"), JSON.stringify({
     name: pkg.name,
     version: pkg.version,

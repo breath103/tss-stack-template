@@ -29,7 +29,7 @@ function RootComponent() {
             <div className="flex items-center gap-3">
               <span className="text-gray-700">{session.user.name}</span>
               <button
-                onClick={() => signOut()}
+                onClick={() => void signOut()}
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
                 Sign out
@@ -37,7 +37,7 @@ function RootComponent() {
             </div>
           ) : (
             <button
-              onClick={() => signIn.social({ provider: "google" })}
+              onClick={() => void signIn.social({ provider: "google" })}
               className="rounded-sm bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
             >
               Sign in with Google

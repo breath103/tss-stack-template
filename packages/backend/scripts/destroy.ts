@@ -121,4 +121,4 @@ async function deleteSsmParameter(
   }
 }
 
-main();
+void main();

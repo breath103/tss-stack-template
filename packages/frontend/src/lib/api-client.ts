@@ -49,8 +49,9 @@ export class ApiClient<T extends Routes> {
     // Replace path params
     let url = path;
     if (options?.params) {
-      url = path.replace(/:(\w+)/g, (_, key) => {
+      url = path.replace(/:(\w+)/g, (_, key: string) => {
         const value = options.params![key];
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety for missing params
         if (value === undefined) throw new Error(`Missing param: ${key}`);
         return encodeURIComponent(String(value));
       });
@@ -61,7 +62,7 @@ export class ApiClient<T extends Routes> {
       const params = new URLSearchParams();
       for (const [key, value] of Object.entries(options.query)) {
         if (value !== undefined && value !== null) {
-          params.append(key, String(value));
+          params.append(key, `${value as string | number | boolean}`);
         }
       }
       const qs = params.toString();
@@ -75,10 +76,10 @@ export class ApiClient<T extends Routes> {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Request failed" }));
-      throw new Error(error.error || `HTTP ${response.status}`);
+      const error = await response.json().catch(() => ({ error: "Request failed" })) as { error?: string };
+      throw new Error(error.error ?? `HTTP ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<T[P][M] extends { response: infer R } ? R : never>;
   }
 }
