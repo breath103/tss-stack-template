@@ -135,4 +135,4 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
   }
 }
 
-main();
+void main();

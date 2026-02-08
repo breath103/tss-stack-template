@@ -12,8 +12,9 @@ export function registerToHono<E extends Env>(
   routeCollection: RouteCollection<Context<E>, RouteDef[]>
 ): void {
   for (const routeDef of routeCollection.routes) {
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/unbound-method -- RouteDef uses `any` by design */
     const { path, method, querySchema, bodySchema, handler } = routeDef;
-    const httpMethod = method.toLowerCase() as Lowercase<HttpMethod>;
+    const httpMethod = (method as string).toLowerCase() as Lowercase<HttpMethod>;
 
     app[httpMethod](path, async (c) => {
       const params = c.req.param();
@@ -31,7 +32,7 @@ export function registerToHono<E extends Env>(
 
       let parsedBody = {};
       if (bodySchema) {
-        const rawBody = await c.req.json().catch(() => ({}));
+        const rawBody: unknown = await c.req.json().catch(() => ({}));
         const schema = z.object(bodySchema as SchemaShape);
         const result = schema.safeParse(rawBody);
         if (!result.success) {
@@ -40,7 +41,7 @@ export function registerToHono<E extends Env>(
         parsedBody = result.data;
       }
 
-      const response = await handler({
+      const response: unknown = await handler({
         params,
         query: parsedQuery,
         body: parsedBody,

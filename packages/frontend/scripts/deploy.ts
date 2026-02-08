@@ -163,4 +163,4 @@ async function main() {
 
   console.log(`\n✅ Deployed to s3://${bucketName}/${name}/`);
 }
-main();
+void main();
