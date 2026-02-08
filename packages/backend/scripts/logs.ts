@@ -85,7 +85,7 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
   let askedConfirmation = false;
   let nextToken: string | undefined;
 
-  for (;;) {
+  while (true) {
     try {
       const response = await logs.send(
         new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: FETCH_LIMIT })
