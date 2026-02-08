@@ -2,6 +2,10 @@ name: Cleanup
 
 on: delete
 
+concurrency:
+  group: deploy-refs/heads/${{ github.event.ref }}
+  cancel-in-progress: false
+
 jobs:
   cleanup:
     # Only run when a branch is deleted (not tags)
