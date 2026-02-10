@@ -10,7 +10,7 @@
     "destroy": "npm run script -- scripts/destroy.ts",
     "logs": "npm run script -- scripts/logs.ts",
     "script": "tsx --tsconfig scripts/tsconfig.json",
-    "build:types": "tsc --emitDeclarationOnly",
+    "build:types": "rm -rf dist && tsc --emitDeclarationOnly",
     "dev:types": "tsc --watch --preserveWatchOutput --emitDeclarationOnly",
     "type-check": "tsc --noEmit",
     "lint": "eslint src scripts",
