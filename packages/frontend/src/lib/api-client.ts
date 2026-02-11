@@ -62,7 +62,7 @@ export class ApiClient<T extends Routes> {
       const params = new URLSearchParams();
       for (const [key, value] of Object.entries(options.query)) {
         if (value !== undefined && value !== null) {
-          params.append(key, `${value as string | number | boolean}`);
+          params.append(key, typeof value === "object" ? JSON.stringify(value) : `${value as string | number | boolean}`);
         }
       }
       const qs = params.toString();
