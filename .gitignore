@@ -10,3 +10,6 @@ cdk.out
 
 # Claude local settings
 .claude/settings.local.json
+
+# Local config overrides
+tss.override.json

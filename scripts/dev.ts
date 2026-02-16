@@ -3,7 +3,9 @@ import { parseArgs } from "node:util";
 
 import { fromEvent, merge, take } from "rxjs";
 
-import config from "../tss.json";
+import { loadConfig } from "shared/config";
+
+const config = loadConfig();
 
 const { values } = parseArgs({
   options: { 
