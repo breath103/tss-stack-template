@@ -48,6 +48,20 @@ function findProjectRoot(): string {
   process.exit(1);
 }
 
+function deepMerge(base: Record<string, unknown>, override: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...base };
+  for (const key of Object.keys(override)) {
+    const baseVal = base[key];
+    const overVal = override[key];
+    if (baseVal && overVal && typeof baseVal === "object" && typeof overVal === "object" && !Array.isArray(baseVal) && !Array.isArray(overVal)) {
+      result[key] = deepMerge(baseVal as Record<string, unknown>, overVal as Record<string, unknown>);
+    } else {
+      result[key] = overVal;
+    }
+  }
+  return result;
+}
+
 export function loadConfig(): TssConfig {
   const root = findProjectRoot();
   const configPath = path.join(root, "tss.json");
@@ -60,9 +74,20 @@ export function loadConfig(): TssConfig {
     process.exit(1);
   }
 
+  const overridePath = path.join(root, "tss.override.json");
+  if (fs.existsSync(overridePath)) {
+    try {
+      const overrides = JSON.parse(fs.readFileSync(overridePath, "utf-8")) as Record<string, unknown>;
+      raw = deepMerge(raw as Record<string, unknown>, overrides);
+    } catch {
+      console.error(`Error: failed to parse ${overridePath}`);
+      process.exit(1);
+    }
+  }
+
   const result = configSchema.safeParse(raw);
   if (!result.success) {
-    console.error("Error: invalid tss.json");
+    console.error("Error: invalid tss.json (after applying overrides)");
     console.error(result.error.format());
     process.exit(1);
   }
