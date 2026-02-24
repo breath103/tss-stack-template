@@ -27,12 +27,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
+          cache: npm
       - uses: actions/cache@v4
-        id: cache
+        id: nm-cache
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('package-lock.json') }}
-      - if: steps.cache.outputs.cache-hit != 'true'
+      - if: steps.nm-cache.outputs.cache-hit != 'true'
         run: npm ci
       - run: ${{ matrix.command }}
 
@@ -48,12 +49,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
+          cache: npm
       - uses: actions/cache@v4
-        id: cache
+        id: nm-cache
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('package-lock.json') }}
-      - if: steps.cache.outputs.cache-hit != 'true'
+      - if: steps.nm-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Configure AWS credentials
@@ -62,6 +64,14 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
+      - run: npm run pack:build -w backend
+      - uses: actions/cache@v4
+        id: deploy-deps
+        with:
+          path: packages/backend/dist/node_modules
+          key: backend-deploy-deps-${{ hashFiles('packages/backend/package.json') }}
+      - if: steps.deploy-deps.outputs.cache-hit != 'true'
+        run: npm run pack:install -w backend
       - name: Deploy backend
         env:
           # packages/backend/src/env.d.ts
@@ -93,4 +103,4 @@ jobs:
   #             "chat_id": 647533447,
   #             "parse_mode": "Markdown",
   #             "text": "*'"$STATUS"'*\n\nBranch: `${{ github.ref_name }}`\nCommit: `${{ github.sha }}`\n\n[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-  #           }'            
+  #           }'

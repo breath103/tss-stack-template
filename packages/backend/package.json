@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "../../scripts/with-env.sh tsx --tsconfig scripts/tsconfig.json scripts/dev.ts",
     "build": "npm run script -- scripts/build.ts",
+    "pack:build": "npm run script -- scripts/pack-build.ts",
+    "pack:install": "npm run script -- scripts/pack-install.ts",
     "deploy": "npm run script -- scripts/deploy.ts",
     "destroy": "npm run script -- scripts/destroy.ts",
     "logs": "npm run script -- scripts/logs.ts",
