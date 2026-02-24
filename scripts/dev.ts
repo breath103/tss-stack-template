@@ -17,7 +17,7 @@ const envFlag = values.env ? ["--", `--env=${values.env}`] : [];
 const children: ChildProcess[] = [];
 
 function spawnProc({ name, color, args }: { name: string; color: string; args: string[] }) {
-  const child = spawn("npm", args, { stdio: ["inherit", "pipe", "pipe"] });
+  const child = spawn("npm", args, { stdio: ["ignore", "pipe", "pipe"] });
   children.push(child);
   const prefix = (line: string) => line && `${color}[${name}]\x1b[0m ${line}\n`;
   child.stdout?.on("data", (d: Buffer) => d.toString().split("\n").map(prefix).forEach((l) => process.stdout.write(l)));
@@ -40,18 +40,22 @@ function setup() {
   }
 }
 
+// Ctrl-C (SIGINT) and SIGTERM: kill all children via process group signal, then exit.
+// Ctrl-Z (SIGTSTP): override default suspend behavior — treat same as Ctrl-C.
+// process.kill(0, signal) sends to all processes in our process group (all children
+// share it since they're not detached). This does NOT reach the parent shell (zsh)
+// because zsh runs foreground jobs in a separate process group.
 let exiting = false;
 const cleanup = () => {
   if (exiting) return;
   exiting = true;
-  // SIGTERM the entire process group (all descendants, not just direct children)
   try { process.kill(0, "SIGTERM"); } catch { /* ignore */ }
-  // Force-kill survivors after 2s
   setTimeout(() => {
     try { process.kill(0, "SIGKILL"); } catch { /* ignore */ }
   }, 2000).unref();
 };
 process.on("SIGINT", cleanup);
 process.on("SIGTERM", cleanup);
+process.on("SIGTSTP", cleanup);
 
 setup();
