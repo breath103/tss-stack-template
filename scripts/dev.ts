@@ -1,48 +1,57 @@
-import { spawn } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import { parseArgs } from "node:util";
-
-import { fromEvent, merge, take } from "rxjs";
 
 import { loadConfig } from "shared/config";
 
 const config = loadConfig();
 
 const { values } = parseArgs({
-  options: { 
+  options: {
     env: { type: "string", short: "e" },
-    open: { type: "boolean", short: "o", default: false },   
+    open: { type: "boolean", short: "o", default: false },
   },
   strict: false,
 });
 
 const envFlag = values.env ? ["--", `--env=${values.env}`] : [];
+const children: ChildProcess[] = [];
 
-const procs = [
+function spawnProc({ name, color, args }: { name: string; color: string; args: string[] }) {
+  const child = spawn("npm", args, { stdio: ["inherit", "pipe", "pipe"] });
+  children.push(child);
+  const prefix = (line: string) => line && `${color}[${name}]\x1b[0m ${line}\n`;
+  child.stdout?.on("data", (d: Buffer) => d.toString().split("\n").map(prefix).forEach((l) => process.stdout.write(l)));
+  child.stderr?.on("data", (d: Buffer) => d.toString().split("\n").map(prefix).forEach((l) => process.stderr.write(l)));
+  return child;
+}
+
+const devProcs = [
   { name: "edge", color: "\x1b[35m", args: ["run", "dev", "-w", "edge"] },
   { name: "backend", color: "\x1b[34m", args: ["run", "dev", "-w", "backend", ...envFlag] },
   { name: "types", color: "\x1b[33m", args: ["run", "dev:types", "-w", "backend"] },
   { name: "frontend", color: "\x1b[32m", args: ["run", "dev", "-w", "frontend", ...envFlag] },
 ];
 
-const children = procs.map(({ name, color, args }) => {
-  const child = spawn("npm", args, { stdio: ["inherit", "pipe", "pipe"], detached: true });
-  const prefix = (line: string) => line && `${color}[${name}]\x1b[0m ${line}\n`;
-  child.stdout?.on("data", (d: Buffer) => d.toString().split("\n").map(prefix).forEach((l) => process.stdout.write(l)));
-  child.stderr?.on("data", (d: Buffer) => d.toString().split("\n").map(prefix).forEach((l) => process.stderr.write(l)));
-  return child;
-});
+function setup() {
+  devProcs.forEach(spawnProc);
 
-const killAll = () => {
-  children.forEach((c) => process.kill(-c.pid!, "SIGKILL")); // Kill process group
-  process.exit(0);
-};
-
-merge(
-  ...children.map((c) => fromEvent(c, "exit")),
-  fromEvent(process, "SIGINT"),
-  fromEvent(process, "SIGTERM"),
-).pipe(take(1)).subscribe(killAll);
-
-if (values.open) {
-  spawn("./scripts/open-chrome.sh", [`http://localhost:${config.edge.devPort}`], { stdio: "inherit" });
+  if (values.open) {
+    spawn("./scripts/open-chrome.sh", [`http://localhost:${config.edge.devPort}`], { stdio: "inherit" });
+  }
 }
+
+let exiting = false;
+const cleanup = () => {
+  if (exiting) return;
+  exiting = true;
+  // SIGTERM the entire process group (all descendants, not just direct children)
+  try { process.kill(0, "SIGTERM"); } catch { /* ignore */ }
+  // Force-kill survivors after 2s
+  setTimeout(() => {
+    try { process.kill(0, "SIGKILL"); } catch { /* ignore */ }
+  }, 2000).unref();
+};
+process.on("SIGINT", cleanup);
+process.on("SIGTERM", cleanup);
+
+setup();
