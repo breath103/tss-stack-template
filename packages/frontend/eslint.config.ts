@@ -1,3 +1,4 @@
+import type { Linter } from "eslint";
 import betterTailwindcss from "eslint-plugin-better-tailwindcss";
 import reactHooks from "eslint-plugin-react-hooks";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
@@ -5,11 +6,40 @@ import unicorn from "eslint-plugin-unicorn";
 import tseslint from "typescript-eslint";
 
 import eslint from "@eslint/js";
+import stylistic, { type RuleOptions as StylisticRuleOptions } from "@stylistic/eslint-plugin";
 
 export default [
   { ignores: ["dist/**"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
+  stylistic.configs.customize({
+    indent: 2,
+    quotes: "double",
+    semi: true,
+    arrowParens: false,
+    commaDangle: "only-multiline",
+    braceStyle: "1tbs",
+  }),
+  {
+    rules: {
+      "@stylistic/operator-linebreak": "off",
+      "@stylistic/arrow-parens": "off",
+      "@stylistic/multiline-ternary": "off",
+      "@stylistic/jsx-one-expression-per-line": "off",
+      "@stylistic/jsx-closing-bracket-location": "off",
+      "@stylistic/member-delimiter-style": ["error", {
+        multiline: {
+          delimiter: "semi",
+          requireLast: true,
+        },
+        singleline: {
+          delimiter: "semi",
+          requireLast: false,
+        },
+        multilineDetection: "brackets",
+      }],
+    } satisfies { [K in keyof StylisticRuleOptions]?: Linter.RuleSeverity | [Linter.RuleSeverity, ...StylisticRuleOptions[K]]; },
+  },
   {
     ...betterTailwindcss.configs.recommended,
     settings: {
@@ -21,7 +51,8 @@ export default [
       ...betterTailwindcss.configs.recommended.rules,
 
       // Tailwind CSS
-      "better-tailwindcss/enforce-consistent-line-wrapping": "off"      
+      "better-tailwindcss/enforce-consistent-line-wrapping": "off",
+      "better-tailwindcss/no-unknown-classes": ["warn", { detectComponentClasses: true }],
     },
   },
   {
@@ -57,7 +88,7 @@ export default [
       }],
       "simple-import-sort/exports": "error",
       "unicorn/prefer-node-protocol": "error",
-      
+
       // Custom rule for @backend import
       "@typescript-eslint/no-restricted-imports": ["error", {
         paths: [{

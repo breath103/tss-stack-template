@@ -20,9 +20,9 @@ type FetchOptions<T> = (IsNever<T extends { params: infer P } ? P : never> exten
   (IsNever<T extends { query: infer Q } ? Q : never> extends true
     ? unknown
     : { query: T extends { query: infer Q } ? Q : never }) &
-  (IsNever<T extends { body: infer B } ? B : never> extends true
-    ? unknown
-    : { body: T extends { body: infer B } ? B : never });
+    (IsNever<T extends { body: infer B } ? B : never> extends true
+      ? unknown
+      : { body: T extends { body: infer B } ? B : never });
 
 // Check if options are required
 type HasRequired<T> = IsNever<T extends { params: infer P } ? P : never> extends true
