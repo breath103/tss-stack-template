@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
@@ -33,13 +34,19 @@ export class BackendStack extends cdk.Stack {
     const id = BackendStack.id({ project: props.project, name: props.name });
     super(scope, id, props);
 
+    const functionName = BackendStack.functionName({ project: props.project, name: props.name });
+
     const fn = new lambda.Function(this, "Handler", {
-      functionName: BackendStack.functionName({ project: props.project, name: props.name }),
+      functionName,
       runtime: lambda.Runtime.NODEJS_24_X,
       handler: "lambda.handler",
       code: lambda.Code.fromAsset(path.join(ROOT, "dist")),
       memorySize: 512,
       timeout: cdk.Duration.seconds(30),
+      logGroup: new logs.LogGroup(this, "HandlerLogGroup", {
+        logGroupName: `/aws/lambda/${functionName}`,
+        retention: logs.RetentionDays.TWO_MONTHS,
+      }),
       environment: {
         NODE_ENV: "production",
         ...props.envVars,
