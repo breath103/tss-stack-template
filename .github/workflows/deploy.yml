@@ -85,7 +85,7 @@ jobs:
       - name: Deploy frontend
         env:
           # packages/frontend/src/env.d.ts
-          SITE_URL: "https://tss-stack-template.example.com"
+          SITE_URL: "https://www.tsss.cloud"
           REQUIRED_FOO: "frontend-value"
           # OPTIONAL_FOO: ""
         run: ./packages/frontend/scripts/deploy.ts --name=${{ github.ref_name }}
