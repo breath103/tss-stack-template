@@ -102,7 +102,7 @@ Examples:
 
 interface BuildOptions {
   subdomainMap: TssConfig["subdomainMap"];
-  domain: string;
+  domain: string | undefined;
   project: string;
   ssmRegion: string;
 }
@@ -123,7 +123,7 @@ async function buildEdgeFunctions(opts: BuildOptions) {
     outfile: path.join(DIST, "viewer-request/index.js"),
     define: {
       SUBDOMAIN_MAP_CONFIG: JSON.stringify(opts.subdomainMap),
-      DOMAIN_CONFIG: JSON.stringify(opts.domain),
+      DOMAIN_CONFIG: JSON.stringify(opts.domain ?? ""),
     },
   });
 
@@ -147,8 +147,8 @@ import type { EdgeStackConfig } from "./lib/edge-stack.js";
 function synthesizeStack(config: EdgeStackConfig): string {
   console.log(`  project: ${config.project}`);
   console.log(`  ssm.region: ${config.ssmRegion}`);
-  console.log(`  domain: ${config.domain}`);
-  console.log(`  hostedZoneId: ${config.hostedZoneId}`);
+  console.log(`  domain: ${config.domain ?? "(none — using generated CloudFront domain)"}`);
+  console.log(`  hostedZoneId: ${config.hostedZoneId ?? "(none)"}`);
 
   const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
   const stackId = EdgeStack.id({ project: config.project });

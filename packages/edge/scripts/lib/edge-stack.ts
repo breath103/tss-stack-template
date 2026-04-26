@@ -19,8 +19,8 @@ const DIST = path.join(ROOT, "dist");
 export interface EdgeStackConfig {
   project: string;
   ssmRegion: string;
-  domain: string;
-  hostedZoneId: string;
+  domain?: string;
+  hostedZoneId?: string;
   frontendBucketName: string;
   githubActionsIamRole?: { repo: string };
 }
@@ -56,9 +56,24 @@ export class EdgeStack extends cdk.Stack {
     const originRequestFunction = this.createOriginRequestFunction(config);
     const viewerRequestFunction = this.createViewerRequestFunction(config);
     const { bucket, oai } = this.createFrontendBucket(config);
-    const { hostedZone, certificate } = this.createCertificate(config);
-    const distribution = this.createDistribution(config, originRequestFunction, viewerRequestFunction, bucket, oai, certificate);
-    this.createDnsRecords(config, hostedZone, distribution);
+
+    const customDomain =
+      config.domain && config.hostedZoneId
+        ? this.createCertificate({ domain: config.domain, hostedZoneId: config.hostedZoneId })
+        : undefined;
+
+    const distribution = this.createDistribution(
+      config,
+      originRequestFunction,
+      viewerRequestFunction,
+      bucket,
+      oai,
+      customDomain,
+    );
+
+    if (customDomain && config.domain) {
+      this.createDnsRecords(config.domain, customDomain.hostedZone, distribution);
+    }
     this.createOutputs(config, distribution, bucket);
 
     if (config.githubActionsIamRole) {
@@ -120,22 +135,23 @@ export class EdgeStack extends cdk.Stack {
     return { bucket, oai };
   }
 
-  private createCertificate(config: EdgeStackConfig): {
+  private createCertificate(opts: { domain: string; hostedZoneId: string }): {
+    domain: string;
     hostedZone: route53.IHostedZone;
     certificate: acm.Certificate;
   } {
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
-      hostedZoneId: config.hostedZoneId,
-      zoneName: config.domain,
+      hostedZoneId: opts.hostedZoneId,
+      zoneName: opts.domain,
     });
 
     const certificate = new acm.Certificate(this, "Certificate", {
-      domainName: `*.${config.domain}`,
-      subjectAlternativeNames: [config.domain],
+      domainName: `*.${opts.domain}`,
+      subjectAlternativeNames: [opts.domain],
       validation: acm.CertificateValidation.fromDns(hostedZone),
     });
 
-    return { hostedZone, certificate };
+    return { domain: opts.domain, hostedZone, certificate };
   }
 
   private createDistribution(
@@ -144,7 +160,7 @@ export class EdgeStack extends cdk.Stack {
     viewerRequestFunction: cloudfront.Function,
     bucket: s3.Bucket,
     oai: cloudfront.OriginAccessIdentity,
-    certificate: acm.Certificate
+    customDomain: { domain: string; certificate: acm.Certificate } | undefined,
   ): cloudfront.Distribution {
     const cachePolicy = new cloudfront.CachePolicy(this, "FrontendCachePolicy", {
       cachePolicyName: `${config.project}-frontend`,
@@ -191,13 +207,17 @@ export class EdgeStack extends cdk.Stack {
     return new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior,
       additionalBehaviors: { "/api/*": apiBehavior },
-      certificate,
-      domainNames: [`*.${config.domain}`, config.domain],
+      ...(customDomain
+        ? {
+            certificate: customDomain.certificate,
+            domainNames: [`*.${customDomain.domain}`, customDomain.domain],
+          }
+        : {}),
     });
   }
 
   private createDnsRecords(
-    config: EdgeStackConfig,
+    domain: string,
     hostedZone: route53.IHostedZone,
     distribution: cloudfront.Distribution
   ): void {
@@ -205,13 +225,13 @@ export class EdgeStack extends cdk.Stack {
 
     new route53.ARecord(this, "WildcardARecord", {
       zone: hostedZone,
-      recordName: `*.${config.domain}`,
+      recordName: `*.${domain}`,
       target,
     });
 
     new route53.ARecord(this, "RootARecord", {
       zone: hostedZone,
-      recordName: config.domain,
+      recordName: domain,
       target,
     });
   }

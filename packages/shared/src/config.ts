@@ -21,10 +21,13 @@ const configSchema = z.object({
   backend: z.object({ region: z.string(), devPort: z.number() }),
   frontend: z.object({ bucketSuffix: z.string(), devPort: z.number() }),
   ssm: z.object({ region: z.string() }),
-  domain: z.string(),
-  hostedZoneId: z.string(),
+  domain: z.string().optional(),
+  hostedZoneId: z.string().optional(),
   subdomainMap: z.record(z.string(), subdomainMapValue),
-});
+}).refine(
+  (cfg) => !cfg.domain || !!cfg.hostedZoneId,
+  { message: "hostedZoneId is required when domain is set", path: ["hostedZoneId"] },
+);
 
 export type TssConfig = z.infer<typeof configSchema>;
 

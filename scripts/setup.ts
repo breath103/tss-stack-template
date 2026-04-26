@@ -41,9 +41,10 @@ async function askRegion(): Promise<string> {
   return (await ask(`AWS region for backend [${defaultRegion}]: `)) || defaultRegion;
 }
 
-async function askDomain(): Promise<string> {
-  const domain = await ask("Domain (e.g., myapp.com): ");
-  if (!domain || !domain.includes(".")) {
+async function askDomain(): Promise<string | undefined> {
+  const domain = await ask("Domain (e.g., myapp.com) [leave blank to use generated CloudFront domain]: ");
+  if (!domain) return undefined;
+  if (!domain.includes(".")) {
     console.error("Error: Invalid domain");
     process.exit(1);
   }
@@ -89,7 +90,13 @@ async function findHostedZone(domain: string): Promise<string> {
   return hostedZoneId;
 }
 
-function buildConfig(project: string, repo: string, region: string, domain: string, hostedZoneId: string) {
+function buildConfig(
+  project: string,
+  repo: string,
+  region: string,
+  domain: string | undefined,
+  hostedZoneId: string | undefined,
+) {
   return {
     $schema: "./tss.schema.json",
     project,
@@ -98,13 +105,11 @@ function buildConfig(project: string, repo: string, region: string, domain: stri
     backend: { region, devPort: 3001 },
     frontend: { bucketSuffix: "", devPort: 3002 },
     ssm: { region },
-    domain,
-    hostedZoneId,
-    subdomainMap: {
-      "": "main",
-      "www": "main",
-      "main": null,
-    },
+    ...(domain ? { domain } : {}),
+    ...(hostedZoneId ? { hostedZoneId } : {}),
+    subdomainMap: domain
+      ? { "": "main", "www": "main", "main": null }
+      : { "": "main" },
   };
 }
 
@@ -133,7 +138,7 @@ async function main() {
   const repo = await askRepo();
   const region = await askRegion();
   const domain = await askDomain();
-  const hostedZoneId = await findHostedZone(domain);
+  const hostedZoneId = domain ? await findHostedZone(domain) : undefined;
 
   const config = buildConfig(project, repo, region, domain, hostedZoneId);
 
