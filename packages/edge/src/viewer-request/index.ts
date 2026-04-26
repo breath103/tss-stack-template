@@ -4,7 +4,7 @@
 import type { CloudFrontFunctionsEvent } from "aws-lambda";
 import type { SubdomainMapValue, TssConfig } from "shared/config";
 
-// Injected at build time from tss.json
+// Injected at build time from tss.json. DOMAIN_CONFIG is "" when no custom domain is set.
 declare const SUBDOMAIN_MAP_CONFIG: TssConfig["subdomainMap"];
 declare const DOMAIN_CONFIG: string;
 
@@ -16,10 +16,40 @@ function isRedirect(value: SubdomainMapValue): value is { redirect: string } {
   return typeof value === "object" && value !== null && "redirect" in value;
 }
 
+// Resolve a subdomain to its final branch by following any `redirect` chain in the
+// map. Used when there is no custom domain — we can't 301 to a different host, so we
+// just route to the redirect target's branch directly.
+function resolveBranch(start: string): string {
+  let current = start;
+  for (let i = 0; i < 10; i++) {
+    const v = SUBDOMAIN_MAP[current];
+    if (v === undefined) return current;
+    if (v === null) return "";
+    if (typeof v === "string") return v;
+    if (isRedirect(v)) {
+      current = v.redirect;
+      continue;
+    }
+    return current;
+  }
+  return current;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function handler(event: CloudFrontFunctionsEvent) {
   const request = event.request;
   const host = request.headers.host?.value ?? "";
+
+  // No custom domain: every request hits the cloudfront.net hostname, so
+  // subdomain-based routing isn't meaningful. Always use the root subdomain
+  // and follow any redirect chain in-process (we can't 301 to a host that
+  // doesn't exist).
+  if (!DOMAIN) {
+    const branch = resolveBranch("");
+    request.headers["x-branch"] = { value: branch };
+    request.headers["x-forwarded-host"] = { value: host };
+    return request;
+  }
 
   // Extract subdomain: feature--test.example.com → feature--test
   // example.com → ""

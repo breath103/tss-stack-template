@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TSS Stack Configuration",
   "type": "object",
-  "required": ["project", "repo", "edge", "backend", "frontend", "ssm", "domain", "hostedZoneId", "subdomainMap"],
+  "required": ["project", "repo", "edge", "backend", "frontend", "ssm", "subdomainMap"],
   "properties": {
     "project": {
       "type": "string",
@@ -68,11 +68,11 @@
     },
     "domain": {
       "type": "string",
-      "description": "Your domain (must have Route53 hosted zone)"
+      "description": "Your custom domain (optional). If omitted, the auto-generated CloudFront domain is used and ACM cert / Route53 records are skipped. Requires a Route53 hosted zone when set."
     },
     "hostedZoneId": {
       "type": "string",
-      "description": "Route53 hosted zone ID"
+      "description": "Route53 hosted zone ID (required only when 'domain' is set)"
     },
     "subdomainMap": {
       "type": "object",
