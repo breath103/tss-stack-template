@@ -107,6 +107,33 @@ Set up Google OAuth at [Google Cloud Console](https://console.cloud.google.com/a
 
 Runs edge proxy on `:3000`, backend on `:3001`, frontend on `:3002`.
 
+## Multiple Worktrees
+
+To work on several branches at once without dev/auth/e2e collisions, use git worktrees plus a per-checkout `tss.override.json`.
+
+```bash
+# From the main checkout:
+git worktree add ../myapp-2 some-branch
+cd ../myapp-2
+npm install
+```
+
+Then in the new worktree, create `tss.override.json` (gitignored) with a unique `dev.worktree` and dev ports:
+
+```json
+{
+  "dev": { "worktree": "2" },
+  "edge":     { "devPort": 3010 },
+  "backend":  { "devPort": 3011 },
+  "frontend": { "devPort": 3012 }
+}
+```
+
+`dev.worktree` is the per-checkout id. Together with `project` it namespaces:
+
+- **auth cookies** — `BETTER_AUTH_COOKIE_PREFIX=${project}-${worktree}`, so two localhost instances don't share a session cookie.
+- **e2e Chrome** — CDP port, profile dir (`.tmp/e2e-chrome-profile-${project}-${worktree}`), and status file (`.e2e-status-${project}-${worktree}.json`) are all per-namespace, so `./scripts/e2e.ts start` in two worktrees launches two independent browsers.
+
 ## E2E Testing
 
 The e2e tool manages a headless Chrome instance via Chrome DevTools Protocol for browser automation.
