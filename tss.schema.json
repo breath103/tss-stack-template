@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TSS Stack Configuration",
   "type": "object",
-  "required": ["project", "repo", "edge", "backend", "frontend", "ssm", "subdomainMap"],
+  "required": ["project", "repo", "dev", "edge", "backend", "frontend", "ssm", "subdomainMap"],
   "properties": {
     "project": {
       "type": "string",
@@ -13,6 +13,16 @@
       "type": "string",
       "pattern": "^[^/]+/[^/]+$",
       "description": "GitHub repo in org/repo format"
+    },
+    "dev": {
+      "type": "object",
+      "required": ["worktree"],
+      "properties": {
+        "worktree": {
+          "type": "string",
+          "description": "Worktree id used as a per-checkout namespace (auth cookie prefix, e2e Chrome data dir/port). Override via tss.override.json in each git worktree to run multiple instances side-by-side."
+        }
+      }
     },
     "edge": {
       "type": "object",

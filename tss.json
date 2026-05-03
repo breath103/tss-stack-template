@@ -2,6 +2,9 @@
   "$schema": "./tss.schema.json",
   "project": "tsss",
   "repo": "breath103/tss-stack-template",
+  "dev": {
+    "worktree": "1"
+  },
   "edge": {
     "devPort": 3000,
     "githubActionsIamRole": true

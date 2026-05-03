@@ -13,6 +13,29 @@ See `documents/coding-guidelines/` for coding standards:
 
 - **Never call `npx` directly.** This project has scripts for everything. Use the provided scripts instead.
 
+## Worktrees
+
+To run multiple instances side-by-side (one per branch), use git worktrees plus a per-checkout `tss.override.json`:
+
+```bash
+git worktree add ../myapp-2 some-branch
+cd ../myapp-2
+npm install
+```
+
+Then create `tss.override.json` (gitignored) in the new worktree:
+
+```json
+{
+  "dev": { "worktree": "2" },
+  "edge":     { "devPort": 3010 },
+  "backend":  { "devPort": 3011 },
+  "frontend": { "devPort": 3012 }
+}
+```
+
+`dev.worktree` combined with `project` namespaces auth cookies (`BETTER_AUTH_COOKIE_PREFIX`), the e2e Chrome CDP port, profile dir, and status file — so two worktrees on `localhost` don't clobber each other's sessions or browsers.
+
 ## Running Scripts
 
 All scripts are executable via shebang — no `npm run` or `npx` needed. Run everything from repo root.

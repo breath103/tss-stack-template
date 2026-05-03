@@ -14,7 +14,7 @@ cdk.out
 .claude/settings.local.json
 
 # E2E browser status
-.e2e-status.json
+.e2e-status-*.json
 
 # Local config overrides
 tss.override.json

@@ -44,7 +44,7 @@ export const start = new Command("Start headless Chrome (stores CDP endpoint)", 
     "--disable-background-networking",
     "--disable-sync",
     "--window-size=1280,800",
-    `--user-data-dir=${path.join(TMP_DIR, "e2e-chrome-profile")}`,
+    `--user-data-dir=${path.join(TMP_DIR, `e2e-chrome-profile-${status.NAMESPACE}`)}`,
   ], { stdio: "ignore", detached: true });
   chrome.unref();
 

@@ -14,6 +14,7 @@ export type SubdomainMapValue = z.infer<typeof subdomainMapValue>;
 const configSchema = z.object({
   project: z.string(),
   repo: z.string(),
+  dev: z.object({ worktree: z.string() }),
   edge: z.object({
     devPort: z.number(),
     githubActionsIamRole: z.boolean().default(false),
