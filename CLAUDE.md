@@ -77,6 +77,8 @@ All scripts are executable via shebang — no `npm run` or `npx` needed. Run eve
 ./packages/frontend/scripts/build-types.ts             # Type check frontend
 ```
 
+Lint scripts use ESLint's content cache by default under `node_modules/.cache/eslint/` so repeated local runs are fast. For final/full verification, run the same lint command with `--no-cache` (for example, `./scripts/lint --no-cache` or `./packages/frontend/scripts/lint.ts --no-cache`) so external rule inputs such as Tailwind CSS config/global CSS cannot leave stale cached results.
+
 ### Install packages
 
 ```bash
