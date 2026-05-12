@@ -163,9 +163,9 @@ fi
 ## Architecture: How Orphan Prevention Works
 
 ```
-Terminal / Shell                                detached sessions (own pgroup)
-  └─ dev.ts (foreground = pgroup leader)         ├─ sh watchdog (polls dev.ts PID)
-       ├─ backend/scripts/dev.ts                 └─ sh SIGKILL escalator (spawned on shutdown)
+Terminal / Shell                          detached session (own pgroup)
+  └─ dev.ts (foreground = pgroup leader)   └─ sh reaper (watches foreground pid)
+       ├─ backend/scripts/dev.ts
        │    └─ npx tsx scripts/server.ts
        ├─ frontend/scripts/dev.ts
        │    └─ npx vite
@@ -174,18 +174,25 @@ Terminal / Shell                                detached sessions (own pgroup)
             └─ npx tsc --watch
 ```
 
-The four `DevProcess` children share `dev.ts`'s process group (no `detached: true`), so `process.kill(0, "SIGTERM")` kills the whole tree. **All four — including `types` — register `onCrash: shutdown`**, so any subprocess death (not just critical ones) tears the whole stack down.
+The four `DevProcess` children share `dev.ts`'s process group (no `detached: true`), so a single signal to the pgroup catches them all. **All four — including `types` — register `onCrash: shutdown`**, so any subprocess death (not just critical ones) tears the whole stack down.
 
-The watchdog and the SIGKILL escalator are spawned **detached** so they live in their own sessions. That matters because the pgroup SIGTERM would otherwise take them down before they can escalate to SIGKILL.
+The reaper is spawned **detached** so it lives in its own session — the pgroup SIGTERM doesn't take it down before it can escalate to SIGKILL. The reaper script is the entire cleanup mechanism:
 
-**Three kill paths:**
+```sh
+while kill -0 ${target} 2>/dev/null; do sleep 0.5; done
+kill -TERM -${target} 2>/dev/null   # SIGTERM the pgroup
+sleep 2
+kill -KILL -${target} 2>/dev/null   # SIGKILL the pgroup
+```
 
-1. **Graceful (SIGINT/SIGTERM/SIGHUP/SIGTSTP)**: dev.ts traps signal → `shutdown()` → walks `ps` tree, SIGTERMs each descendant + pgroup, spawns detached SIGKILL escalator (2s grace), `process.exit(1)`.
+**Four kill paths, one mechanism:**
+
+1. **Graceful (SIGINT/SIGTERM/SIGHUP/SIGTSTP)**: dev.ts traps signal → `shutdown()` flags children as expected-dead and `process.exit(1)`. Reaper detects the exit, SIGTERMs the pgroup, sleeps 2s, SIGKILLs the pgroup.
 2. **Subprocess crash**: any `DevProcess` exit → `onCrash: shutdown` → same path as (1).
-3. **Parent SIGKILL (untrappable)** or terminal death: detached `sh` watchdog detects `kill -0 dev_pid` fails → SIGTERMs the pgroup → sleeps 2s → SIGKILLs the pgroup. Survives the SIGTERM because it's in its own session.
-4. **External `stop`**: `./scripts/dev.ts stop` reads `.dev-status.json`, liveness-checks the recorded pid (avoids signalling a recycled PID), runs the same SIGTERM + escapee + SIGKILL-escalation sequence.
+3. **Parent SIGKILL (untrappable) or terminal death**: dev.ts dies without running shutdown. Reaper still detects it via the polling loop and handles the same TERM→KILL pass.
+4. **External `stop`**: `./scripts/dev.ts stop` SIGTERMs the foreground's pgroup directly (immediate effect on children), plus a detached SIGKILL backstop on the foreground itself in case it's hung. The foreground's own reaper finishes the job.
 
-The escalator uses `kill -9 <pid1> <pid2> ... -<pgid>` in a detached `sh`, so processes that ignore SIGTERM (e.g. a tool that traps it) still get reaped within `GRACE_MS` (2s).
+There's no explicit per-pid SIGKILL escalator — the reaper IS the escalator. Processes that ignore SIGTERM get reaped within `GRACE_MS` (2s) by the SIGKILL pass.
 
 ## When to Run
 

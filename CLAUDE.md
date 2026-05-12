@@ -55,9 +55,9 @@ All scripts are executable via shebang — no `npm run` or `npx` needed. Run eve
 `./scripts/dev.ts start` writes `.dev-status.json` (gitignored) tracking
 foreground pid + per-process readiness. The foreground guarantees no orphans:
 
-- **Any** subprocess crash (backend, frontend, edge, types) triggers a full shutdown.
-- A detached watchdog SIGKILLs the process group ~2s after SIGTERM, so processes that trap SIGTERM still get cleaned up.
-- `stop` walks the live process tree via `ps` and SIGTERMs every descendant — covers anything that escaped the pgroup via `setsid`.
+- **Any** subprocess crash (backend, frontend, edge, types) triggers `shutdown()` and tears the whole stack down.
+- A detached `sh` reaper watches the foreground pid; when it dies (gracefully, SIGKILL, or crash), the reaper SIGTERMs the pgroup, sleeps 2s, then SIGKILLs the pgroup. Lives in its own session so the SIGTERM blast doesn't take it down before the SIGKILL.
+- `stop` SIGTERMs the foreground's pgroup directly, plus a detached SIGKILL backstop on the foreground itself in case it's hung.
 
 If you need to inspect what's running: `./scripts/dev/status.ts <pid>` prints the full process tree under a given pid (cwd-annotated).
 

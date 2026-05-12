@@ -110,7 +110,7 @@ Set up Google OAuth at [Google Cloud Console](https://console.cloud.google.com/a
 
 Runs edge proxy on `:3000`, backend on `:3001`, frontend on `:3002`.
 
-`start` writes `.dev-status.json` (gitignored) and exits once all servers are ready (30s timeout). Any subprocess crash tears the whole tree down — no orphans — and a detached watchdog SIGKILLs stragglers 2s after SIGTERM in case anything traps the signal.
+`start` writes `.dev-status.json` (gitignored) and exits once all servers are ready (30s timeout). Any subprocess crash tears the whole tree down — no orphans — and a detached reaper SIGKILLs the process group 2s after the foreground dies, so even SIGKILL of the foreground is cleaned up.
 
 ## Multiple Worktrees
 
