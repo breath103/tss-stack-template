@@ -13,27 +13,20 @@ const GRACE_MS = 2000;
 const READY_TIMEOUT_MS = 30_000;
 const READY_POLL_MS = 300;
 
-type Lifecycle = "starting" | "ready";
-
-interface ProcessStatus {
-  status: Lifecycle;
-  pid: number | null;
-}
-
 interface DevStatus {
-  status: Lifecycle;
+  status: "starting" | "ready";
   url: string;
   pid: number;
-  processes: Record<string, ProcessStatus>;
+  processes: Record<string, number>;
 }
 
 function isAlive(pid: number): boolean {
   try { process.kill(pid, 0); return true; } catch { return false; }
 }
 
-// Detached sh that watches `target` and, once it exits, SIGTERMs its pgroup
-// and SIGKILLs after grace. Lives in its own session so the pgroup blast
-// doesn't take it down before it can escalate.
+// Detached sh: once `target` exits, SIGTERMs its pgroup and SIGKILLs after
+// grace. Lives in its own session so the pgroup blast doesn't take it down
+// before it escalates.
 function spawnReaper(target: number): void {
   spawn("sh", ["-c", `
     while kill -0 ${target} 2>/dev/null; do sleep 0.5; done
@@ -41,15 +34,6 @@ function spawnReaper(target: number): void {
     sleep ${GRACE_MS / 1000}
     kill -KILL -${target} 2>/dev/null
   `], { stdio: "ignore", detached: true }).unref();
-}
-
-// SIGTERM the foreground's pgroup directly (immediate effect), with a detached
-// SIGKILL backstop in case the foreground is hung. Its own reaper handles
-// pgroup SIGKILL escalation once the foreground actually dies.
-function killForeground(pid: number): void {
-  try { process.kill(-pid, "SIGTERM"); } catch { /* already dead */ }
-  spawn("sh", ["-c", `sleep ${GRACE_MS / 1000}; kill -9 ${pid} 2>/dev/null`],
-    { stdio: "ignore", detached: true }).unref();
 }
 
 function readStatus(): DevStatus | null {
@@ -62,72 +46,62 @@ function deleteStatus() {
   try { fs.unlinkSync(STATUS_FILE); } catch { /* already gone */ }
 }
 
-const subcommand = process.argv[2];
-if (subcommand === "status") cmdStatus();
-else if (subcommand === "stop") cmdStop();
-else if (subcommand === "start") cmdStart();
-else void cmdForeground();
+switch (process.argv[2]) {
+  case "status": cmdStatus(); break;
+  case "stop": cmdStop(); break;
+  case "start": void cmdStart(); break;
+  default: void cmdForeground();
+}
 
 function cmdStatus() {
   const s = readStatus();
-  if (!s) {
-    console.log("not running");
-    process.exit(1);
-  }
-  const procs = Object.entries(s.processes)
-    .map(([n, p]) => `${n}:${p.status}`)
-    .join(" ");
+  if (!s) { console.log("not running"); process.exit(1); }
+  const procs = Object.entries(s.processes).map(([n, p]) => `${n}:${p}`).join(" ");
   console.log(`${s.status} | ${s.url} | ${procs} | pid:${s.pid}`);
 }
 
 function cmdStop() {
   const s = readStatus();
-  if (!s) {
-    console.log("not running");
-    return;
+  if (!s) { console.log("not running"); return; }
+  if (isAlive(s.pid)) {
+    try { process.kill(-s.pid, "SIGTERM"); } catch { /* already dead */ }
   }
-  if (isAlive(s.pid)) killForeground(s.pid);
   deleteStatus();
   console.log("stopped");
 }
 
-function cmdStart() {
+async function cmdStart() {
   const stale = readStatus();
-  if (stale) {
-    if (isAlive(stale.pid)) {
-      console.log(`already running | ${stale.url} | pid:${stale.pid}`);
-      return;
-    }
-    deleteStatus();
+  if (stale && isAlive(stale.pid)) {
+    console.log(`already running | ${stale.url} | pid:${stale.pid}`);
+    return;
   }
+  if (stale) deleteStatus();
 
   spawn("./scripts/dev.ts", [], { stdio: "ignore", detached: true }).unref();
 
-  const start = Date.now();
-  const poll = setInterval(() => {
+  const deadline = Date.now() + READY_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, READY_POLL_MS));
     const s = readStatus();
     if (s?.status === "ready") {
-      clearInterval(poll);
       console.log(`ready | ${s.url} | pid:${s.pid}`);
-      process.exit(0);
+      return;
     }
-    if (Date.now() - start > READY_TIMEOUT_MS) {
-      clearInterval(poll);
-      console.error("timeout waiting for dev server to be ready");
-      process.exit(1);
-    }
-  }, READY_POLL_MS);
+  }
+  console.error("timeout waiting for dev server to be ready");
+  process.exit(1);
 }
 
 async function cmdForeground() {
-  // Parent-death detection: terminal closed without SIGHUP. Just exit;
+  // Parent-death detection (terminal closed without SIGHUP). Just exit;
   // the reaper handles pgroup cleanup.
   const parentPid = process.ppid;
   setInterval(() => {
     if (process.ppid !== parentPid && process.ppid !== 1) process.exit(1);
   }, 500);
 
-  // Reaper cleans up our pgroup when we die (handles SIGKILL and crashes).
+  // Reaper cleans up our pgroup when we die — handles SIGKILL and crashes.
   spawnReaper(process.pid);
 
   process.title = "dev:main";
@@ -147,16 +121,9 @@ async function cmdForeground() {
   // Kill any leftover dev server from a crashed previous session.
   const stale = readStatus();
   if (stale && stale.pid !== process.pid && isAlive(stale.pid)) {
-    killForeground(stale.pid);
+    try { process.kill(-stale.pid, "SIGTERM"); } catch { /* already dead */ }
   }
   deleteStatus();
-
-  const status: DevStatus = {
-    status: "starting",
-    url: edgeUrl,
-    pid: process.pid,
-    processes: {},
-  };
 
   const all: DevProcess[] = [];
   let shuttingDown = false;
@@ -165,46 +132,44 @@ async function cmdForeground() {
     shuttingDown = true;
     deleteStatus();
     console.log("\x1b[33mShutting down...\x1b[0m");
-    // Suppress crash-log spam and best-effort SIGTERM each child. The reaper
-    // takes care of pgroup SIGTERM + SIGKILL escalation once we exit.
+    // Flag children as expected-dead (suppresses crash logs) and best-effort
+    // SIGTERM them. Reaper handles pgroup TERM→KILL once we exit.
     for (const p of all) p.kill();
     process.exit(1);
   };
 
   const envFlag = [`--env=${values.env}`];
-  // onCrash on every DevProcess (including types): any subprocess death tears
-  // the whole stack down so we never leave half a dev server with stale state.
+  // onCrash on every DevProcess including types: any subprocess death tears
+  // the whole stack down so we never leave a half-running dev server.
   const backend = new DevProcess("Backend", "./scripts/dev.ts", envFlag, { color: "\x1b[34m", cwd: "packages/backend", onCrash: shutdown });
   const frontend = new DevProcess("Frontend", "./scripts/dev.ts", envFlag, { color: "\x1b[32m", cwd: "packages/frontend", onCrash: shutdown });
   const edge = new DevProcess("Edge", "./scripts/dev.ts", [], { color: "\x1b[35m", cwd: "packages/edge", onCrash: shutdown });
   const types = new DevProcess("Types", "./scripts/dev-types.ts", [], { color: "\x1b[33m", cwd: "packages/backend", onCrash: shutdown });
   all.push(backend, frontend, edge, types);
 
-  for (const p of all) {
-    status.processes[p.name.toLowerCase()] = { status: "starting", pid: p.pid ?? null };
-  }
+  const status: DevStatus = {
+    status: "starting",
+    url: edgeUrl,
+    pid: process.pid,
+    processes: Object.fromEntries(all.map((p) => [p.name.toLowerCase(), p.pid ?? 0])),
+  };
   writeStatus(status);
 
-  // SIGHUP for terminal close; SIGTSTP for Ctrl-Z (suspending us would orphan
-  // children while we're stopped).
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP", "SIGTSTP"] as const) {
     process.on(sig, () => shutdown());
   }
 
   try {
     await Promise.all([
-      backend.waitForStdout({ pattern: "Backend running on", timeout: 1000 * 5 }),
-      frontend.waitForStdout({ pattern: "Local:", timeout: 1000 * 5 }),
-      edge.waitForStdout({ pattern: "Edge proxy running on", timeout: 1000 * 5 }),
+      backend.waitForStdout({ pattern: "Backend running on", timeout: 5000 }),
+      frontend.waitForStdout({ pattern: "Local:", timeout: 5000 }),
+      edge.waitForStdout({ pattern: "Edge proxy running on", timeout: 5000 }),
     ]);
   } catch (error) {
     console.error(`\x1b[31m${error instanceof Error ? error.message : error}\x1b[0m`);
     shutdown();
   }
 
-  for (const p of all) {
-    status.processes[p.name.toLowerCase()] = { status: "ready", pid: p.pid ?? null };
-  }
   status.status = "ready";
   writeStatus(status);
 

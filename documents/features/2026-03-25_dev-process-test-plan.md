@@ -190,7 +190,7 @@ kill -KILL -${target} 2>/dev/null   # SIGKILL the pgroup
 1. **Graceful (SIGINT/SIGTERM/SIGHUP/SIGTSTP)**: dev.ts traps signal → `shutdown()` flags children as expected-dead and `process.exit(1)`. Reaper detects the exit, SIGTERMs the pgroup, sleeps 2s, SIGKILLs the pgroup.
 2. **Subprocess crash**: any `DevProcess` exit → `onCrash: shutdown` → same path as (1).
 3. **Parent SIGKILL (untrappable) or terminal death**: dev.ts dies without running shutdown. Reaper still detects it via the polling loop and handles the same TERM→KILL pass.
-4. **External `stop`**: `./scripts/dev.ts stop` SIGTERMs the foreground's pgroup directly (immediate effect on children), plus a detached SIGKILL backstop on the foreground itself in case it's hung. The foreground's own reaper finishes the job.
+4. **External `stop`**: `./scripts/dev.ts stop` SIGTERMs the foreground's pgroup directly (immediate effect on children). The foreground's own reaper finishes the SIGKILL escalation.
 
 There's no explicit per-pid SIGKILL escalator — the reaper IS the escalator. Processes that ignore SIGTERM get reaped within `GRACE_MS` (2s) by the SIGKILL pass.
 
