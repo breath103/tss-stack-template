@@ -157,7 +157,7 @@ fi
 |------------|---------|
 | `(no args)` | Foreground — streams logs, Ctrl-C to stop |
 | `start` | Spawns detached foreground, polls `.dev-status.json` until `ready` (30s timeout) |
-| `status` | Reads `.dev-status.json`, prints aggregate + per-process readiness |
+| `status` | Reads `.dev-status.json`, prints `starting`/`ready` + url + foreground pid |
 | `stop` | Terminates the tree referenced by `.dev-status.json` |
 
 ## Architecture: How Orphan Prevention Works
@@ -189,7 +189,7 @@ kill -KILL -${target} 2>/dev/null   # SIGKILL the pgroup
 
 1. **Graceful (SIGINT/SIGTERM/SIGHUP/SIGTSTP)**: dev.ts traps signal → `shutdown()` flags children as expected-dead and `process.exit(1)`. Reaper detects the exit, SIGTERMs the pgroup, sleeps 2s, SIGKILLs the pgroup.
 2. **Subprocess crash**: any `DevProcess` exit → `onCrash: shutdown` → same path as (1).
-3. **Parent SIGKILL (untrappable) or terminal death**: dev.ts dies without running shutdown. Reaper still detects it via the polling loop and handles the same TERM→KILL pass.
+3. **Parent SIGKILL (untrappable) or terminal SIGHUP**: dev.ts dies without running shutdown (SIGHUP triggers shutdown if the handler runs first; otherwise dev.ts is just dead). Reaper detects it via the polling loop and handles the same TERM→KILL pass. *Note*: dev.ts doesn't monitor parent-death directly; if your terminal closes without sending SIGHUP (rare), the foreground keeps running until you `./scripts/dev.ts stop`.
 4. **External `stop`**: `./scripts/dev.ts stop` SIGTERMs the foreground's pgroup directly (immediate effect on children). The foreground's own reaper finishes the SIGKILL escalation.
 
 There's no explicit per-pid SIGKILL escalator — the reaper IS the escalator. Processes that ignore SIGTERM get reaped within `GRACE_MS` (2s) by the SIGKILL pass.

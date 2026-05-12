@@ -17,7 +17,6 @@ interface DevStatus {
   status: "starting" | "ready";
   url: string;
   pid: number;
-  processes: Record<string, number>;
 }
 
 function isAlive(pid: number): boolean {
@@ -56,8 +55,7 @@ switch (process.argv[2]) {
 function cmdStatus() {
   const s = readStatus();
   if (!s) { console.log("not running"); process.exit(1); }
-  const procs = Object.entries(s.processes).map(([n, p]) => `${n}:${p}`).join(" ");
-  console.log(`${s.status} | ${s.url} | ${procs} | pid:${s.pid}`);
+  console.log(`${s.status} | ${s.url} | pid:${s.pid}`);
 }
 
 function cmdStop() {
@@ -72,11 +70,13 @@ function cmdStop() {
 
 async function cmdStart() {
   const stale = readStatus();
-  if (stale && isAlive(stale.pid)) {
-    console.log(`already running | ${stale.url} | pid:${stale.pid}`);
-    return;
+  if (stale) {
+    if (isAlive(stale.pid)) {
+      console.log(`already running | ${stale.url} | pid:${stale.pid}`);
+      return;
+    }
+    deleteStatus();
   }
-  if (stale) deleteStatus();
 
   spawn("./scripts/dev.ts", [], { stdio: "ignore", detached: true }).unref();
 
@@ -94,14 +94,10 @@ async function cmdStart() {
 }
 
 async function cmdForeground() {
-  // Parent-death detection (terminal closed without SIGHUP). Just exit;
-  // the reaper handles pgroup cleanup.
-  const parentPid = process.ppid;
-  setInterval(() => {
-    if (process.ppid !== parentPid && process.ppid !== 1) process.exit(1);
-  }, 500);
-
   // Reaper cleans up our pgroup when we die — handles SIGKILL and crashes.
+  // Terminal-close cleanup relies on the terminal sending SIGHUP (all modern
+  // terminals do); if it doesn't, the foreground keeps running and you can
+  // stop it with `./scripts/dev.ts stop`.
   spawnReaper(process.pid);
 
   process.title = "dev:main";
@@ -147,12 +143,7 @@ async function cmdForeground() {
   const types = new DevProcess("Types", "./scripts/dev-types.ts", [], { color: "\x1b[33m", cwd: "packages/backend", onCrash: shutdown });
   all.push(backend, frontend, edge, types);
 
-  const status: DevStatus = {
-    status: "starting",
-    url: edgeUrl,
-    pid: process.pid,
-    processes: Object.fromEntries(all.map((p) => [p.name.toLowerCase(), p.pid ?? 0])),
-  };
+  const status: DevStatus = { status: "starting", url: edgeUrl, pid: process.pid };
   writeStatus(status);
 
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP", "SIGTSTP"] as const) {
