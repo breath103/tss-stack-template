@@ -6,11 +6,11 @@ export class DevProcess {
   private readonly color: string;
   private _killed = false;
 
-  constructor(name: string, command: string, args: string[], options: { color: string; onCrash?: () => void }) {
+  constructor(name: string, command: string, args: string[], options: { color: string; cwd?: string; onCrash?: () => void }) {
     this.name = name;
     this.color = options.color;
 
-    this.child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    this.child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"], cwd: options.cwd });
 
     this.child.stdout?.on("data", (d: Buffer) => this.pipe(d, process.stdout));
     this.child.stderr?.on("data", (d: Buffer) => { if (!this._killed) this.pipe(d, process.stderr); });
@@ -21,6 +21,10 @@ export class DevProcess {
         options.onCrash?.();
       }
     });
+  }
+
+  get pid(): number | undefined {
+    return this.child.pid;
   }
 
   waitForStdout(opts: { pattern: string; timeout: number }): Promise<void> {
@@ -53,6 +57,7 @@ export class DevProcess {
 
   kill(): void {
     this._killed = true;
+    try { this.child.kill("SIGTERM"); } catch { /* already dead */ }
   }
 
   private pipe(data: Buffer, stream: NodeJS.WriteStream) {

@@ -102,10 +102,15 @@ Set up Google OAuth at [Google Cloud Console](https://console.cloud.google.com/a
 ### 5. Dev
 
 ```bash
-./scripts/dev.ts
+./scripts/dev.ts                # foreground, streams logs (Ctrl-C to stop)
+./scripts/dev.ts start          # detach to background, return once ready
+./scripts/dev.ts status         # show ready/starting + per-process pids
+./scripts/dev.ts stop           # kill the background dev server
 ```
 
 Runs edge proxy on `:3000`, backend on `:3001`, frontend on `:3002`.
+
+`start` writes `.dev-status.json` (gitignored) and exits once all servers are ready (30s timeout). Any subprocess crash tears the whole tree down — no orphans — and a detached watchdog SIGKILLs stragglers 2s after SIGTERM in case anything traps the signal.
 
 ## Multiple Worktrees
 
@@ -141,11 +146,12 @@ The e2e tool manages a headless Chrome instance via Chrome DevTools Protocol for
 ### Quick Start
 
 ```bash
-./scripts/dev.ts           # Start dev servers first
+./scripts/dev.ts start     # Start dev servers (background)
 ./scripts/e2e.ts start     # Start headless Chrome
 ./scripts/e2e.ts navigate /
 ./scripts/e2e.ts screenshot
 ./scripts/e2e.ts stop      # Stop Chrome when done
+./scripts/dev.ts stop      # Stop dev servers when done
 ```
 
 ### Commands

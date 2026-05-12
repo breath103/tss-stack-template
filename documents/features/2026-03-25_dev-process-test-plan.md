@@ -149,13 +149,23 @@ fi
 | SIGKILL | `kill -9 PID` (untrappable) | Watchdog process detects dev.ts PID gone, kills group |
 | --env flag | `--env=test` propagated to children | Both backend and frontend log "Loaded environment from .env.test" |
 
+## Subcommands
+
+`./scripts/dev.ts` exposes four entrypoints sharing a single `.dev-status.json` (gitignored):
+
+| Subcommand | Purpose |
+|------------|---------|
+| `(no args)` | Foreground — streams logs, Ctrl-C to stop |
+| `start` | Spawns detached foreground, polls `.dev-status.json` until `ready` (30s timeout) |
+| `status` | Reads `.dev-status.json`, prints aggregate + per-process readiness |
+| `stop` | Terminates the tree referenced by `.dev-status.json` |
+
 ## Architecture: How Orphan Prevention Works
 
 ```
-Terminal / Shell
-  └─ dev.ts (ppid polling: detects terminal death)
-       ├─ watchdog (polls dev.ts PID: detects SIGKILL)
-       ├─ backend/scripts/dev.ts
+Terminal / Shell                                detached sessions (own pgroup)
+  └─ dev.ts (foreground = pgroup leader)         ├─ sh watchdog (polls dev.ts PID)
+       ├─ backend/scripts/dev.ts                 └─ sh SIGKILL escalator (spawned on shutdown)
        │    └─ npx tsx scripts/server.ts
        ├─ frontend/scripts/dev.ts
        │    └─ npx vite
@@ -164,13 +174,18 @@ Terminal / Shell
             └─ npx tsc --watch
 ```
 
-All processes share the same process group (no `detached: true`). Any call to `process.kill(0, "SIGTERM")` kills the entire group.
+The four `DevProcess` children share `dev.ts`'s process group (no `detached: true`), so `process.kill(0, "SIGTERM")` kills the whole tree. **All four — including `types` — register `onCrash: shutdown`**, so any subprocess death (not just critical ones) tears the whole stack down.
+
+The watchdog and the SIGKILL escalator are spawned **detached** so they live in their own sessions. That matters because the pgroup SIGTERM would otherwise take them down before they can escalate to SIGKILL.
 
 **Three kill paths:**
 
-1. **Graceful (SIGTERM/SIGINT/SIGTSTP)**: dev.ts traps signal → `shutdown()` → `process.kill(0)` → group dead
-2. **Terminal death (window closed without SIGHUP)**: dev.ts ppid polling detects reparent → `process.kill(0)` → group dead
-3. **SIGKILL (untrappable)**: Watchdog process polls `process.kill(dev_pid, 0)`, gets ESRCH → `process.kill(0)` → group dead
+1. **Graceful (SIGINT/SIGTERM/SIGHUP/SIGTSTP)**: dev.ts traps signal → `shutdown()` → walks `ps` tree, SIGTERMs each descendant + pgroup, spawns detached SIGKILL escalator (2s grace), `process.exit(1)`.
+2. **Subprocess crash**: any `DevProcess` exit → `onCrash: shutdown` → same path as (1).
+3. **Parent SIGKILL (untrappable)** or terminal death: detached `sh` watchdog detects `kill -0 dev_pid` fails → SIGTERMs the pgroup → sleeps 2s → SIGKILLs the pgroup. Survives the SIGTERM because it's in its own session.
+4. **External `stop`**: `./scripts/dev.ts stop` reads `.dev-status.json`, liveness-checks the recorded pid (avoids signalling a recycled PID), runs the same SIGTERM + escapee + SIGKILL-escalation sequence.
+
+The escalator uses `kill -9 <pid1> <pid2> ... -<pgid>` in a detached `sh`, so processes that ignore SIGTERM (e.g. a tool that traps it) still get reaped within `GRACE_MS` (2s).
 
 ## When to Run
 
@@ -178,3 +193,7 @@ All processes share the same process group (no `detached: true`). Any call to `p
 - Any change to `scripts/dev/dev-process.ts`
 - Any change to package dev scripts (`packages/*/scripts/dev.ts`)
 - Any change to shebang patterns
+
+## Test script staleness note
+
+The bash script above predates the `start`/`status`/`stop` subcommands and the readiness banner change (`✓ Dev server ready at <url>` instead of `All services ready`). The orphan-prevention guarantees it tests still hold, but the script itself needs a refresh — patch `wait_ready` to grep for the new banner (or, better, poll `./scripts/dev.ts status`) and replace `kill -TERM $DEV_PID` with `./scripts/dev.ts stop` for the SIGTERM path.

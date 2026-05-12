@@ -43,11 +43,23 @@ All scripts are executable via shebang — no `npm run` or `npx` needed. Run eve
 ### Root-level scripts
 
 ```bash
-./scripts/dev.ts                # Start all dev servers (frontend, backend, edge proxy)
+./scripts/dev.ts                # Start all dev servers in foreground (Ctrl-C to stop)
+./scripts/dev.ts start          # Start dev servers in background, return when ready
+./scripts/dev.ts status         # Show running status + per-process pids
+./scripts/dev.ts stop           # Stop background dev server
 ./scripts/lint                  # Run linters across packages
 ./scripts/e2e.ts start          # Start headless Chrome for e2e
 ./scripts/setup.ts              # Interactive project setup
 ```
+
+`./scripts/dev.ts start` writes `.dev-status.json` (gitignored) tracking
+foreground pid + per-process readiness. The foreground guarantees no orphans:
+
+- **Any** subprocess crash (backend, frontend, edge, types) triggers a full shutdown.
+- A detached watchdog SIGKILLs the process group ~2s after SIGTERM, so processes that trap SIGTERM still get cleaned up.
+- `stop` walks the live process tree via `ps` and SIGTERMs every descendant — covers anything that escaped the pgroup via `setsid`.
+
+If you need to inspect what's running: `./scripts/dev/status.ts <pid>` prints the full process tree under a given pid (cwd-annotated).
 
 ### Package scripts
 
