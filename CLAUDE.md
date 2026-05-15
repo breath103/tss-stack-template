@@ -97,3 +97,42 @@ Lint scripts use ESLint's content cache by default under `node_modules/.cache/es
 npm install <package> -w backend
 npm install -D <package> -w frontend  # as devDependency
 ```
+
+## E2E Tests
+
+Tests live in `e2e/<name>.ts` and run with `npm run e2e <name>`:
+
+```bash
+npm run e2e                  # list tests
+npm run e2e echo             # run e2e/echo.ts
+./scripts/e2e.ts run echo    # same, no npm wrapper
+```
+
+The runner auto-starts headless Chrome if it isn't running. The dev server (`./scripts/dev.ts start`) must already be up.
+
+### Writing a scenario
+
+Each file default-exports a `Scenario`. The runner creates a fresh BrowserContext per scenario with `baseURL` preset to the edge proxy, so paths can be relative.
+
+```ts
+// e2e/login.ts
+import assert from "node:assert/strict";
+import { type Scenario } from "./_helpers.js";
+
+const scenario: Scenario = async ({ page, request }) => {
+  await page.goto("/login");
+  await page.fill('input[name="email"]', "kurt@example.com");
+  await page.click('button[type="submit"]');
+
+  // `request` shares cookies with `page` — the post-login session carries through.
+  const me = await request.get("/api/me");
+  assert.equal(me.status(), 200);
+};
+
+export default scenario;
+```
+
+- `page` and `request` share cookies (same BrowserContext). Use `request.*` for any backend call that needs the session; use raw `fetch` only when you specifically want an unauthenticated call.
+- Use Playwright's native API (`page.fill`, `page.click`, `page.waitForSelector`, `page.screenshot({ path, fullPage })`, …) and `node:assert/strict` for assertions.
+- Files in `e2e/` starting with `_` are treated as helpers, not tests. Add reusable scenario helpers (e.g. `login(page, …)`) to `e2e/_helpers.ts`.
+- For ad-hoc probing without writing a file, the one-shot commands still work: `./scripts/e2e.ts navigate /foo`, `./scripts/e2e.ts click <selector>`, etc.
