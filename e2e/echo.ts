@@ -29,7 +29,7 @@ const scenario: Scenario = async ({ page, request }) => {
 
   await page.goto("/");
   await page.waitForFunction(
-    () => document.body.innerText.includes('"id": "test-123"'),
+    () => document.body.innerText.includes("\"id\": \"test-123\""),
     { timeout: 10_000 },
   );
 

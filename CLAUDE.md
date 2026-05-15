@@ -136,3 +136,43 @@ export default scenario;
 - Use Playwright's native API (`page.fill`, `page.click`, `page.waitForSelector`, `page.screenshot({ path, fullPage })`, …) and `node:assert/strict` for assertions.
 - Files in `e2e/` starting with `_` are treated as helpers, not tests. Add reusable scenario helpers (e.g. `login(page, …)`) to `e2e/_helpers.ts`.
 - For ad-hoc probing without writing a file, the one-shot commands still work: `./scripts/e2e.ts navigate /foo`, `./scripts/e2e.ts click <selector>`, etc.
+
+### Multi-step scenarios — opt into `harness()`
+
+Plain `assert.equal(…)` stops on the first failure. For scenarios with many independent checks where you want to see every failure in one run, wrap the body in `harness(…)` from `_helpers.ts`:
+
+```ts
+// e2e/things.ts
+import { harness } from "./_helpers.js";
+
+export default harness(async ({ step, stepOrExit, log, page, request }) => {
+  const r = await request.get("/api/things");
+  stepOrExit("GET /api/things → 200", r.status() === 200);  // throws on fail; subsequent steps depend on this
+
+  const list = await r.json();
+  step("GET /api/things returns array", Array.isArray(list), `n=${list.length}`);  // records pass/fail, continues
+
+  log("(driving long task — this takes ~30s)");
+  // ...
+});
+```
+
+`harness` records pass/fail per step, prints a summary at the end, and throws if any step failed — the runner converts that into a `FAIL` line and non-zero exit. `stepOrExit` does NOT narrow types via `asserts ok` (a TS limitation around arrow-function method types); use an explicit `if (!x) throw …` after it when you need narrowing.
+
+### Cookie-control HTTP — `api()` from `_helpers.ts`
+
+When a scenario needs explicit per-call control over which cookie / bearer is sent (e.g. an auth flow that tests "no cookie" and "bad cookie" the same context would otherwise auto-fill), use `api()` instead of `request.*`:
+
+```ts
+import { api } from "./_helpers.js";
+
+const signIn = await api<{ user?: { id: string } }>("POST", "/api/auth/sign-in/email", {
+  body: { email: "x@y.z", password: "..." },
+});
+const sessionCookie = signIn.setCookie;  // string | null
+const tokenRes = await api<{ token?: string }>("GET", "/api/auth/token", { cookie: sessionCookie });
+const noAuth = await api("GET", "/api/me");                                          // 401
+const badJwt = await api("GET", "/api/me", { bearer: "not.a.jwt" });                 // 401
+```
+
+`api()` sets `Origin` to the edge proxy so state-changing requests pass better-auth's CSRF check, and safely parses non-JSON 5xx responses. For most scenarios prefer `request.*` (it shares cookies with `page` automatically).

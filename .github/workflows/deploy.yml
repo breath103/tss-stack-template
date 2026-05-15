@@ -21,6 +21,8 @@ jobs:
             command: ./packages/backend/scripts/build-types.ts && ./packages/backend/scripts/lint.ts && cd packages/backend && npx tsx --test src/**/__tests__/**/*.test.ts
           - name: Build & Lint & Test frontend
             command: ./packages/backend/scripts/build-types.ts && ./packages/frontend/scripts/build-types.ts && ./packages/frontend/scripts/lint.ts && cd packages/frontend && ../../scripts/with-env.sh --env=test npx vitest run
+          - name: Build & Lint e2e
+            command: ./scripts/e2e_build_types.ts && ./scripts/e2e_lint.ts
     name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4

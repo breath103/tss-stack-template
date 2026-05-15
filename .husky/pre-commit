@@ -10,6 +10,16 @@ if [ -n "$BACKEND_STAGED" ]; then
   echo "$BACKEND_STAGED" | xargs git add
 fi
 
+E2E_STAGED=$(echo "$STAGED_FILES" | grep -E "^e2e/" || true)
+if [ -n "$E2E_STAGED" ]; then
+  echo "E2E files changed, running lint --fix..."
+  ./scripts/e2e_lint.ts --fix
+  echo "$E2E_STAGED" | xargs git add
+
+  echo "E2E files changed, running type check..."
+  ./scripts/e2e_build_types.ts
+fi
+
 FRONTEND_STAGED=$(echo "$STAGED_FILES" | grep -E "^packages/frontend/" || true)
 if [ -n "$FRONTEND_STAGED" ]; then
   echo "Frontend files changed, running lint --fix..."
