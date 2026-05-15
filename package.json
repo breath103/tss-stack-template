@@ -5,7 +5,8 @@
     "packages/*"
   ],
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "e2e": "./scripts/e2e.ts run"
   },
   "devDependencies": {
     "@aws-sdk/client-route-53": "^3.700.0",

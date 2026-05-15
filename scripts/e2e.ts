@@ -2,10 +2,12 @@
 import { type Command } from "./e2e/command.js";
 import { start, stop } from "./e2e/commands/lifecycle.js";
 import { navigate, screenshot, runJs, click, type, wait, setViewport, pageText } from "./e2e/commands/browser.js";
+import { run } from "./e2e/commands/run.js";
 
 // --- Commands ---
 
 const commands: Record<string, Command> = {
+  run,
   start,
   stop,
   navigate,
