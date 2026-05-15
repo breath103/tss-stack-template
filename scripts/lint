@@ -6,7 +6,7 @@ const ROOT = path.resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2).join(" ");
 const concurrently = path.join(ROOT, "node_modules/.bin/concurrently");
 
-execSync(`${concurrently} "./packages/backend/scripts/lint.ts ${args}" "./packages/frontend/scripts/lint.ts ${args}"`, {
-  stdio: "inherit",
-  cwd: ROOT,
-});
+execSync(
+  `${concurrently} "./packages/backend/scripts/lint.ts ${args}" "./packages/frontend/scripts/lint.ts ${args}" "./scripts/e2e_lint.ts ${args}"`,
+  { stdio: "inherit", cwd: ROOT },
+);

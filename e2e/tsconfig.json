@@ -1,0 +1,10 @@
+{
+  "extends": "../packages/backend/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "declaration": false
+  },
+  "include": ["."],
+  "exclude": ["eslint.config.ts"]
+}
