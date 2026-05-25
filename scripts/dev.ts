@@ -14,9 +14,13 @@ const READY_TIMEOUT_MS = 30_000;
 const READY_POLL_MS = 300;
 
 interface DevStatus {
-  status: "starting" | "ready";
+  status: "starting" | "ready" | "crashed";
   url: string;
   pid: number;
+  // Populated when status === "crashed" so the background `start` poller can
+  // surface the underlying cause (e.g. backend env-validation failure) instead
+  // of hanging until READY_TIMEOUT_MS.
+  error?: string;
 }
 
 function isAlive(pid: number): boolean {
@@ -56,6 +60,7 @@ function cmdStatus() {
   const s = readStatus();
   if (!s) { console.log("not running"); process.exit(1); }
   console.log(`${s.status} | ${s.url} | pid:${s.pid}`);
+  if (s.status === "crashed" && s.error) console.error(s.error);
 }
 
 function cmdStop() {
@@ -71,7 +76,7 @@ function cmdStop() {
 async function cmdStart() {
   const stale = readStatus();
   if (stale) {
-    if (isAlive(stale.pid)) {
+    if (stale.status !== "crashed" && isAlive(stale.pid)) {
       console.log(`already running | ${stale.url} | pid:${stale.pid}`);
       return;
     }
@@ -84,9 +89,24 @@ async function cmdStart() {
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, READY_POLL_MS));
     const s = readStatus();
-    if (s?.status === "ready") {
-      console.log(`ready | ${s.url} | pid:${s.pid}`);
-      return;
+    if (!s) continue;
+    switch (s.status) {
+      case "ready":
+        console.log(`ready | ${s.url} | pid:${s.pid}`);
+        return;
+      case "crashed":
+        console.error("dev server failed to start:");
+        if (s.error) console.error(s.error);
+        process.exit(1);
+        break;
+      case "starting":
+        // Foreground wrote "starting" but the process is gone — it died before
+        // it could record a reason (e.g. SIGKILL). Don't keep polling.
+        if (!isAlive(s.pid)) {
+          console.error(`dev server foreground (pid ${s.pid}) died before becoming ready`);
+          process.exit(1);
+        }
+        break;
     }
   }
   console.error("timeout waiting for dev server to be ready");
@@ -103,7 +123,7 @@ async function cmdForeground() {
   process.title = "dev:main";
   console.log(`dev:main pid=${process.pid}`);
   const config = loadConfig();
-  const edgeUrl = `http://localhost:${config.edge.devPort}`;
+  const edgeUrl = `http://${config.edge.devHost}:${config.edge.devPort}`;
 
   const { values } = parseArgs({
     args: process.argv.slice(2),
@@ -121,12 +141,24 @@ async function cmdForeground() {
   }
   deleteStatus();
 
+  const status: DevStatus = { status: "starting", url: edgeUrl, pid: process.pid };
+  writeStatus(status);
+
   const all: DevProcess[] = [];
   let shuttingDown = false;
-  const shutdown = () => {
+  // `reason` distinguishes signal-driven stops (undefined → clean exit, status
+  // file removed) from crashes (string → status flipped to "crashed" with the
+  // recorded cause so a background `start` poller can surface it).
+  const shutdown = (reason?: string) => {
     if (shuttingDown) return;
     shuttingDown = true;
-    deleteStatus();
+    if (reason) {
+      status.status = "crashed";
+      status.error = reason;
+      writeStatus(status);
+    } else {
+      deleteStatus();
+    }
     console.log("\x1b[33mShutting down...\x1b[0m");
     // Flag children as expected-dead (suppresses crash logs) and best-effort
     // SIGTERM them. Reaper handles pgroup TERM→KILL once we exit.
@@ -143,9 +175,6 @@ async function cmdForeground() {
   const types = new DevProcess("Types", "./scripts/dev-types.ts", [], { color: "\x1b[33m", cwd: "packages/backend", onCrash: shutdown });
   all.push(backend, frontend, edge, types);
 
-  const status: DevStatus = { status: "starting", url: edgeUrl, pid: process.pid };
-  writeStatus(status);
-
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP", "SIGTSTP"] as const) {
     process.on(sig, () => shutdown());
   }
@@ -157,8 +186,9 @@ async function cmdForeground() {
       edge.waitForStdout({ pattern: "Edge proxy running on", timeout: 5000 }),
     ]);
   } catch (error) {
-    console.error(`\x1b[31m${error instanceof Error ? error.message : error}\x1b[0m`);
-    shutdown();
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`\x1b[31m${msg}\x1b[0m`);
+    shutdown(msg);
   }
 
   status.status = "ready";
@@ -167,6 +197,6 @@ async function cmdForeground() {
   console.log(`\n\x1b[32m✓ Dev server ready at ${edgeUrl}\x1b[0m\n`);
 
   if (values.open) {
-    spawn("./scripts/open-chrome.sh", [`http://localhost:${config.edge.devPort}`], { stdio: "inherit" });
+    spawn("./scripts/open-chrome.sh", [edgeUrl], { stdio: "inherit" });
   }
 }

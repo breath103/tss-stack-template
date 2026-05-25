@@ -1,26 +1,48 @@
 import { type ChildProcess as NodeChildProcess, spawn } from "node:child_process";
 
+const OUTPUT_TAIL_LINES = 20;
+
 export class DevProcess {
   readonly name: string;
   private readonly child: NodeChildProcess;
   private readonly color: string;
   private _killed = false;
+  // Ring buffer of the last N stdout+stderr lines, surfaced in the crash reason
+  // so background `start` callers see *why* a subprocess died, not just that
+  // it did. Some tools (e.g. tsx) write fatal errors to stdout; capture both.
+  private readonly outputTail: string[] = [];
 
-  constructor(name: string, command: string, args: string[], options: { color: string; cwd?: string; onCrash?: () => void }) {
+  constructor(name: string, command: string, args: string[], options: { color: string; cwd?: string; onCrash?: (reason: string) => void }) {
     this.name = name;
     this.color = options.color;
 
     this.child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"], cwd: options.cwd });
 
-    this.child.stdout?.on("data", (d: Buffer) => this.pipe(d, process.stdout));
-    this.child.stderr?.on("data", (d: Buffer) => { if (!this._killed) this.pipe(d, process.stderr); });
+    this.child.stdout?.on("data", (d: Buffer) => {
+      this.captureOutput(d);
+      this.pipe(d, process.stdout);
+    });
+    this.child.stderr?.on("data", (d: Buffer) => {
+      this.captureOutput(d);
+      if (!this._killed) this.pipe(d, process.stderr);
+    });
 
     this.child.on("exit", (code, signal) => {
       if (!this._killed) {
-        console.log(`\x1b[31m[${this.name}] crashed (code=${code}, signal=${signal})\x1b[0m`);
-        options.onCrash?.();
+        const header = `[${this.name}] crashed (code=${code}, signal=${signal})`;
+        console.log(`\x1b[31m${header}\x1b[0m`);
+        const tail = this.outputTail.length > 0 ? `\n${this.outputTail.join("\n")}` : "";
+        options.onCrash?.(`${header}${tail}`);
       }
     });
+  }
+
+  private captureOutput(data: Buffer) {
+    for (const line of data.toString().split("\n")) {
+      if (!line) continue;
+      this.outputTail.push(line);
+      if (this.outputTail.length > OUTPUT_TAIL_LINES) this.outputTail.shift();
+    }
   }
 
   get pid(): number | undefined {

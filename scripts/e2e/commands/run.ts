@@ -73,5 +73,9 @@ export const run = new Command("Run an e2e test from ./e2e/<name>.ts (no name = 
       await context.close();
       await browser.close();
     }
+    // Force-exit so any dangling timers / WebSockets / network clients in
+    // the scenario can't keep the process alive past the harness summary.
+    // Per-scenario timeouts are enforced inside `harness()` in _helpers.ts.
+    process.exit(process.exitCode ?? 0);
   },
 );
