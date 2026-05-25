@@ -36,6 +36,12 @@ Then create `tss.override.json` (gitignored) in the new worktree:
 
 `dev.worktree` combined with `project` namespaces auth cookies (`BETTER_AUTH_COOKIE_PREFIX`), the e2e Chrome CDP port, profile dir, and status file — so two worktrees on `localhost` don't clobber each other's sessions or browsers.
 
+### Dev hostname per worktree
+
+Each worktree's edge proxy answers at `<dir-basename>.localhost` (e.g. `myapp-2.localhost:3010`). `*.localhost` is RFC 6761 reserved for loopback, so the browser resolves it without `/etc/hosts` and — crucially — scopes cookies per hostname. Without this, every worktree's better-auth cookies pile under `localhost` and request headers eventually blow past the proxy limit (`HTTP 431`). Plain `localhost:<port>` and `127.0.0.1:<port>` 308-redirect to the canonical host so cookies can't quietly re-pile.
+
+OAuth providers that disallow non-`localhost` redirect URIs (e.g. Azure AD) won't accept `<worktree>.localhost`. The canonical worktree (`myapp/`) is the only one that can complete those flows; sub-worktrees rely on dev-login helpers instead.
+
 ## Running Scripts
 
 All scripts are executable via shebang — no `npm run` or `npx` needed. Run everything from repo root.
@@ -110,6 +116,15 @@ npm run e2e echo             # run e2e/echo.ts
 
 The runner auto-starts headless Chrome if it isn't running. The dev server (`./scripts/dev.ts start`) must already be up.
 
+### Running e2e — don't waste turns
+
+When running `npm run e2e <name>` from agents/scripts:
+
+- **Timeouts live in the scenario, not the shell.** `harness()` accepts `{ timeoutMs }` (default 3000) — set it in the test file matched to actual work, don't wrap calls in `timeout N` from the outside. The runner force-exits at the end so dangling websocket / MQTT / pubsub clients can't hold the process open.
+- **Never `2>&1 | tail -N` a backgrounded run.** `tail` buffers everything until EOF, so the log file stays empty for the entire run and looks identical to "stuck." Either run foreground (output streams directly) or redirect raw (`> log.txt 2>&1`) and `tail -F` the file.
+- **Chrome must be up first.** `./scripts/e2e.ts start` returns in <1s if already running; the runner aborts with "Headless Chrome process is dead" otherwise. Run it before the first e2e, not after a hang.
+- **Dev server too.** `./scripts/dev.ts status` first — if it's not `ready`, start it and wait; don't blindly invoke e2e.
+
 ### Writing a scenario
 
 Each file default-exports a `Scenario`. The runner creates a fresh BrowserContext per scenario with `baseURL` preset to the edge proxy, so paths can be relative.
@@ -154,10 +169,12 @@ export default harness(async ({ step, stepOrExit, log, page, request }) => {
 
   log("(driving long task — this takes ~30s)");
   // ...
-});
+}, { timeoutMs: 5000 });  // optional; default 3000ms — match to actual work
 ```
 
 `harness` records pass/fail per step, prints a summary at the end, and throws if any step failed — the runner converts that into a `FAIL` line and non-zero exit. `stepOrExit` does NOT narrow types via `asserts ok` (a TS limitation around arrow-function method types); use an explicit `if (!x) throw …` after it when you need narrowing.
+
+The optional second arg `{ timeoutMs }` bounds the whole scenario (default 3000ms). The runner force-exits once the scenario resolves, so dangling websocket/pubsub/MQTT clients can't keep the process alive past the summary — no need for `process.exit(0)` in the scenario or shell-level `timeout`.
 
 ### Cookie-control HTTP — `api()` from `_helpers.ts`
 

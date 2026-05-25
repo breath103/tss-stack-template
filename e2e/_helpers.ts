@@ -1,7 +1,8 @@
 import { type APIRequestContext, type Page } from "playwright";
 import { loadConfig } from "shared/config";
 
-const BASE = `http://localhost:${loadConfig().edge.devPort}`;
+const { edge } = loadConfig();
+const BASE = `http://${edge.devHost}:${edge.devPort}`;
 
 // ─── Scenario shape (consumed by scripts/e2e/commands/run.ts) ────────
 
@@ -109,13 +110,21 @@ type HarnessCtx = Reporter & {
  * prints a summary at the end, and throws if any step failed — the runner
  * converts that into a `FAIL` line and non-zero exit.
  *
+ * `opts.timeoutMs` (default 3000) bounds the whole scenario. Pick a value
+ * matched to actual work — most scenarios are <1s. Bump only when the
+ * scenario legitimately needs it (long polling, file upload demos, etc.).
+ *
  *   export default harness(async ({ step, stepOrExit, log, request }) => {
  *     const r = await request.get("/api/things");
  *     stepOrExit("GET /api/things → 200", r.status() === 200);
  *     ...
- *   });
+ *   }, { timeoutMs: 5000 });
  */
-export function harness(body: (ctx: HarnessCtx) => Promise<void>): Scenario {
+export function harness(
+  body: (ctx: HarnessCtx) => Promise<void>,
+  opts: { timeoutMs?: number } = {},
+): Scenario {
+  const timeoutMs = opts.timeoutMs ?? 3000;
   return async ({ page, request }) => {
     const steps: Step[] = [];
     const step = (name: string, ok: boolean, detail?: string): void => {
@@ -133,21 +142,32 @@ export function harness(body: (ctx: HarnessCtx) => Promise<void>): Scenario {
     };
 
     let failed: Step[] = [];
+    let scenarioErr: Error | null = null;
+    let timer!: ReturnType<typeof setTimeout>;
     try {
-      await body({ step, stepOrExit, log, page, request });
+      await Promise.race([
+        body({ step, stepOrExit, log, page, request }),
+        new Promise<never>((_, rej) => {
+          timer = setTimeout(() => rej(new Error(`scenario timed out after ${timeoutMs}ms`)), timeoutMs);
+        }),
+      ]);
+    } catch (err) {
+      scenarioErr = err instanceof Error ? err : new Error(String(err));
     } finally {
+      clearTimeout(timer);
       failed = steps.filter((s) => !s.ok);
       console.log("");
-      if (failed.length === 0) {
+      if (failed.length === 0 && !scenarioErr) {
         console.log(`${GREEN}✅ all ${steps.length} steps passed${RESET}`);
       } else {
-        console.log(`${RED}❌ ${failed.length}/${steps.length} steps failed${RESET}`);
+        const summary = scenarioErr ? `: ${scenarioErr.message}` : "";
+        console.log(`${RED}❌ ${failed.length}/${steps.length} steps failed${summary}${RESET}`);
         failed.forEach((s) => console.log(`   - ${s.name}${s.detail ? `  ${s.detail}` : ""}`));
       }
     }
 
-    if (failed.length > 0) {
-      throw new Error(`${failed.length}/${steps.length} steps failed`);
+    if (failed.length > 0 || scenarioErr) {
+      throw new Error(scenarioErr?.message ?? `${failed.length}/${steps.length} steps failed`);
     }
   };
 }

@@ -30,7 +30,16 @@ const configSchema = z.object({
   { message: "hostedZoneId is required when domain is set", path: ["hostedZoneId"] },
 );
 
-export type TssConfig = z.infer<typeof configSchema>;
+type ConfigInput = z.infer<typeof configSchema>;
+
+// `edge.devHost` is derived from the project-root directory basename so each
+// git worktree (myapp/, myapp-2/, …) serves dev on its own `<dir>.localhost`
+// subdomain. Browsers scope cookies per registrable domain, so sibling
+// worktrees no longer pile their better-auth cookies under `localhost`
+// (which doesn't scope by port → eventual HTTP 431 once cookies pile up).
+export type TssConfig = ConfigInput & {
+  edge: ConfigInput["edge"] & { devHost: string };
+};
 
 export function frontendBucketName({
   project,
@@ -96,5 +105,8 @@ export function loadConfig(): TssConfig {
     process.exit(1);
   }
 
-  return result.data;
+  return {
+    ...result.data,
+    edge: { ...result.data.edge, devHost: `${path.basename(root)}.localhost` },
+  };
 }
