@@ -49,11 +49,28 @@ export const run = new Command("Run an e2e test from ./e2e/<name>.ts (no name = 
     if (!status.read()) await startChrome.run("start", []);
     const e2e = status.requireRunning();
 
+    // Wipe + recreate the scenario's fixtures dir so a passing run's
+    // screenshots are always the latest. A crashed mid-run leaves whatever
+    // was captured up to that point — the whole reason this dir exists.
+    const fixturesDir = path.join(E2E_DIR, "fixtures", name);
+    fs.rmSync(fixturesDir, { recursive: true, force: true });
+    fs.mkdirSync(fixturesDir, { recursive: true });
+
     const browser = await chromium.connectOverCDP(e2e.cdpEndpoint);
     const context = await browser.newContext({ baseURL: edgeUrl });
     const page = await context.newPage();
     page.on("console", (msg) => console.log(`    [browser:${msg.type()}] ${msg.text()}`));
     page.on("pageerror", (err) => console.error(`    [browser:error] ${err.message}`));
+
+    // Intercept `page.screenshot({ name })` and route to the scenario's
+    // fixtures dir. `path` still works for one-off paths; `name` is the
+    // documented form so screenshots check into git per scenario.
+    const realScreenshot = page.screenshot.bind(page);
+    page.screenshot = async (opts: Parameters<typeof realScreenshot>[0] = {}) => {
+      if (!opts.name) return realScreenshot(opts);
+      const { name: shotName, path: _ignored, ...rest } = opts;
+      return realScreenshot({ ...rest, path: path.join(fixturesDir, `${shotName}.png`) });
+    };
 
     const t0 = Date.now();
     console.log(`> ${name}`);
