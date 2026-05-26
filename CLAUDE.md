@@ -124,6 +124,7 @@ When running `npm run e2e <name>` from agents/scripts:
 - **Never `2>&1 | tail -N` a backgrounded run.** `tail` buffers everything until EOF, so the log file stays empty for the entire run and looks identical to "stuck." Either run foreground (output streams directly) or redirect raw (`> log.txt 2>&1`) and `tail -F` the file.
 - **Chrome must be up first.** `./scripts/e2e.ts start` returns in <1s if already running; the runner aborts with "Headless Chrome process is dead" otherwise. Run it before the first e2e, not after a hang.
 - **Dev server too.** `./scripts/dev.ts status` first — if it's not `ready`, start it and wait; don't blindly invoke e2e.
+- **A scenario failed? Read the screenshots first.** `e2e/fixtures/<scenarioName>/*.png` is the primary debugging surface — it's faster than re-running with extra logs. See **Screenshots** below.
 
 ### Writing a scenario
 
@@ -136,21 +137,51 @@ import { type Scenario } from "./_helpers.js";
 
 const scenario: Scenario = async ({ page, request }) => {
   await page.goto("/login");
+  await page.screenshot({ name: "0_initial_load", fullPage: true });
+
   await page.fill('input[name="email"]', "kurt@example.com");
   await page.click('button[type="submit"]');
+  await page.waitForURL("/");
+  await page.screenshot({ name: "1_after_login", fullPage: true });
 
   // `request` shares cookies with `page` — the post-login session carries through.
-  const me = await request.get("/api/me");
-  assert.equal(me.status(), 200);
+  const session = await request.get("/api/auth/get-session");
+  assert.equal(session.status(), 200);
 };
 
 export default scenario;
 ```
 
 - `page` and `request` share cookies (same BrowserContext). Use `request.*` for any backend call that needs the session; use raw `fetch` only when you specifically want an unauthenticated call.
-- Use Playwright's native API (`page.fill`, `page.click`, `page.waitForSelector`, `page.screenshot({ path, fullPage })`, …) and `node:assert/strict` for assertions.
+- Use Playwright's native API (`page.fill`, `page.click`, `page.waitForSelector`, `page.screenshot({ name, fullPage })`, …) and `node:assert/strict` for assertions.
 - Files in `e2e/` starting with `_` are treated as helpers, not tests. Add reusable scenario helpers (e.g. `login(page, …)`) to `e2e/_helpers.ts`.
 - For ad-hoc probing without writing a file, the one-shot commands still work: `./scripts/e2e.ts navigate /foo`, `./scripts/e2e.ts click <selector>`, etc.
+
+### Screenshots — how to debug e2e failures
+
+**This is the primary debugging surface. Use it.** When a scenario fails, the first thing to do is open the screenshots and *look* — don't re-run with random changes hoping it works, don't add console.logs blindly.
+
+How it works:
+
+- `page.screenshot({ name, fullPage })` saves to `e2e/fixtures/<scenarioName>/<name>.png`.
+- The runner wipes `e2e/fixtures/<scenarioName>/` at the start of every run, so what's on disk is always the latest. A crashed mid-run leaves whatever was captured up to that point — that's the whole reason this dir exists.
+- Screenshots are committed to git per scenario. PRs show diffs visually; future agents see the expected look.
+
+**Rules for writing screenshot-driven scenarios:**
+
+1. **Numeric-prefixed names so they sort visually.** `0_initial_load`, `1_after_login`, `2_modal_open`. Not `initial`, `after-login`, `modal` — those sort alphabetically and lie about ordering.
+2. **One screenshot per meaningful checkpoint.** After `goto` (was the page even loaded?). After each user action (did the click do what you expected?). Right before an `assert` that's been flaky.
+3. **`fullPage: true` by default.** A 600px viewport hides everything below the fold. There's no reason to crop in a CI run that nobody is watching.
+4. **Don't gate screenshots on success.** Put them before the assertion, not after — if the assertion fails, you still want the screenshot.
+
+**When a scenario fails:**
+
+1. Read the FAIL line and stack trace from the runner.
+2. Open `e2e/fixtures/<scenarioName>/` and view the screenshots **in order**. The last one tells you the state right before the failure.
+3. If the screenshot shows an unexpected state (a 404, a stuck loading spinner, a modal that didn't open), the fix is in the app code or the scenario's selector — not in retrying or adding sleeps.
+4. If the screenshots all look fine but the assertion still failed, the bug is in the assertion logic — re-read the assertion against the screenshot.
+
+Reading the image is allowed and encouraged. The Read tool handles PNGs natively; pass the absolute path.
 
 ### Multi-step scenarios — opt into `harness()`
 

@@ -4,6 +4,20 @@ import { loadConfig } from "shared/config";
 const { edge } = loadConfig();
 const BASE = `http://${edge.devHost}:${edge.devPort}`;
 
+// Augment Playwright's screenshot signature so `page.screenshot({ name })` is
+// type-correct out of the box. The runner intercepts the option and routes the
+// file to `e2e/fixtures/<scenarioName>/<name>.png`. See CLAUDE.md §E2E.
+declare module "playwright" {
+  interface PageScreenshotOptions {
+    /**
+     * Save under `e2e/fixtures/<scenarioName>/<name>.png`. Mutually exclusive
+     * with `path`. Prefer over `path` so screenshots check into git per
+     * scenario for after-the-fact debugging.
+     */
+    name?: string;
+  }
+}
+
 // ─── Scenario shape (consumed by scripts/e2e/commands/run.ts) ────────
 
 export type Scenario = (ctx: {
