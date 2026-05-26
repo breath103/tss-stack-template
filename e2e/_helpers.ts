@@ -1,30 +1,32 @@
-import { type APIRequestContext, type Page } from "playwright";
+import { type APIRequestContext, type Page, type PageScreenshotOptions } from "playwright";
 import { loadConfig } from "shared/config";
 
 const { edge } = loadConfig();
 const BASE = `http://${edge.devHost}:${edge.devPort}`;
 
-// Augment Playwright's screenshot signature so `page.screenshot({ name })` is
-// type-correct out of the box. The runner intercepts the option and routes the
-// file to `e2e/fixtures/<scenarioName>/<name>.png`. See CLAUDE.md §E2E.
-declare module "playwright" {
-  interface PageScreenshotOptions {
-    /**
-     * Save under `e2e/fixtures/<scenarioName>/<name>.png`. Mutually exclusive
-     * with `path`. Prefer over `path` so screenshots check into git per
-     * scenario for after-the-fact debugging.
-     */
-    name?: string;
-  }
-}
+// ─── Scenario page type ──────────────────────────────────────────────
+//
+// Tighter `screenshot` signature than Playwright's: the only way to take
+// a screenshot is `{ name }`, which the runner routes to
+// `e2e/fixtures/<scenarioName>/<name>.png` (wiped + recreated per run,
+// committed to git). `{ path }` is intentionally NOT in the type — if you
+// need a one-off file dump, drop down to `fs.writeFile(p, await page2.screenshot())`
+// where `page2` is a freshly created Playwright Page; that reads as a
+// deliberate bypass rather than a quiet escape hatch.
+export type ScenarioPage = Omit<Page, "screenshot"> & {
+  screenshot(
+    options: { name: string } & Omit<PageScreenshotOptions, "path" | "name">,
+  ): Promise<Buffer>;
+};
 
 // ─── Scenario shape (consumed by scripts/e2e/commands/run.ts) ────────
 
 export type Scenario = (ctx: {
-  /** Playwright Page. The BrowserContext has `baseURL` preset to the edge
-   *  proxy, so `page.goto("/foo")` works without a prefix. Each scenario
-   *  gets a fresh BrowserContext — no shared cookies/storage between runs. */
-  page: Page;
+  /** Page with our scenario-scoped `screenshot({ name })`. Otherwise behaves
+   *  exactly like Playwright's `Page`. The BrowserContext has `baseURL`
+   *  preset to the edge proxy, so `page.goto("/foo")` works without a prefix.
+   *  Each scenario gets a fresh BrowserContext — no shared cookies/storage. */
+  page: ScenarioPage;
   /** HTTP client bound to the SAME BrowserContext as `page`. It shares the
    *  cookie jar with the browser, so anything a scenario logs into via the
    *  UI carries through to these calls (and vice versa). Use this instead of
@@ -115,7 +117,7 @@ interface Reporter {
 }
 
 type HarnessCtx = Reporter & {
-  page: Page;
+  page: ScenarioPage;
   request: APIRequestContext;
 };
 

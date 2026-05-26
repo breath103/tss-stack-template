@@ -166,6 +166,7 @@ How it works:
 - `page.screenshot({ name, fullPage })` saves to `e2e/fixtures/<scenarioName>/<name>.png`.
 - The runner wipes `e2e/fixtures/<scenarioName>/` at the start of every run, so what's on disk is always the latest. A crashed mid-run leaves whatever was captured up to that point — that's the whole reason this dir exists.
 - Screenshots are committed to git per scenario. PRs show diffs visually; future agents see the expected look.
+- `page.screenshot({ path: "…" })` is a **type error** by design. The scenario's `page` is a `ScenarioPage` wrapper whose `screenshot` only accepts `{ name }`. There is no escape hatch — if you find yourself wanting one, the answer is to give the screenshot a `name` and let it land in `fixtures/`.
 
 **Rules for writing screenshot-driven scenarios:**
 
