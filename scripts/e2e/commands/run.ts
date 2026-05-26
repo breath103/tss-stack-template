@@ -2,15 +2,34 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright";
 import { z } from "zod";
 
+import { type ScenarioPage } from "../../../e2e/_helpers.js";
 import { Command } from "../command.js";
 import { edgeUrl } from "../constants.js";
 import * as status from "../status.js";
 import { start as startChrome } from "./lifecycle.js";
 
 const E2E_DIR = path.join(process.cwd(), "e2e");
+
+// Wrap a Playwright `Page` so the only legal `screenshot` form is
+// `{ name }`, routed to `e2e/fixtures/<scenarioName>/<name>.png`.
+// Every other method/property forwards to the real page unchanged.
+// Methods are bound to the original `Page` so `this`-dependent
+// internals (waiters, locator caches, …) behave normally.
+function wrapPage(page: Page, fixturesDir: string): ScenarioPage {
+  return new Proxy(page, {
+    get(target, prop) {
+      if (prop === "screenshot") {
+        return (opts: { name: string } & Record<string, unknown>) =>
+          target.screenshot({ ...opts, path: path.join(fixturesDir, `${opts.name}.png`) });
+      }
+      const value = Reflect.get(target, prop) as unknown;
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  }) as unknown as ScenarioPage;
+}
 
 function listTests(): string[] {
   if (!fs.existsSync(E2E_DIR)) return [];
@@ -58,19 +77,11 @@ export const run = new Command("Run an e2e test from ./e2e/<name>.ts (no name = 
 
     const browser = await chromium.connectOverCDP(e2e.cdpEndpoint);
     const context = await browser.newContext({ baseURL: edgeUrl });
-    const page = await context.newPage();
-    page.on("console", (msg) => console.log(`    [browser:${msg.type()}] ${msg.text()}`));
-    page.on("pageerror", (err) => console.error(`    [browser:error] ${err.message}`));
+    const rawPage = await context.newPage();
+    rawPage.on("console", (msg) => console.log(`    [browser:${msg.type()}] ${msg.text()}`));
+    rawPage.on("pageerror", (err) => console.error(`    [browser:error] ${err.message}`));
 
-    // Intercept `page.screenshot({ name })` and route to the scenario's
-    // fixtures dir. `path` still works for one-off paths; `name` is the
-    // documented form so screenshots check into git per scenario.
-    const realScreenshot = page.screenshot.bind(page);
-    page.screenshot = async (opts: Parameters<typeof realScreenshot>[0] = {}) => {
-      if (!opts.name) return realScreenshot(opts);
-      const { name: shotName, path: _ignored, ...rest } = opts;
-      return realScreenshot({ ...rest, path: path.join(fixturesDir, `${shotName}.png`) });
-    };
+    const page = wrapPage(rawPage, fixturesDir);
 
     const t0 = Date.now();
     console.log(`> ${name}`);
