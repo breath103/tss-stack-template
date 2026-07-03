@@ -51,6 +51,11 @@ server.on("upgrade", (req, socket, head) => {
 // resolve to a single address family (IPv6 ::1 on macOS) and lock out
 // IPv4-only clients like headless Chromium. Cookie isolation is enforced at
 // the HTTP layer by the Host-header redirect above, not by the bind address.
+server.on("error", (err: NodeJS.ErrnoException) => {
+  const reason = err.code === "EADDRINUSE" ? `port ${edge.devPort} already in use` : err.message;
+  console.error(`Edge proxy failed to start: ${reason}`);
+  process.exit(1);
+});
 server.listen(edge.devPort, "127.0.0.1", () => {
   console.log(`Edge proxy running on http://${edge.devHost}:${edge.devPort}`);
   console.log(`  /api/* → http://localhost:${backend.devPort}`);

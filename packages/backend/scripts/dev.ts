@@ -27,11 +27,23 @@ const watch$ = (p: string, opts?: { recursive?: boolean }) =>
   });
 
 let server: ChildProcess | null = null;
+// Set right before we SIGTERM the server for a file-change restart, so its
+// `exit` is recognized as intentional and not treated as a crash.
+let restarting = false;
 
 const startServer = () => {
+  restarting = false;
   server = spawn("npx", ["tsx", "scripts/server.ts"], {
     cwd: ROOT,
     stdio: "inherit",
+  });
+  server.once("exit", (code) => {
+    // Intentional restart (a file change SIGTERM'd it) → respawn. Otherwise the
+    // server died on its own (e.g. failed to bind its port) — propagate the
+    // failure instead of idling with a dead child, since the orchestrator
+    // watches THIS process and only fails fast when it exits.
+    if (restarting) startServer();
+    else process.exit(code ?? 1);
   });
 };
 
@@ -39,7 +51,7 @@ merge(watch$(srcPath, { recursive: true }))
   .pipe(debounceTime(100), startWith(null))
   .subscribe(() => {
     if (server) {
-      server.once("exit", startServer);
+      restarting = true;
       server.kill("SIGTERM");
     } else {
       startServer();
