@@ -45,6 +45,10 @@ export default defineConfig({
   },
   server: {
     port: config.frontend.devPort,
+    // Fail fast if the port is taken instead of silently picking the next free
+    // one — the edge proxy is hardwired to this exact port, so a moved vite
+    // serves nobody and looks "ready" on the wrong port.
+    strictPort: true,
   },
   test: {
     include: ["src/**/__tests__/*.ts"],

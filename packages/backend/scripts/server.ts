@@ -17,5 +17,15 @@ process.env.BETTER_AUTH_COOKIE_PREFIX = `${project}-${dev.worktree}`;
 
 const { app } = await import("../src/index.js");
 
-serve({ fetch: app.fetch, port: backend.devPort });
-console.log(`Backend running on http://localhost:${backend.devPort}`);
+// `serve` binds asynchronously — only log readiness from the listening
+// callback so the orchestrator's readiness signal can't fire on a port that
+// never bound. Surface a bind failure (e.g. EADDRINUSE) fast and loud instead
+// of letting it race the premature "running on" line.
+const server = serve({ fetch: app.fetch, port: backend.devPort }, () => {
+  console.log(`Backend running on http://localhost:${backend.devPort}`);
+});
+server.on("error", (err: NodeJS.ErrnoException) => {
+  const reason = err.code === "EADDRINUSE" ? `port ${backend.devPort} already in use` : err.message;
+  console.error(`Backend failed to start: ${reason}`);
+  process.exit(1);
+});
