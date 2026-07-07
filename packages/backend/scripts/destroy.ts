@@ -2,12 +2,15 @@
 import { parseArgs } from "node:util";
 
 import { sanitizeBranchName } from "shared/branch";
+import { askConfirmation } from "shared/cli-utils";
 import { loadConfig } from "shared/config";
 import * as SSMParameters from "shared/ssm-parameters";
 
 import {
   CloudFormationClient,
+  CloudFormationServiceException,
   DeleteStackCommand,
+  DescribeStacksCommand,
   waitUntilStackDeleteComplete,
 } from "@aws-sdk/client-cloudformation";
 import {
@@ -19,10 +22,34 @@ import {
 import { BackendStack } from "./lib/backend-stack.js";
 
 async function main() {
-  const { name } = parseCliArgs();
+  const { name, dryRun, skipPrompt } = parseCliArgs();
 
   const config = loadConfig();
   const stackName = BackendStack.id({ project: config.project, name });
+
+  if (dryRun) {
+    const exists = await stackExists(stackName, config.backend.region);
+    if (exists) {
+      console.log(`\n[dry-run] Backend stack exists: ${stackName}`);
+      console.log("[dry-run] Would delete this stack and its SSM parameter.");
+    } else {
+      console.log(`\n[dry-run] Backend stack does not exist: ${stackName}`);
+      console.log("[dry-run] Nothing to destroy.");
+    }
+    return;
+  }
+
+  console.log(`\nAbout to destroy backend stack: ${stackName}`);
+
+  if (!skipPrompt) {
+    const confirmed = await askConfirmation(
+      `Are you sure you want to destroy "${name}"? (y/N): `
+    );
+    if (!confirmed) {
+      console.log("Aborted.");
+      return;
+    }
+  }
 
   console.log(`\nDestroying backend stack: ${stackName}`);
 
@@ -32,11 +59,32 @@ async function main() {
   console.log(`\n✅ Destroyed backend: ${name}`);
 }
 
+async function stackExists(stackName: string, region: string): Promise<boolean> {
+  const client = new CloudFormationClient({ region });
+
+  try {
+    await client.send(new DescribeStacksCommand({ StackName: stackName }));
+    return true;
+  } catch (error) {
+    // DescribeStacks on a missing stack surfaces as a ValidationError, not a
+    // dedicated exception class — there is no typed class for this case.
+    if (
+      error instanceof CloudFormationServiceException &&
+      error.name === "ValidationError"
+    ) {
+      return false;
+    }
+    throw error;
+  }
+}
+
 function parseCliArgs() {
   const { values } = parseArgs({
     options: {
-      name: { type: "string", short: "n" },
-      help: { type: "boolean", short: "h" },
+      "name": { type: "string", short: "n" },
+      "dry-run": { type: "boolean" },
+      "skip-prompt": { type: "boolean" },
+      "help": { type: "boolean", short: "h" },
     },
     strict: true,
   });
@@ -61,7 +109,11 @@ function parseCliArgs() {
     console.log(`Branch name sanitized: "${values.name}" → "${sanitizedName}"`);
   }
 
-  return { name: sanitizedName };
+  return {
+    name: sanitizedName,
+    dryRun: values["dry-run"] ?? false,
+    skipPrompt: values["skip-prompt"] ?? false,
+  };
 }
 
 function showHelp(): never {
@@ -73,11 +125,15 @@ Destroy backend stack from AWS
 Options:
   -n, --name <name>   Deployment name (required)
                       Usually the branch name (e.g., feature-branch)
+      --dry-run       Check whether the stack exists and report what would be
+                      destroyed, without deleting anything
+      --skip-prompt   Skip the confirmation prompt (for non-interactive/CI use)
   -h, --help          Show this help message
 
 Examples:
   ./packages/backend/scripts/destroy.ts --name=feature-branch
-  ./packages/backend/scripts/destroy.ts -n feature/my-feature
+  ./packages/backend/scripts/destroy.ts -n feature/my-feature --dry-run
+  ./packages/backend/scripts/destroy.ts -n feature/my-feature --skip-prompt
 `);
   process.exit(0);
 }

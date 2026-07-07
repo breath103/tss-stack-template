@@ -2,6 +2,7 @@
 import { parseArgs } from "node:util";
 
 import { sanitizeBranchName } from "shared/branch";
+import { askConfirmation } from "shared/cli-utils";
 import { frontendBucketName, loadConfig } from "shared/config";
 
 import {
@@ -11,11 +12,39 @@ import {
 } from "@aws-sdk/client-s3";
 
 async function main() {
-  const { name } = parseCliArgs();
+  const { name, dryRun, skipPrompt } = parseCliArgs();
 
   const config = loadConfig();
   const bucketName = frontendBucketName(config);
   const s3 = new S3Client({ region: "us-east-1" });
+
+  if (dryRun) {
+    const count = await countPrefix(s3, bucketName, name);
+    if (count > 0) {
+      console.log(
+        `\n[dry-run] ${count} object(s) exist under s3://${bucketName}/${name}/`
+      );
+      console.log("[dry-run] Would delete these objects.");
+    } else {
+      console.log(
+        `\n[dry-run] No objects under s3://${bucketName}/${name}/`
+      );
+      console.log("[dry-run] Nothing to destroy.");
+    }
+    return;
+  }
+
+  console.log(`\nAbout to delete frontend assets from s3://${bucketName}/${name}/`);
+
+  if (!skipPrompt) {
+    const confirmed = await askConfirmation(
+      `Are you sure you want to destroy "${name}"? (y/N): `
+    );
+    if (!confirmed) {
+      console.log("Aborted.");
+      return;
+    }
+  }
 
   console.log(`\nDeleting frontend assets from s3://${bucketName}/${name}/...`);
   await deletePrefix(s3, bucketName, name);
@@ -23,11 +52,32 @@ async function main() {
   console.log(`\n✅ Destroyed frontend: ${name}`);
 }
 
+async function countPrefix(s3: S3Client, bucket: string, prefix: string): Promise<number> {
+  let continuationToken: string | undefined;
+  let total = 0;
+
+  do {
+    const listResponse = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: `${prefix}/`,
+        ContinuationToken: continuationToken,
+      })
+    );
+    total += listResponse.Contents?.length ?? 0;
+    continuationToken = listResponse.NextContinuationToken;
+  } while (continuationToken);
+
+  return total;
+}
+
 function parseCliArgs() {
   const { values } = parseArgs({
     options: {
-      name: { type: "string", short: "n" },
-      help: { type: "boolean", short: "h" },
+      "name": { type: "string", short: "n" },
+      "dry-run": { type: "boolean" },
+      "skip-prompt": { type: "boolean" },
+      "help": { type: "boolean", short: "h" },
     },
     strict: true,
   });
@@ -52,7 +102,11 @@ function parseCliArgs() {
     console.log(`Branch name sanitized: "${values.name}" → "${sanitizedName}"`);
   }
 
-  return { name: sanitizedName };
+  return {
+    name: sanitizedName,
+    dryRun: values["dry-run"] ?? false,
+    skipPrompt: values["skip-prompt"] ?? false,
+  };
 }
 
 function showHelp(): never {
@@ -64,11 +118,15 @@ Delete frontend assets from S3
 Options:
   -n, --name <name>   Deployment name (required)
                       Usually the branch name (e.g., feature-branch)
+      --dry-run       Check whether assets exist and report what would be
+                      destroyed, without deleting anything
+      --skip-prompt   Skip the confirmation prompt (for non-interactive/CI use)
   -h, --help          Show this help message
 
 Examples:
   ./packages/frontend/scripts/destroy.ts --name=feature-branch
-  ./packages/frontend/scripts/destroy.ts -n feature/my-feature
+  ./packages/frontend/scripts/destroy.ts -n feature/my-feature --dry-run
+  ./packages/frontend/scripts/destroy.ts -n feature/my-feature --skip-prompt
 `);
   process.exit(0);
 }
