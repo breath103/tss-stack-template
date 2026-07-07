@@ -18,23 +18,19 @@ async function main() {
   const bucketName = frontendBucketName(config);
   const s3 = new S3Client({ region: "us-east-1" });
 
-  if (dryRun) {
-    const count = await countPrefix(s3, bucketName, name);
-    if (count > 0) {
-      console.log(
-        `\n[dry-run] ${count} object(s) exist under s3://${bucketName}/${name}/`
-      );
-      console.log("[dry-run] Would delete these objects.");
-    } else {
-      console.log(
-        `\n[dry-run] No objects under s3://${bucketName}/${name}/`
-      );
-      console.log("[dry-run] Nothing to destroy.");
-    }
+  const count = await countPrefix(s3, bucketName, name);
+  if (count === 0) {
+    console.log(`\nNo objects under s3://${bucketName}/${name}/`);
+    console.log("Nothing to destroy.");
     return;
   }
 
-  console.log(`\nAbout to delete frontend assets from s3://${bucketName}/${name}/`);
+  console.log(`\n${count} object(s) under s3://${bucketName}/${name}/`);
+  console.log("Would delete these objects.");
+
+  if (dryRun) {
+    return;
+  }
 
   if (!skipPrompt) {
     const confirmed = await askConfirmation(

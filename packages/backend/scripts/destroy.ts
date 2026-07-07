@@ -27,19 +27,19 @@ async function main() {
   const config = loadConfig();
   const stackName = BackendStack.id({ project: config.project, name });
 
-  if (dryRun) {
-    const exists = await stackExists(stackName, config.backend.region);
-    if (exists) {
-      console.log(`\n[dry-run] Backend stack exists: ${stackName}`);
-      console.log("[dry-run] Would delete this stack and its SSM parameter.");
-    } else {
-      console.log(`\n[dry-run] Backend stack does not exist: ${stackName}`);
-      console.log("[dry-run] Nothing to destroy.");
-    }
+  const exists = await stackExists(stackName, config.backend.region);
+  if (!exists) {
+    console.log(`\nBackend stack does not exist: ${stackName}`);
+    console.log("Nothing to destroy.");
     return;
   }
 
-  console.log(`\nAbout to destroy backend stack: ${stackName}`);
+  console.log(`\nBackend stack found: ${stackName}`);
+  console.log("Would delete this stack and its SSM parameter.");
+
+  if (dryRun) {
+    return;
+  }
 
   if (!skipPrompt) {
     const confirmed = await askConfirmation(
