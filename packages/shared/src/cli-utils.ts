@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { createInterface } from "node:readline";
 
 const DURATION_MS: Record<string, number> = { s: 1000, m: 60_000, h: 3600_000, d: 86400_000 };
@@ -32,3 +34,13 @@ export async function askConfirmation(prompt: string): Promise<boolean> {
  * Sleep for the specified number of milliseconds.
  */
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export function resolveBin(name: string, from = process.cwd()): string {
+  let dir = from;
+  while (dir !== path.dirname(dir)) {
+    const candidate = path.join(dir, "node_modules", ".bin", name);
+    if (fs.existsSync(candidate)) return candidate;
+    dir = path.dirname(dir);
+  }
+  throw new Error(`${name} not found. Run npm install from the repo root.`);
+}
