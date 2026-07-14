@@ -7,6 +7,14 @@ import { parseArgs } from "node:util";
 import { loadConfig } from "shared/config";
 
 import { DevProcess } from "./dev/dev-process.js";
+import { ensureDeps } from "./ensure-deps.js";
+
+try {
+  ensureDeps();
+} catch (error) {
+  console.error(`\x1b[31m${error instanceof Error ? error.message : String(error)}\x1b[0m`);
+  process.exit(1);
+}
 
 const STATUS_FILE = path.join(process.cwd(), ".dev-status.json");
 const GRACE_MS = 2000;
