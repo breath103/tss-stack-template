@@ -1,3 +1,6 @@
+/// <reference types="node" />
+/// <reference types="vite/client" />
+
 declare namespace NodeJS {
   interface ProcessEnv {
     SITE_URL: string;
