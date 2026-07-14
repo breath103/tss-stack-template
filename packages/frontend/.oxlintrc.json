@@ -1,0 +1,37 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../.oxlintrc.json"],
+  "plugins": ["typescript", "unicorn", "oxc", "react"],
+  "jsPlugins": [{ "name": "better-tailwindcss", "specifier": "eslint-plugin-better-tailwindcss" }],
+  "settings": {
+    "better-tailwindcss": {
+      "entryPoint": "./src/global.css"
+    }
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+
+    "better-tailwindcss/enforce-consistent-class-order": "warn",
+    "better-tailwindcss/enforce-consistent-line-wrapping": "off",
+    "better-tailwindcss/no-deprecated-classes": "warn",
+    "better-tailwindcss/no-duplicate-classes": "warn",
+    "better-tailwindcss/no-unnecessary-whitespace": "warn",
+    "better-tailwindcss/enforce-canonical-classes": "warn",
+    "better-tailwindcss/no-conflicting-classes": "error",
+    "better-tailwindcss/no-unknown-classes": ["warn", { "detectComponentClasses": true }],
+
+    "no-restricted-imports": ["error", {
+      "paths": [{
+        "name": "@backend",
+        "message": "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
+        "allowTypeImports": true
+      }],
+      "patterns": [{
+        "regex": "^@backend/",
+        "message": "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
+        "allowTypeImports": true
+      }]
+    }]
+  }
+}

@@ -64,9 +64,13 @@ function main(): void {
     execFileSync(KNIP, args, { cwd: ROOT, encoding: "utf-8" });
   } catch (err) {
     console.error(`backend-knip: command failed: ${command}`);
-    if (err instanceof Error && "stdout" in err && typeof err.stdout === "string") printToolOutput(err.stdout);
-    if (err instanceof Error && "stderr" in err && typeof err.stderr === "string") printToolOutput(err.stderr);
-    console.error("\nbackend-knip: unused code found (see above). Remove it or add a narrow config exception for shared-boundary usage.");
+    if (err instanceof Error && "stdout" in err && typeof err.stdout === "string")
+      printToolOutput(err.stdout);
+    if (err instanceof Error && "stderr" in err && typeof err.stderr === "string")
+      printToolOutput(err.stderr);
+    console.error(
+      "\nbackend-knip: unused code found (see above). Remove it or add a narrow config exception for shared-boundary usage.",
+    );
     process.exitCode = 1;
   }
 }

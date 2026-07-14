@@ -4,11 +4,7 @@ import { route as echoRoute } from "./routes/echo.js";
 import { route as healthRoute } from "./routes/health.js";
 import { route as helloRoute } from "./routes/hello.js";
 
-export const api = routes(
-  echoRoute,
-  healthRoute,
-  helloRoute
-);
+export const api = routes(echoRoute, healthRoute, helloRoute);
 
 // Export type for frontend
 /** @public */

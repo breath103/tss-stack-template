@@ -11,23 +11,25 @@ const _handler: StreamHandler = streamHandle(app);
 
 // Object.assign copies the streaming marker symbol from _handler
 // so Lambda still recognizes this as a streaming handler.
-export const handler: StreamHandler = Object.assign(
-  async (...args: Parameters<StreamHandler>) => {
-    // Cron warmer: return early without processing
-    const event: unknown = args[0];
-    if (typeof event === "object" && event !== null && "source" in event && event.source === "warmer") {
-      console.log("[warmer] ping");
-      // In streaming Lambda, args are (event, responseStream, context).
-      // The responseStream must be closed or the invocation hangs until timeout.
-      const responseStream = args[1] as unknown as import("stream").Writable;
-      responseStream.end();
-      return;
-    }
+export const handler: StreamHandler = Object.assign(async (...args: Parameters<StreamHandler>) => {
+  // Cron warmer: return early without processing
+  const event: unknown = args[0];
+  if (
+    typeof event === "object" &&
+    event !== null &&
+    "source" in event &&
+    event.source === "warmer"
+  ) {
+    console.log("[warmer] ping");
+    // In streaming Lambda, args are (event, responseStream, context).
+    // The responseStream must be closed or the invocation hangs until timeout.
+    const responseStream = args[1] as unknown as import("stream").Writable;
+    responseStream.end();
+    return;
+  }
 
-    await _handler(...args);
+  await _handler(...args);
 
-    // This runs after the lambda response stream is closed.
-    // Add post-response tasks here (e.g. analytics flush).
-  },
-  _handler,
-) as StreamHandler;
+  // This runs after the lambda response stream is closed.
+  // Add post-response tasks here (e.g. analytics flush).
+}, _handler) as StreamHandler;

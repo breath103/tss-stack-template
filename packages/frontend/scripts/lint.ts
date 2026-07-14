@@ -1,47 +1,14 @@
 #!/usr/bin/env -S node --import tsx
-import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(import.meta.dirname, "..");
-const args = process.argv.slice(2);
-const useCache = !args.includes("--no-cache");
-const eslint = [
-  path.join(ROOT, "node_modules/.bin/eslint"),
-  path.join(ROOT, "../../node_modules/.bin/eslint"),
-].find(existsSync);
+import { runLint } from "shared/lint";
 
-if (!eslint) {
-  throw new Error("Could not find eslint. Run npm install from the repo root.");
-}
-
-const cacheDir = path.join(ROOT, "../../node_modules/.cache/eslint/frontend");
-
-const eslintArgs = [
-  "src",
-  "scripts",
-];
-
-if (useCache) {
-  mkdirSync(cacheDir, { recursive: true });
-  eslintArgs.push(
-    "--cache",
-    "--cache-strategy",
-    "content",
-    "--cache-location",
-    path.join(cacheDir, ".eslintcache"),
-  );
-}
-
-eslintArgs.push(...args);
-
-const result = spawnSync(eslint, eslintArgs, {
-  stdio: "inherit",
-  cwd: ROOT,
+// oxlint (correctness + type-aware, reads `.oxlintrc.json`) then biome
+// (formatting, import order, tailwind class order). `--fix` fixes both;
+// `--no-cache` is accepted and ignored for backwards compatibility.
+runLint({
+  cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
+  targets: ["src", "scripts"],
+  args: process.argv.slice(2),
 });
-
-if (result.error) {
-  throw result.error;
-}
-
-process.exit(result.status ?? 1);

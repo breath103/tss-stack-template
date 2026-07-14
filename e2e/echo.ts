@@ -30,10 +30,9 @@ const scenario: Scenario = async ({ page, request }) => {
   await page.goto("/");
   await page.screenshot({ name: "0_initial_load", fullPage: true });
 
-  await page.waitForFunction(
-    () => document.body.innerText.includes("\"id\": \"test-123\""),
-    { timeout: 10_000 },
-  );
+  await page.waitForFunction(() => document.body.innerText.includes('"id": "test-123"'), {
+    timeout: 10_000,
+  });
   await page.screenshot({ name: "1_after_api_responses", fullPage: true });
 
   const text = await page.evaluate(() => document.body.innerText);

@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../.oxlintrc.base.json"],
+  "rules": {
+    "typescript/no-floating-promises": "off"
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.ts"],
+      "rules": {
+        "unicorn/prefer-node-protocol": "off"
+      }
+    }
+  ]
+}

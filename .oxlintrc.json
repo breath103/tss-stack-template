@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["./.oxlintrc.base.json"],
+  "rules": {
+    "typescript/no-unnecessary-condition": ["error", { "allowConstantLoopConditions": true }],
+    "typescript/no-floating-promises": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-unsafe-enum-comparison": "error"
+  }
+}

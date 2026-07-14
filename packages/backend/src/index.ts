@@ -20,7 +20,7 @@ app.onError((err, c) => {
 });
 
 // Mount better-auth handler
-app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+app.on(["POST", "GET"], "/api/auth/*", c => auth.handler(c.req.raw));
 
 // Session middleware - inject user into context
 app.use("*", async (c, next) => {

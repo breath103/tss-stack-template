@@ -42,9 +42,20 @@ export type Scenario = (ctx: {
 // sent — for example, an auth flow that tests "no cookie" and "stale
 // cookie" cases the same context would otherwise auto-fill.
 
-export type JsonInput = string | number | boolean | null | undefined | JsonInput[] | { [k: string]: JsonInput };
+export type JsonInput =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | JsonInput[]
+  | { [k: string]: JsonInput };
 
-interface ApiResponse<T> { status: number; body: T; setCookie: string | null }
+interface ApiResponse<T> {
+  status: number;
+  body: T;
+  setCookie: string | null;
+}
 
 interface ApiOpts {
   body?: JsonInput;
@@ -54,13 +65,17 @@ interface ApiOpts {
   bearer?: string;
 }
 
-export async function api<T>(method: string, path: string, opts: ApiOpts = {}): Promise<ApiResponse<T>> {
+export async function api<T>(
+  method: string,
+  path: string,
+  opts: ApiOpts = {},
+): Promise<ApiResponse<T>> {
   // `Origin` defaults to BASE so state-changing requests pass better-auth's
   // CSRF check. node `fetch` sends no Origin by default; setting it lets
   // harness traffic look like real same-origin requests.
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "Origin": BASE,
+    Origin: BASE,
     ...opts.headers,
   };
   if (opts.cookie) headers["Cookie"] = opts.cookie;
@@ -81,7 +96,12 @@ export async function api<T>(method: string, path: string, opts: ApiOpts = {}): 
 }
 
 export function readError(body: unknown): string {
-  if (typeof body === "object" && body !== null && "error" in body && typeof body.error === "string") {
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "error" in body &&
+    typeof body.error === "string"
+  ) {
     return body.error;
   }
   return "";
@@ -96,7 +116,11 @@ export function readError(body: unknown): string {
 // this." See `e2e/echo.ts` for the plain pattern; see CLAUDE.md for the
 // harness pattern.
 
-interface Step { name: string; ok: boolean; detail?: string }
+interface Step {
+  name: string;
+  ok: boolean;
+  detail?: string;
+}
 
 const RESET = "\x1b[0m";
 const RED = "\x1b[31m";
@@ -164,21 +188,24 @@ export function harness(
       await Promise.race([
         body({ step, stepOrExit, log, page, request }),
         new Promise<never>((_, rej) => {
-          timer = setTimeout(() => rej(new Error(`scenario timed out after ${timeoutMs}ms`)), timeoutMs);
+          timer = setTimeout(
+            () => rej(new Error(`scenario timed out after ${timeoutMs}ms`)),
+            timeoutMs,
+          );
         }),
       ]);
     } catch (err) {
       scenarioErr = err instanceof Error ? err : new Error(String(err));
     } finally {
       clearTimeout(timer);
-      failed = steps.filter((s) => !s.ok);
+      failed = steps.filter(s => !s.ok);
       console.log("");
       if (failed.length === 0 && !scenarioErr) {
         console.log(`${GREEN}✅ all ${steps.length} steps passed${RESET}`);
       } else {
         const summary = scenarioErr ? `: ${scenarioErr.message}` : "";
         console.log(`${RED}❌ ${failed.length}/${steps.length} steps failed${summary}${RESET}`);
-        failed.forEach((s) => console.log(`   - ${s.name}${s.detail ? `  ${s.detail}` : ""}`));
+        failed.forEach(s => console.log(`   - ${s.name}${s.detail ? `  ${s.detail}` : ""}`));
       }
     }
 

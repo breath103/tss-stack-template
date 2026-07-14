@@ -1,15 +1,9 @@
 #!/usr/bin/env -S node --import tsx
 import { parseArgs } from "node:util";
-
+import { DeleteObjectsCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 import { sanitizeBranchName } from "shared/branch";
 import { askConfirmation } from "shared/cli-utils";
 import { frontendBucketName, loadConfig } from "shared/config";
-
-import {
-  DeleteObjectsCommand,
-  ListObjectsV2Command,
-  S3Client,
-} from "@aws-sdk/client-s3";
 
 async function main() {
   const { name, dryRun, skipPrompt } = parseCliArgs();
@@ -33,9 +27,7 @@ async function main() {
   }
 
   if (!skipPrompt) {
-    const confirmed = await askConfirmation(
-      `Are you sure you want to destroy "${name}"? (y/N): `
-    );
+    const confirmed = await askConfirmation(`Are you sure you want to destroy "${name}"? (y/N): `);
     if (!confirmed) {
       console.log("Aborted.");
       return;
@@ -58,7 +50,7 @@ async function countPrefix(s3: S3Client, bucket: string, prefix: string): Promis
         Bucket: bucket,
         Prefix: `${prefix}/`,
         ContinuationToken: continuationToken,
-      })
+      }),
     );
     total += listResponse.Contents?.length ?? 0;
     continuationToken = listResponse.NextContinuationToken;
@@ -70,10 +62,10 @@ async function countPrefix(s3: S3Client, bucket: string, prefix: string): Promis
 function parseCliArgs() {
   const { values } = parseArgs({
     options: {
-      "name": { type: "string", short: "n" },
+      name: { type: "string", short: "n" },
       "dry-run": { type: "boolean" },
       "skip-prompt": { type: "boolean" },
-      "help": { type: "boolean", short: "h" },
+      help: { type: "boolean", short: "h" },
     },
     strict: true,
   });
@@ -137,7 +129,7 @@ async function deletePrefix(s3: S3Client, bucket: string, prefix: string): Promi
         Bucket: bucket,
         Prefix: `${prefix}/`,
         ContinuationToken: continuationToken,
-      })
+      }),
     );
 
     const objects = listResponse.Contents;
@@ -151,7 +143,7 @@ async function deletePrefix(s3: S3Client, bucket: string, prefix: string): Promi
     const deleteParams = {
       Bucket: bucket,
       Delete: {
-        Objects: objects.map((obj) => ({ Key: obj.Key! })),
+        Objects: objects.map(obj => ({ Key: obj.Key! })),
         Quiet: true,
       },
     };

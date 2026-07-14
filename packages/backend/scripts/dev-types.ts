@@ -5,4 +5,7 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-execSync("npx tsc --watch --preserveWatchOutput --emitDeclarationOnly", { stdio: "inherit", cwd: ROOT });
+execSync("npx tsc --watch --preserveWatchOutput --emitDeclarationOnly", {
+  stdio: "inherit",
+  cwd: ROOT,
+});

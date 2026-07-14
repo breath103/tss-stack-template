@@ -22,12 +22,19 @@ function main() {
     type: string;
     dependencies: Record<string, string>;
   };
-  fs.writeFileSync(path.join(DIST, "package.json"), JSON.stringify({
-    name: pkg.name,
-    version: pkg.version,
-    type: pkg.type,
-    dependencies: pkg.dependencies,
-  }, null, 2));
+  fs.writeFileSync(
+    path.join(DIST, "package.json"),
+    JSON.stringify(
+      {
+        name: pkg.name,
+        version: pkg.version,
+        type: pkg.type,
+        dependencies: pkg.dependencies,
+      },
+      null,
+      2,
+    ),
+  );
 
   console.log("Pack build complete");
 }
