@@ -93,7 +93,15 @@ If you need to inspect what's running: `./scripts/dev/status.ts <pid>` prints th
 ./packages/frontend/scripts/lint.ts --fix              # Lint frontend with auto-fix
 ./packages/backend/scripts/build-types.ts              # Type check backend
 ./packages/frontend/scripts/build-types.ts             # Type check frontend
+./packages/backend/scripts/knip.ts                     # Unused exports/types — backend (CI gate)
+./scripts/knip.ts                                      # Unused exports/types — frontend (CI gate)
 ```
+
+Both knip wrappers report unused exports + types by default (the CI gate); pass
+`--all` to also surface unused files/deps/members for a manual audit, or `--fix`
+to auto-remove what knip can safely delete. Mark an intentional cross-package
+export (e.g. a type the frontend imports from the backend) with a `/** @public */`
+JSDoc tag so the gate treats it as used.
 
 Lint scripts use ESLint's content cache by default under `node_modules/.cache/eslint/` so repeated local runs are fast. For final/full verification, run the same lint command with `--no-cache` (for example, `./scripts/lint --no-cache` or `./packages/frontend/scripts/lint.ts --no-cache`) so external rule inputs such as Tailwind CSS config/global CSS cannot leave stale cached results.
 
