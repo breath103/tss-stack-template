@@ -11,4 +11,5 @@ export const api = routes(
 );
 
 // Export type for frontend
+/** @public */
 export type ApiRoutes = ExtractRoutes<typeof api.routes>;

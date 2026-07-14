@@ -8,6 +8,9 @@ if [ -n "$BACKEND_STAGED" ]; then
   echo "Backend files changed, running lint --fix..."
   ./packages/backend/scripts/lint.ts --fix
   echo "$BACKEND_STAGED" | xargs git add
+
+  echo "Backend files changed, running knip..."
+  ./packages/backend/scripts/knip.ts
 fi
 
 E2E_STAGED=$(echo "$STAGED_FILES" | grep -E "^e2e/" || true)
@@ -25,4 +28,7 @@ if [ -n "$FRONTEND_STAGED" ]; then
   echo "Frontend files changed, running lint --fix..."
   ./packages/frontend/scripts/lint.ts --fix
   echo "$FRONTEND_STAGED" | xargs git add
+
+  echo "Frontend files changed, running knip..."
+  ./scripts/knip.ts
 fi
