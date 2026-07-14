@@ -61,9 +61,11 @@ export class BackendStack extends cdk.Stack {
     if (props.prewarmLambda) {
       new events.Rule(this, "WarmerSchedule", {
         schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
-        targets: [new targets.LambdaFunction(fn, {
-          event: events.RuleTargetInput.fromObject({ source: "warmer" }),
-        })],
+        targets: [
+          new targets.LambdaFunction(fn, {
+            event: events.RuleTargetInput.fromObject({ source: "warmer" }),
+          }),
+        ],
       });
     }
 

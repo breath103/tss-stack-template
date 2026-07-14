@@ -1,47 +1,42 @@
 #!/usr/bin/env -S node --import tsx
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
+// Self-contained by design: this package is `type: module` while the repo-root
+// `scripts/` tree is CommonJS, so a shared helper can't be imported cleanly
+// across that boundary. The linters do the real work — oxlint (correctness +
+// type-aware, reads `.oxlintrc.json`) then biome (formatting, import order,
+// tailwind class order). `--fix` fixes both; `--no-cache` is accepted and
+// ignored for backwards compatibility.
 const ROOT = path.resolve(import.meta.dirname, "..");
+const REPO_ROOT = path.resolve(ROOT, "../..");
+const targets = ["src", "scripts"];
+
 const args = process.argv.slice(2);
-const useCache = !args.includes("--no-cache");
-const eslint = [
-  path.join(ROOT, "node_modules/.bin/eslint"),
-  path.join(ROOT, "../../node_modules/.bin/eslint"),
-].find(existsSync);
+const fix = args.includes("--fix");
+const passthrough = args.filter(a => a !== "--fix" && a !== "--no-cache");
 
-if (!eslint) {
-  throw new Error("Could not find eslint. Run npm install from the repo root.");
+function bin(name: string): string {
+  const p = path.join(REPO_ROOT, "node_modules/.bin", name);
+  if (!existsSync(p)) {
+    throw new Error(`Could not find ${name}. Run npm install from the repo root.`);
+  }
+  return p;
 }
 
-const cacheDir = path.join(ROOT, "../../node_modules/.cache/eslint/frontend");
+const oxlint = spawnSync(
+  bin("oxlint"),
+  ["--type-aware", ...targets, ...(fix ? ["--fix"] : []), ...passthrough],
+  { stdio: "inherit", cwd: ROOT },
+);
+if (oxlint.error) throw oxlint.error;
 
-const eslintArgs = [
-  "src",
-  "scripts",
-];
+const biome = spawnSync(
+  bin("biome"),
+  ["check", ...(fix ? ["--write", "--unsafe"] : []), ...targets],
+  { stdio: "inherit", cwd: ROOT },
+);
+if (biome.error) throw biome.error;
 
-if (useCache) {
-  mkdirSync(cacheDir, { recursive: true });
-  eslintArgs.push(
-    "--cache",
-    "--cache-strategy",
-    "content",
-    "--cache-location",
-    path.join(cacheDir, ".eslintcache"),
-  );
-}
-
-eslintArgs.push(...args);
-
-const result = spawnSync(eslint, eslintArgs, {
-  stdio: "inherit",
-  cwd: ROOT,
-});
-
-if (result.error) {
-  throw result.error;
-}
-
-process.exit(result.status ?? 1);
+process.exit((oxlint.status ?? 1) || (biome.status ?? 1));

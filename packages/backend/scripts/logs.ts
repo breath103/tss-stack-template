@@ -1,11 +1,13 @@
 #!/usr/bin/env -S node --import tsx
 import { parseArgs } from "node:util";
-
+import {
+  CloudWatchLogsClient,
+  FilterLogEventsCommand,
+  ResourceNotFoundException,
+} from "@aws-sdk/client-cloudwatch-logs";
 import { sanitizeBranchName } from "shared/branch";
 import { askConfirmation, parseDuration, sleep } from "shared/cli-utils";
 import { loadConfig } from "shared/config";
-
-import { CloudWatchLogsClient, FilterLogEventsCommand, ResourceNotFoundException } from "@aws-sdk/client-cloudwatch-logs";
 
 import { BackendStack } from "./lib/backend-stack.js";
 
@@ -80,7 +82,12 @@ Examples:
   };
 }
 
-async function fetchLogs(logGroupName: string, region: string, startTime: number, tail: boolean): Promise<void> {
+async function fetchLogs(
+  logGroupName: string,
+  region: string,
+  startTime: number,
+  tail: boolean,
+): Promise<void> {
   const logs = new CloudWatchLogsClient({ region });
   let totalEvents = 0;
   let askedConfirmation = false;
@@ -89,7 +96,7 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
   while (true) {
     try {
       const response = await logs.send(
-        new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: FETCH_LIMIT })
+        new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: FETCH_LIMIT }),
       );
 
       const events = response.events ?? [];
@@ -109,7 +116,7 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
         const lastTs = events.at(-1)?.timestamp;
         const lastTime = lastTs ? new Date(lastTs).toISOString() : "N/A";
         const confirmed = await askConfirmation(
-          `\nRead ${totalEvents} events so far (last: ${lastTime}). Continue until now? (y/n): `
+          `\nRead ${totalEvents} events so far (last: ${lastTime}). Continue until now? (y/n): `,
         );
         if (!confirmed) {
           console.log("Stopped.");

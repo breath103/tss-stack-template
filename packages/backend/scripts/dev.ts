@@ -3,7 +3,7 @@ process.title = "dev:backend:watcher";
 
 import type { ChildProcess } from "node:child_process";
 import { spawn } from "node:child_process";
-import { watch, type WatchOptions } from "node:fs";
+import { type WatchOptions, watch } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 
@@ -17,7 +17,7 @@ const ROOT = path.join(import.meta.dirname, "..");
 const srcPath = path.join(ROOT, "src");
 
 const watch$ = (p: string, opts?: WatchOptions) =>
-  new Observable<void>((sub) => {
+  new Observable<void>(sub => {
     const listener = () => sub.next();
     if (opts) watch(p, opts, listener);
     else watch(p, listener);
@@ -34,7 +34,7 @@ const startServer = (tsx: string) => {
     cwd: ROOT,
     stdio: "inherit",
   });
-  server.once("exit", (code) => {
+  server.once("exit", code => {
     // Intentional restart (a file change SIGTERM'd it) → respawn. Otherwise the
     // server died on its own (e.g. failed to bind its port) — propagate the
     // failure instead of idling with a dead child, since the orchestrator

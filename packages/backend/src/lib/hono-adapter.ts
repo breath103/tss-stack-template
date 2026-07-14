@@ -9,14 +9,14 @@ type SchemaShape = Record<string, z.ZodTypeAny>;
 
 export function registerToHono<E extends Env>(
   app: Hono<E>,
-  routeCollection: RouteCollection<Context<E>, RouteDef[]>
+  routeCollection: RouteCollection<Context<E>, RouteDef[]>,
 ): void {
   for (const routeDef of routeCollection.routes) {
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/unbound-method -- RouteDef uses `any` by design */
+    /* oxlint-disable-next-line typescript/no-unsafe-assignment, typescript/unbound-method -- RouteDef uses `any` by design */
     const { path, method, querySchema, bodySchema, handler } = routeDef;
     const httpMethod = (method as string).toLowerCase() as Lowercase<HttpMethod>;
 
-    app[httpMethod](path, async (c) => {
+    app[httpMethod](path, async c => {
       const params = c.req.param();
 
       let parsedQuery = {};

@@ -5,6 +5,5 @@
     "noEmit": true,
     "declaration": false
   },
-  "include": ["."],
-  "exclude": ["eslint.config.ts"]
+  "include": ["."]
 }

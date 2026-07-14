@@ -11,7 +11,7 @@ export class Command<T extends z.ZodTuple = z.ZodTuple> {
     const items = this.args._zod.def.items as z.ZodTypeAny[];
     if (items.length === 0) return "";
     return " " + items.map((item) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line typescript/no-explicit-any
       const label = item.description ?? (item._zod.def as any).innerType?.description ?? "arg";
       return item.isOptional() ? `[${label}]` : `<${label}>`;
     }).join(" ");

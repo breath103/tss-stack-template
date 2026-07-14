@@ -3,12 +3,10 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
-
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { config as dotenvConfig } from "dotenv";
 import { sanitizeBranchName } from "shared/branch";
 import { frontendBucketName, loadConfig } from "shared/config";
-
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 import cacheRules from "../cache.json" with { type: "json" };
 
@@ -82,7 +80,7 @@ async function uploadDir(
   bucketName: string,
   deployName: string,
   dir: string,
-  prefix: string
+  prefix: string,
 ): Promise<void> {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -103,7 +101,7 @@ async function uploadDir(
           Body: fs.readFileSync(fullPath),
           ContentType: getContentType(entry.name),
           CacheControl: cacheControl,
-        })
+        }),
       );
       console.log(`  ${key} (${cacheControl.split(",")[0]})`);
     }

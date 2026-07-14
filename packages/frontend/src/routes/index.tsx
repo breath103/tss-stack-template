@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-
 import type { ApiRoutes } from "@backend/api";
 import { createRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import { ApiClient } from "../lib/api-client";
 import { rootRoute } from "./__root";
@@ -28,7 +27,7 @@ function Home() {
 
     api
       .fetch("/api/hello", "GET", { query: { name: "TypeSafe" } })
-      .then((data) => setMessage(data.message))
+      .then(data => setMessage(data.message))
       .catch(console.error);
 
     api
@@ -39,7 +38,7 @@ function Home() {
           count: 42,
           complexPayload: {
             tuple: ["String", 1, 2, 3],
-          }
+          },
         },
       })
       .then(setEchoResult)
@@ -56,10 +55,14 @@ function Home() {
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold text-gray-800">Frontend Env</h2>
         <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">
-          {JSON.stringify({
-            REQUIRED_FOO: process.env.REQUIRED_FOO,
-            OPTIONAL_FOO: process.env.OPTIONAL_FOO,
-          }, null, 2)}
+          {JSON.stringify(
+            {
+              REQUIRED_FOO: process.env.REQUIRED_FOO,
+              OPTIONAL_FOO: process.env.OPTIONAL_FOO,
+            },
+            null,
+            2,
+          )}
         </pre>
       </section>
 
@@ -84,7 +87,9 @@ function Home() {
       </section>
 
       <section className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-xl font-semibold text-gray-800">Echo Test (POST with params + body)</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">
+          Echo Test (POST with params + body)
+        </h2>
         {echoResult ? (
           <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">
             {JSON.stringify(echoResult, null, 2)}

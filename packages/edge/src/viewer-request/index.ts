@@ -35,7 +35,7 @@ function resolveBranch(start: string): string {
   return current;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// oxlint-disable-next-line no-unused-vars
 function handler(event: CloudFrontFunctionsEvent) {
   const request = event.request;
   const host = request.headers.host?.value ?? "";

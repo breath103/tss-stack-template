@@ -103,7 +103,7 @@ to auto-remove what knip can safely delete. Mark an intentional cross-package
 export (e.g. a type the frontend imports from the backend) with a `/** @public */`
 JSDoc tag so the gate treats it as used.
 
-Lint scripts use ESLint's content cache by default under `node_modules/.cache/eslint/` so repeated local runs are fast. For final/full verification, run the same lint command with `--no-cache` (for example, `./scripts/lint --no-cache` or `./packages/frontend/scripts/lint.ts --no-cache`) so external rule inputs such as Tailwind CSS config/global CSS cannot leave stale cached results.
+Linting is [oxlint](https://oxc.rs) (correctness + type-aware rules, config in each package's `.oxlintrc.json`) plus [Biome](https://biomejs.dev) (formatting, import order, Tailwind class order, config in root `biome.json`). Both are Rust-based and fast enough that no caching is needed — every run is a full run. The `--no-cache` flag is still accepted (and ignored) for backwards compatibility. Run `./scripts/lint` from repo root to lint everything, or a package's `lint.ts` directly; add `--fix` to auto-fix.
 
 ### Install packages
 

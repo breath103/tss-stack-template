@@ -32,14 +32,14 @@ export interface RouteContext<Context, Path extends string, Query, Body> {
 }
 
 export type RouteDef<
-  /* eslint-disable @typescript-eslint/no-explicit-any */
+  /* oxlint-disable typescript/no-explicit-any */
   Context = any,
   Path extends string = any,
   Method extends string = any,
   Query = any,
   Body = any,
   Response = any,
-  /* eslint-enable @typescript-eslint/no-explicit-any */
+  /* oxlint-enable typescript/no-explicit-any */
 > = {
   path: Path;
   method: Method;
@@ -63,7 +63,7 @@ export function routeFactory<C>() {
       query?: Q;
       body?: B;
       handler: (ctx: RouteContext<C, Path, SafeInfer<Q>, SafeInfer<B>>) => Promise<R> | R;
-    }
+    },
   ): RouteDef<C, Path, Method, SafeInfer<Q>, SafeInfer<B>, R> {
     return {
       path,
@@ -80,9 +80,7 @@ export type RouteCollection<C, T extends RouteDef<C>[]> = {
 };
 
 export function routesFactory<C>() {
-  return function routes<const T extends RouteDef<C>[]>(
-    ...routeDefs: T
-  ): RouteCollection<C, T> {
+  return function routes<const T extends RouteDef<C>[]>(...routeDefs: T): RouteCollection<C, T> {
     return { routes: routeDefs };
   };
 }

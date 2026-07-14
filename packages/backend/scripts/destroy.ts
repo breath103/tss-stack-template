@@ -1,11 +1,5 @@
 #!/usr/bin/env -S node --import tsx
 import { parseArgs } from "node:util";
-
-import { sanitizeBranchName } from "shared/branch";
-import { askConfirmation } from "shared/cli-utils";
-import { loadConfig } from "shared/config";
-import * as SSMParameters from "shared/ssm-parameters";
-
 import {
   CloudFormationClient,
   CloudFormationServiceException,
@@ -13,11 +7,11 @@ import {
   DescribeStacksCommand,
   waitUntilStackDeleteComplete,
 } from "@aws-sdk/client-cloudformation";
-import {
-  DeleteParameterCommand,
-  ParameterNotFound,
-  SSMClient,
-} from "@aws-sdk/client-ssm";
+import { DeleteParameterCommand, ParameterNotFound, SSMClient } from "@aws-sdk/client-ssm";
+import { sanitizeBranchName } from "shared/branch";
+import { askConfirmation } from "shared/cli-utils";
+import { loadConfig } from "shared/config";
+import * as SSMParameters from "shared/ssm-parameters";
 
 import { BackendStack } from "./lib/backend-stack.js";
 
@@ -42,9 +36,7 @@ async function main() {
   }
 
   if (!skipPrompt) {
-    const confirmed = await askConfirmation(
-      `Are you sure you want to destroy "${name}"? (y/N): `
-    );
+    const confirmed = await askConfirmation(`Are you sure you want to destroy "${name}"? (y/N): `);
     if (!confirmed) {
       console.log("Aborted.");
       return;
@@ -68,10 +60,7 @@ async function stackExists(stackName: string, region: string): Promise<boolean> 
   } catch (error) {
     // DescribeStacks on a missing stack surfaces as a ValidationError, not a
     // dedicated exception class — there is no typed class for this case.
-    if (
-      error instanceof CloudFormationServiceException &&
-      error.name === "ValidationError"
-    ) {
+    if (error instanceof CloudFormationServiceException && error.name === "ValidationError") {
       return false;
     }
     throw error;
@@ -81,10 +70,10 @@ async function stackExists(stackName: string, region: string): Promise<boolean> 
 function parseCliArgs() {
   const { values } = parseArgs({
     options: {
-      "name": { type: "string", short: "n" },
+      name: { type: "string", short: "n" },
       "dry-run": { type: "boolean" },
       "skip-prompt": { type: "boolean" },
-      "help": { type: "boolean", short: "h" },
+      help: { type: "boolean", short: "h" },
     },
     strict: true,
   });
@@ -146,17 +135,14 @@ async function deleteStack(stackName: string, region: string): Promise<void> {
   await client.send(new DeleteStackCommand({ StackName: stackName }));
 
   console.log("Waiting for stack deletion to complete...");
-  await waitUntilStackDeleteComplete(
-    { client, maxWaitTime: 600 },
-    { StackName: stackName }
-  );
+  await waitUntilStackDeleteComplete({ client, maxWaitTime: 600 }, { StackName: stackName });
 
   console.log(`Stack ${stackName} deleted successfully`);
 }
 
 async function deleteSsmParameter(
   config: ReturnType<typeof loadConfig>,
-  name: string
+  name: string,
 ): Promise<void> {
   const client = new SSMClient({ region: config.ssm.region });
   const ssmPath = SSMParameters.backendUrlName({

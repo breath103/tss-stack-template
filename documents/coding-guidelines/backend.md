@@ -93,7 +93,9 @@ try {
 
 ---
 
-## Run ESLint with --fix
+## Run the linters with --fix
+
+Linting is oxlint (correctness + type-aware) plus Biome (formatting, import order). Run both with auto-fix via:
 
 ```bash
 ./packages/backend/scripts/lint.ts --fix
