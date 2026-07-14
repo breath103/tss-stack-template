@@ -18,7 +18,9 @@ const srcPath = path.join(ROOT, "src");
 
 const watch$ = (p: string, opts?: WatchOptions) =>
   new Observable<void>((sub) => {
-    watch(p, opts, () => sub.next());
+    const listener = () => sub.next();
+    if (opts) watch(p, opts, listener);
+    else watch(p, listener);
   });
 
 let server: ChildProcess | null = null;
@@ -48,7 +50,7 @@ function main(): void {
     options: { env: { type: "string", short: "e", default: "development" } },
     strict: false,
   });
-  loadEnv(values.env);
+  loadEnv(typeof values.env === "string" ? values.env : undefined);
 
   merge(watch$(srcPath, { recursive: true }))
     .pipe(debounceTime(100), startWith(null))
