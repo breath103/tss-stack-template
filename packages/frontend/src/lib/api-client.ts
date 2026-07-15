@@ -69,9 +69,7 @@ export class ApiClient<T extends Routes> {
         if (value !== undefined && value !== null) {
           params.append(
             key,
-            typeof value === "object"
-              ? JSON.stringify(value)
-              : `${value as string | number | boolean}`,
+            typeof value === "object" ? JSON.stringify(value) : `${value as string | number | boolean}`
           );
         }
       }

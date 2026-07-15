@@ -32,8 +32,8 @@ function main() {
         dependencies: pkg.dependencies,
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 
   console.log("Pack build complete");

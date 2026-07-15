@@ -82,12 +82,7 @@ Examples:
   };
 }
 
-async function fetchLogs(
-  logGroupName: string,
-  region: string,
-  startTime: number,
-  tail: boolean,
-): Promise<void> {
+async function fetchLogs(logGroupName: string, region: string, startTime: number, tail: boolean): Promise<void> {
   const logs = new CloudWatchLogsClient({ region });
   let totalEvents = 0;
   let askedConfirmation = false;
@@ -96,7 +91,7 @@ async function fetchLogs(
   while (true) {
     try {
       const response = await logs.send(
-        new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: FETCH_LIMIT }),
+        new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: FETCH_LIMIT })
       );
 
       const events = response.events ?? [];
@@ -116,7 +111,7 @@ async function fetchLogs(
         const lastTs = events.at(-1)?.timestamp;
         const lastTime = lastTs ? new Date(lastTs).toISOString() : "N/A";
         const confirmed = await askConfirmation(
-          `\nRead ${totalEvents} events so far (last: ${lastTime}). Continue until now? (y/n): `,
+          `\nRead ${totalEvents} events so far (last: ${lastTime}). Continue until now? (y/n): `
         );
         if (!confirmed) {
           console.log("Stopped.");

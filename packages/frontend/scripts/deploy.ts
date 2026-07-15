@@ -80,7 +80,7 @@ async function uploadDir(
   bucketName: string,
   deployName: string,
   dir: string,
-  prefix: string,
+  prefix: string
 ): Promise<void> {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -101,7 +101,7 @@ async function uploadDir(
           Body: fs.readFileSync(fullPath),
           ContentType: getContentType(entry.name),
           CacheControl: cacheControl,
-        }),
+        })
       );
       console.log(`  ${key} (${cacheControl.split(",")[0]})`);
     }

@@ -28,10 +28,7 @@ function RootComponent() {
           {session?.user ? (
             <div className="flex items-center gap-3">
               <span className="text-gray-700">{session.user.name}</span>
-              <button
-                onClick={() => void signOut()}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={() => void signOut()} className="text-sm text-gray-500 hover:text-gray-700">
                 Sign out
               </button>
             </div>

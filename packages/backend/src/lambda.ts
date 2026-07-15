@@ -14,12 +14,7 @@ const _handler: StreamHandler = streamHandle(app);
 export const handler: StreamHandler = Object.assign(async (...args: Parameters<StreamHandler>) => {
   // Cron warmer: return early without processing
   const event: unknown = args[0];
-  if (
-    typeof event === "object" &&
-    event !== null &&
-    "source" in event &&
-    event.source === "warmer"
-  ) {
+  if (typeof event === "object" && event !== null && "source" in event && event.source === "warmer") {
     console.log("[warmer] ping");
     // In streaming Lambda, args are (event, responseStream, context).
     // The responseStream must be closed or the invocation hangs until timeout.

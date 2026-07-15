@@ -9,7 +9,7 @@ type SchemaShape = Record<string, z.ZodTypeAny>;
 
 export function registerToHono<E extends Env>(
   app: Hono<E>,
-  routeCollection: RouteCollection<Context<E>, RouteDef[]>,
+  routeCollection: RouteCollection<Context<E>, RouteDef[]>
 ): void {
   for (const routeDef of routeCollection.routes) {
     /* oxlint-disable-next-line typescript/no-unsafe-assignment, typescript/unbound-method -- RouteDef uses `any` by design */

@@ -88,11 +88,7 @@ function build(): void {
   execSync("./scripts/build.ts", { stdio: "inherit", cwd: ROOT });
 }
 
-function synthesizeStack(
-  config: ReturnType<typeof loadConfig>,
-  name: string,
-  envVars: Record<string, string>,
-): string {
+function synthesizeStack(config: ReturnType<typeof loadConfig>, name: string, envVars: Record<string, string>): string {
   console.log(`\nDeploying ${name} to ${config.backend.region} (project: ${config.project})...`);
 
   const app = new cdk.App({ outdir: path.join(ROOT, "cdk.out") });
@@ -122,14 +118,10 @@ function deploy(stackName: string): void {
   });
 }
 
-function storeUrlInSsm(
-  stackName: string,
-  name: string,
-  config: ReturnType<typeof loadConfig>,
-): void {
+function storeUrlInSsm(stackName: string, name: string, config: ReturnType<typeof loadConfig>): void {
   const functionUrl = execSync(
     `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`FunctionUrl\`].OutputValue' --output text --region ${config.backend.region}`,
-    { encoding: "utf-8" },
+    { encoding: "utf-8" }
   ).trim();
 
   const ssmPath = SSMParameters.backendUrlName({
@@ -140,7 +132,7 @@ function storeUrlInSsm(
   console.log(`\nStoring Function URL in SSM: ${ssmPath}`);
   execSync(
     `aws ssm put-parameter --name "${ssmPath}" --value "${functionUrl}" --type String --overwrite --region ${config.ssm.region}`,
-    { stdio: "inherit" },
+    { stdio: "inherit" }
   );
 
   console.log(`\n✅ Deployed: ${functionUrl}`);
