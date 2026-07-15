@@ -57,7 +57,7 @@ This does NOT apply to runtime code (`src/`) which runs in the browser and canno
 
 ## Run the linters with --fix
 
-Linting is oxlint (correctness + type-aware) plus Biome (formatting, import order, Tailwind class order). Run both with auto-fix via:
+Linting is oxlint (correctness + type-aware, plus Tailwind rules via the native `oxlint-tailwindcss` plugin) and Biome (formatting, import order). Run both with auto-fix via:
 
 ```bash
 ./packages/frontend/scripts/lint.ts --fix

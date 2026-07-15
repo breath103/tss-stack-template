@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { runLint } from "shared/lint";
 
-// oxlint (correctness + type-aware, reads `.oxlintrc.json`) then biome
-// (formatting, import order, tailwind class order). `--fix` fixes both;
+// oxlint (correctness + type-aware + tailwind, reads `.oxlintrc.json`) then
+// biome (formatting, import order). `--fix` fixes both;
 // `--no-cache` is accepted and ignored for backwards compatibility.
 runLint({
   cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
