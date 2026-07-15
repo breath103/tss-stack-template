@@ -1,5 +1,9 @@
 # Replace ESLint with oxlint + Biome
 
+> **Partially superseded by [`2026-07-15_native-oxlint-tailwind.md`](./2026-07-15_native-oxlint-tailwind.md).**
+> The Tailwind sections below describe `eslint-plugin-better-tailwindcss`, which has since been
+> replaced by the native `oxlint-tailwindcss` plugin. Everything else here still holds.
+
 ## Summary
 
 Remove ESLint entirely from the repo and replace it with two Rust-based tools:
