@@ -17,7 +17,7 @@ export function runLint({ cwd, targets, args }: { cwd: string; targets: string[]
 
   const oxlint = spawnSync(
     resolveBin("oxlint", cwd),
-    ["--type-aware", ...targets, ...(fix ? ["--fix"] : []), ...passthrough],
+    [...targets, ...(fix ? ["--fix"] : []), ...passthrough],
     { stdio: "inherit", cwd },
   );
   if (oxlint.error) throw oxlint.error;

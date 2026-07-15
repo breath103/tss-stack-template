@@ -3,6 +3,10 @@
 > **Partially superseded by [`2026-07-15_native-oxlint-tailwind.md`](./2026-07-15_native-oxlint-tailwind.md).**
 > The Tailwind sections below describe `eslint-plugin-better-tailwindcss`, which has since been
 > replaced by the native `oxlint-tailwindcss` plugin. Everything else here still holds.
+>
+> **Also:** type-aware linting is no longer switched on by a `--type-aware` CLI flag. It is
+> `options.typeAware` in `.oxlintrc.base.json`, so the CLI and the editor's oxc language server
+> read it from the same place. The rules and their behavior are unchanged.
 
 ## Summary
 

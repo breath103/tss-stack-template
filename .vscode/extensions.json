@@ -1,0 +1,4 @@
+{
+  "recommendations": ["oxc.oxc-vscode", "biomejs.biome", "bradlc.vscode-tailwindcss"],
+  "unwantedRecommendations": ["dbaeumer.vscode-eslint"]
+}
