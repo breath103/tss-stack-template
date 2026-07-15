@@ -5,10 +5,9 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const KNIP = [
-  path.join(ROOT, "node_modules/.bin/knip"),
-  path.join(ROOT, "../../node_modules/.bin/knip"),
-].find(existsSync);
+const KNIP = [path.join(ROOT, "node_modules/.bin/knip"), path.join(ROOT, "../../node_modules/.bin/knip")].find(
+  existsSync
+);
 
 function usage(): string {
   return [
@@ -64,12 +63,10 @@ function main(): void {
     execFileSync(KNIP, args, { cwd: ROOT, encoding: "utf-8" });
   } catch (err) {
     console.error(`backend-knip: command failed: ${command}`);
-    if (err instanceof Error && "stdout" in err && typeof err.stdout === "string")
-      printToolOutput(err.stdout);
-    if (err instanceof Error && "stderr" in err && typeof err.stderr === "string")
-      printToolOutput(err.stderr);
+    if (err instanceof Error && "stdout" in err && typeof err.stdout === "string") printToolOutput(err.stdout);
+    if (err instanceof Error && "stderr" in err && typeof err.stderr === "string") printToolOutput(err.stderr);
     console.error(
-      "\nbackend-knip: unused code found (see above). Remove it or add a narrow config exception for shared-boundary usage.",
+      "\nbackend-knip: unused code found (see above). Remove it or add a narrow config exception for shared-boundary usage."
     );
     process.exitCode = 1;
   }

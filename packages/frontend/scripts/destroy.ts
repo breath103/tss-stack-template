@@ -50,7 +50,7 @@ async function countPrefix(s3: S3Client, bucket: string, prefix: string): Promis
         Bucket: bucket,
         Prefix: `${prefix}/`,
         ContinuationToken: continuationToken,
-      }),
+      })
     );
     total += listResponse.Contents?.length ?? 0;
     continuationToken = listResponse.NextContinuationToken;
@@ -129,7 +129,7 @@ async function deletePrefix(s3: S3Client, bucket: string, prefix: string): Promi
         Bucket: bucket,
         Prefix: `${prefix}/`,
         ContinuationToken: continuationToken,
-      }),
+      })
     );
 
     const objects = listResponse.Contents;

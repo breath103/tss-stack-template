@@ -20,9 +20,7 @@ type OptionalUndefined<T> = {
 type Simplify<T> = { [K in keyof T]: T[K] };
 
 // Infer zod schema shape, making optional fields actually optional
-type SafeInfer<T> = [T] extends [never]
-  ? never
-  : Simplify<OptionalUndefined<{ [K in keyof T]: z.infer<T[K]> }>>;
+type SafeInfer<T> = [T] extends [never] ? never : Simplify<OptionalUndefined<{ [K in keyof T]: z.infer<T[K]> }>>;
 
 export interface RouteContext<Context, Path extends string, Query, Body> {
   params: { [K in ExtractPathParams<Path>]: string };
@@ -63,7 +61,7 @@ export function routeFactory<C>() {
       query?: Q;
       body?: B;
       handler: (ctx: RouteContext<C, Path, SafeInfer<Q>, SafeInfer<B>>) => Promise<R> | R;
-    },
+    }
   ): RouteDef<C, Path, Method, SafeInfer<Q>, SafeInfer<B>, R> {
     return {
       path,
@@ -93,9 +91,7 @@ export type ExtractRoutes<T extends RouteDef[]> = {
     >["handler"] extends (ctx: infer Ctx) => infer Response
       ? Ctx extends { query: infer Query; body: infer Body }
         ? {
-            params: ExtractPathParams<Path> extends never
-              ? never
-              : { [K in ExtractPathParams<Path>]: string };
+            params: ExtractPathParams<Path> extends never ? never : { [K in ExtractPathParams<Path>]: string };
             query: Query;
             body: Body;
             response: Awaited<Response>;

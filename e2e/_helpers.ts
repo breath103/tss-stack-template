@@ -14,9 +14,7 @@ const BASE = `http://${edge.devHost}:${edge.devPort}`;
 // where `page2` is a freshly created Playwright Page; that reads as a
 // deliberate bypass rather than a quiet escape hatch.
 export type ScenarioPage = Omit<Page, "screenshot"> & {
-  screenshot(
-    options: { name: string } & Omit<PageScreenshotOptions, "path" | "name">,
-  ): Promise<Buffer>;
+  screenshot(options: { name: string } & Omit<PageScreenshotOptions, "path" | "name">): Promise<Buffer>;
 };
 
 // ─── Scenario shape (consumed by scripts/e2e/commands/run.ts) ────────
@@ -42,14 +40,7 @@ export type Scenario = (ctx: {
 // sent — for example, an auth flow that tests "no cookie" and "stale
 // cookie" cases the same context would otherwise auto-fill.
 
-export type JsonInput =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | JsonInput[]
-  | { [k: string]: JsonInput };
+export type JsonInput = string | number | boolean | null | undefined | JsonInput[] | { [k: string]: JsonInput };
 
 interface ApiResponse<T> {
   status: number;
@@ -65,11 +56,7 @@ interface ApiOpts {
   bearer?: string;
 }
 
-export async function api<T>(
-  method: string,
-  path: string,
-  opts: ApiOpts = {},
-): Promise<ApiResponse<T>> {
+export async function api<T>(method: string, path: string, opts: ApiOpts = {}): Promise<ApiResponse<T>> {
   // `Origin` defaults to BASE so state-changing requests pass better-auth's
   // CSRF check. node `fetch` sends no Origin by default; setting it lets
   // harness traffic look like real same-origin requests.
@@ -96,12 +83,7 @@ export async function api<T>(
 }
 
 export function readError(body: unknown): string {
-  if (
-    typeof body === "object" &&
-    body !== null &&
-    "error" in body &&
-    typeof body.error === "string"
-  ) {
+  if (typeof body === "object" && body !== null && "error" in body && typeof body.error === "string") {
     return body.error;
   }
   return "";
@@ -160,10 +142,7 @@ type HarnessCtx = Reporter & {
  *     ...
  *   }, { timeoutMs: 5000 });
  */
-export function harness(
-  body: (ctx: HarnessCtx) => Promise<void>,
-  opts: { timeoutMs?: number } = {},
-): Scenario {
+export function harness(body: (ctx: HarnessCtx) => Promise<void>, opts: { timeoutMs?: number } = {}): Scenario {
   const timeoutMs = opts.timeoutMs ?? 3000;
   return async ({ page, request }) => {
     const steps: Step[] = [];
@@ -188,10 +167,7 @@ export function harness(
       await Promise.race([
         body({ step, stepOrExit, log, page, request }),
         new Promise<never>((_, rej) => {
-          timer = setTimeout(
-            () => rej(new Error(`scenario timed out after ${timeoutMs}ms`)),
-            timeoutMs,
-          );
+          timer = setTimeout(() => rej(new Error(`scenario timed out after ${timeoutMs}ms`)), timeoutMs);
         }),
       ]);
     } catch (err) {

@@ -14,13 +14,11 @@ export const indexRoute = createRoute({
 });
 
 function Home() {
-  const [health, setHealth] = useState<Awaited<
-    ReturnType<typeof api.fetch<"/api/health", "GET">>
-  > | null>(null);
+  const [health, setHealth] = useState<Awaited<ReturnType<typeof api.fetch<"/api/health", "GET">>> | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [echoResult, setEchoResult] = useState<Awaited<
-    ReturnType<typeof api.fetch<"/api/echo/:id", "POST">>
-  > | null>(null);
+  const [echoResult, setEchoResult] = useState<Awaited<ReturnType<typeof api.fetch<"/api/echo/:id", "POST">>> | null>(
+    null
+  );
 
   useEffect(() => {
     api.fetch("/api/health", "GET").then(setHealth).catch(console.error);
@@ -61,7 +59,7 @@ function Home() {
               OPTIONAL_FOO: process.env.OPTIONAL_FOO,
             },
             null,
-            2,
+            2
           )}
         </pre>
       </section>
@@ -69,9 +67,7 @@ function Home() {
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold text-gray-800">Backend Health</h2>
         {health ? (
-          <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">
-            {JSON.stringify(health, null, 2)}
-          </pre>
+          <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">{JSON.stringify(health, null, 2)}</pre>
         ) : (
           <p className="text-gray-500">Loading...</p>
         )}
@@ -79,21 +75,13 @@ function Home() {
 
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold text-gray-800">API Response</h2>
-        {message ? (
-          <p className="text-gray-700">{message}</p>
-        ) : (
-          <p className="text-gray-500">Loading...</p>
-        )}
+        {message ? <p className="text-gray-700">{message}</p> : <p className="text-gray-500">Loading...</p>}
       </section>
 
       <section className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-xl font-semibold text-gray-800">
-          Echo Test (POST with params + body)
-        </h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">Echo Test (POST with params + body)</h2>
         {echoResult ? (
-          <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">
-            {JSON.stringify(echoResult, null, 2)}
-          </pre>
+          <pre className="overflow-auto rounded-sm bg-gray-100 p-4 text-sm">{JSON.stringify(echoResult, null, 2)}</pre>
         ) : (
           <p className="text-gray-500">Loading...</p>
         )}

@@ -140,10 +140,7 @@ async function deleteStack(stackName: string, region: string): Promise<void> {
   console.log(`Stack ${stackName} deleted successfully`);
 }
 
-async function deleteSsmParameter(
-  config: ReturnType<typeof loadConfig>,
-  name: string,
-): Promise<void> {
+async function deleteSsmParameter(config: ReturnType<typeof loadConfig>, name: string): Promise<void> {
   const client = new SSMClient({ region: config.ssm.region });
   const ssmPath = SSMParameters.backendUrlName({
     project: config.project,
