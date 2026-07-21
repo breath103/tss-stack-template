@@ -1,0 +1,5 @@
+/* Hover halo in the button's own bg color. Each variant sets --glow to the
+   token behind its background; without it, no glow renders. */
+.glow:hover {
+  box-shadow: 0 0 0.75rem 0.1rem color-mix(in oklab, var(--glow, transparent) 45%, transparent);
+}

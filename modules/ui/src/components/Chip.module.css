@@ -1,0 +1,9 @@
+@reference "../theme/reference.css";
+
+/* Color comes from --base-color (set by global [data-color="..."] rule).
+   This block just declares the chip's shape + how it consumes --base-color. */
+.base {
+  color: var(--base-color);
+  background-color: color-mix(in oklab, var(--base-color) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--base-color) 30%, transparent);
+}

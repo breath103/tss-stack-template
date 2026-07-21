@@ -1,0 +1,45 @@
+@reference "../theme/reference.css";
+
+/* Footprint is exactly one line-height of the base font (size-[1lh] off
+ * text-base), so the checkbox occupies a single text line and tracks the font. */
+.label {
+  @apply relative inline-flex size-[1lh] p-[0.1em] shrink-0 cursor-pointer items-center justify-center text-base;
+}
+
+.labelDisabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.input {
+  @apply sr-only;
+}
+
+/* The box styles off the sibling <input>'s state. Tailwind's `peer-*` / `group-*`
+ * variants are relational and DON'T survive `@apply` inside a module (they need
+ * the peer/group markers wired from scanned markup) — so the relational selector
+ * is written by hand here and `@apply` supplies only the properties. */
+.box {
+  @apply flex size-full items-center justify-center rounded-sm border bg-input text-text-2 transition-colors;
+}
+.label:hover .box {
+  @apply border-accent-1 bg-highlight2;
+}
+.input:checked + .box {
+  @apply border-accent-1 bg-accent-1 text-accent-1-fg;
+}
+.label:hover .input:checked + .box {
+  @apply border-accent-1 bg-highlight2;
+}
+
+.label:active .box {
+  @apply border-accent-1/25 bg-highlight3;
+}
+
+/* Mirrors the focus-input @utility — a module can't @apply a focus: utility,
+   so the ring values (accent-2, ring-2, offset-1) are written out here. */
+.input:focus-visible + .box {
+  @apply ring-2 ring-accent-2 ring-offset-1 ring-offset-background;
+}
+.icon {
+  @apply size-full;
+}

@@ -1,0 +1,329 @@
+/* ============================================================================
+   ui design system — the token contract + primitives every ui/* component
+   depends on. A consuming app imports this after `@import "tailwindcss"`, then
+   overrides any token below in its own stylesheet. Pure CSS-variable theming:
+   the seed tokens (--bg-seed, --tint-seed, --accent-*, --font-*, --radius) are
+   the intended override surface; the derived surfaces/highlights compute from
+   them, so a handful of seed edits restyle the whole system.
+
+   The app is responsible for `@import "tailwindcss"` and loading its own fonts;
+   this file `@source`s the module's own components (relative to itself), so the
+   consumer just imports it — no `@source` line of their own needed.
+   ========================================================================= */
+
+/* Scan this module's source (../ == modules/ui/src) so its utility classes
+   compile wherever this stylesheet is imported. Resolved relative to THIS file,
+   so it works through a node_modules/package import too. */
+@source "..";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant stuck-top {
+  @container scroll-state(stuck: top) {
+    @slot;
+  }
+}
+
+/* Desktop-first responsive convention: unprefixed classes are the desktop
+   default; `mobile:` overrides apply on phone-sized viewports. Inverse of
+   Tailwind's mobile-first default — so `flex-row mobile:flex-col` reads as
+   "row on desktop, column on phone". */
+@custom-variant mobile (@media (max-width: 767px));
+
+/* Neutral system-font defaults so the library renders standalone. Each app sets
+   its own brand fonts by overriding these three tokens (and loading the files)
+   in its own stylesheet — see the consuming app's entry. */
+:root {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ============================================================================
+   Light mode (default)
+   "Cockpit in daylight, hangar floor." Cool near-white background, surfaces
+   lift toward pure white, text is cool near-black.
+   ========================================================================= */
+:root {
+  --bg-seed: oklch(0.965 0.004 230);
+  --tint-seed: oklch(1 0 0);
+
+  --background: var(--bg-seed);
+  --surface-muted: color-mix(in oklch, var(--bg-seed), black 3.5%);
+  --surface-1: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 50%);
+  --surface-2: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 85%);
+
+  --input: oklch(0.98 0.01 280.71);
+
+  --text-1: oklch(0.13 0.025 240);
+  --text-2: oklch(0.36 0.02 240);
+  --text-3: oklch(0.5 0.015 240);
+
+  --accent-1: oklch(0.5329 0.1666 259.5807);
+  --accent-1-fg: oklch(0.96 0.01 230);
+  --accent-2: oklch(0.6556 0.2323 33.1142);
+  --accent-2-fg: oklch(0.96 0.01 230);
+  --accent-3: oklch(0.58 0.13 182.94);
+  --accent-3-fg: oklch(0.96 0.01 230);
+
+  --highlight1: oklch(from var(--accent-1) l calc(c * 1.2) h / 0.35);
+  --highlight2: oklch(from var(--accent-1) l calc(c * 1.2) h / 0.2);
+  --highlight3: oklch(from var(--accent-1) l calc(c * 1.2) h / 0.1);
+
+  --error: oklch(0.72 0.22 60);
+  --error-fg: oklch(0.99 0.005 60);
+  --success: oklch(0.55 0.16 145);
+  --success-fg: oklch(0.99 0.005 145);
+
+  --border: color-mix(in oklch, var(--background), var(--text-1) 10%);
+  --border-strong: color-mix(in oklch, var(--background), var(--text-1) 30%);
+  --overlay: oklch(0 0 0 / 0.5); /* modal/dialog/sheet backdrop scrim */
+  --radius: 0.5rem;
+
+  --input: oklch(from var(--accent-1) calc(l * 1.825) calc(c * 0.05) h);
+}
+
+/* ============================================================================
+   Dark mode (primary identity)
+   "Cockpit at 3 AM, mission in progress." Deep navy-black background with
+   cool tint lifting surfaces; text is cool near-white.
+   ========================================================================= */
+.dark {
+  --bg-seed: oklch(0.1 0.025 250);
+  --tint-seed: oklch(0.85 0.04 230);
+
+  --background: var(--bg-seed);
+  --surface-muted: color-mix(in oklch, var(--bg-seed), black 50%);
+  --surface-1: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 10%);
+  --surface-2: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 18%);
+  --surface-3: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 28%);
+
+  --text-1: oklch(0.96 0.01 230);
+  --text-2: oklch(0.78 0.015 230);
+  --text-3: oklch(0.55 0.02 230);
+
+  --accent-1: oklch(0.5329 0.1666 259.5807);
+  --accent-1-fg: oklch(0.96 0.01 230);
+  --accent-2: oklch(0.6556 0.2323 33.1142);
+  --accent-2-fg: oklch(0.96 0.01 230);
+  --accent-3: oklch(0.58 0.13 182.94);
+  --accent-3-fg: oklch(0.96 0.01 230);
+
+  --highlight1: oklch(from var(--accent-1) l calc(c * 1.25) h / 0.45);
+  --highlight2: oklch(from var(--accent-1) l calc(c * 1.25) h / 0.35);
+  --highlight3: oklch(from var(--accent-1) l calc(c * 1.25) h / 0.21);
+
+  --error: oklch(0.8 0.21 60);
+  --error-fg: oklch(0.15 0.04 60);
+  --success: oklch(0.72 0.16 145);
+  --success-fg: oklch(0.13 0.04 145);
+
+  --border: color-mix(in oklch, var(--background), var(--text-1) 22%);
+  --border-strong: color-mix(in oklch, var(--background), var(--text-1) 40%);
+  --overlay: oklch(0 0 0 / 0.5); /* modal/dialog/sheet backdrop scrim */
+
+  --input: oklch(from var(--accent-1) calc(l * 0.18) calc(c * 0.3) h);
+}
+
+/* ============================================================================
+   Shared chip palette — used by Badge, gantt bar, and any other surface that
+   sets `data-color="..."`. Defined in one place; light + dark variants live
+   together so a new color is added by editing this block alone.
+
+   The first six (gray/green/red/blue/mint/purple) alias existing theme tokens
+   that already retune per L/D. The last five (rose/sky/indigo/amber/emerald)
+   are dedicated chip-only hues with explicit dark lifts.
+   ========================================================================= */
+:root {
+  --palette-gray: oklch(0.13 0.025 240);
+  --palette-green: oklch(0.55 0.16 145);
+  --palette-red: oklch(0.72 0.22 60);
+  --palette-blue: oklch(0.52 0.24 245);
+  --palette-mint: oklch(0.55 0.13 185);
+  --palette-purple: oklch(0.68 0.24 18.19);
+  --palette-rose: oklch(0.6 0.08 15);
+  --palette-sky: oklch(0.62 0.14 220);
+  --palette-indigo: oklch(0.55 0.22 275);
+  --palette-amber: oklch(0.7 0.18 60);
+  --palette-emerald: oklch(0.58 0.18 150);
+}
+.dark {
+  --palette-gray: oklch(0.96 0.01 230);
+  --palette-green: oklch(0.72 0.16 145);
+  --palette-red: oklch(0.8 0.21 60);
+  --palette-blue: oklch(0.66 0.2 245);
+  --palette-mint: oklch(0.78 0.13 185);
+  --palette-purple: oklch(0.68 0.25 18.19);
+  --palette-rose: oklch(0.78 0.09 15);
+  --palette-sky: oklch(0.8 0.14 220);
+  --palette-indigo: oklch(0.74 0.2 275);
+  --palette-amber: oklch(0.82 0.18 60);
+  --palette-emerald: oklch(0.76 0.18 150);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-input: var(--input);
+
+  /* Transparent accent overlays — the source of truth for the wash
+     intensities. 1 = selected, 2 = hover, 3 = active. button-bg-overlay
+     applies these directly on top of whatever parent bg sits behind. */
+  --color-highlight1: var(--highlight1);
+  --color-highlight2: var(--highlight2);
+  --color-highlight3: var(--highlight3);
+
+  /* Pre-mixed surface + highlight — for elements that need an opaque
+     wash (sticky rows, popovers) so nothing leaks through. Composed
+     from the highlight tokens above so the intensities are defined once. */
+  --color-surface1-highlight1: color-mix(in oklab, var(--surface-1), var(--highlight1));
+  --color-surface1-highlight2: color-mix(in oklab, var(--surface-1), var(--highlight2));
+  --color-surface1-highlight3: color-mix(in oklab, var(--surface-1), var(--highlight3));
+  --color-surface2-highlight1: color-mix(in oklab, var(--surface-2), var(--highlight1));
+  --color-surface2-highlight2: color-mix(in oklab, var(--surface-2), var(--highlight2));
+  --color-surface2-highlight3: color-mix(in oklab, var(--surface-2), var(--highlight3));
+
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+
+  --color-accent-1: var(--accent-1);
+  --color-accent-1-fg: var(--accent-1-fg);
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-fg: var(--accent-2-fg);
+  --color-accent-3: var(--accent-3);
+  --color-accent-3-fg: var(--accent-3-fg);
+
+  --color-error: var(--error);
+  --color-error-fg: var(--error-fg);
+  --color-success: var(--success);
+  --color-success-fg: var(--success-fg);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-overlay: var(--overlay);
+
+  --text-xs: 0.65rem;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-lg: 1.2rem;
+  --text-xl: 1.6rem;
+
+  /* Radius — tight cockpit progression: 4 / 6 / 8 / 10 px */
+  --radius-sm: 0.25rem; /* 4px — small chips, inset highlights */
+  --radius-md: 0.375rem; /* 6px — buttons, inputs, small surfaces */
+  --radius: 0.5rem; /* 8px — default card */
+  --radius-lg: 0.625rem; /* 10px — large cards, dialogs */
+
+  /* Fonts */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
+
+  /* Shadows — two only, defined once */
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.1), 0 1px 3px oklch(0 0 0 / 0.06);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.1), 0 1px 3px oklch(0 0 0 / 0.06);
+  --shadow-lg: 0 8px 24px oklch(0 0 0 / 0.18), 0 2px 6px oklch(0 0 0 / 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    font-size: 15px;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-text-1 text-base tracking-normal;
+    font-family: var(--font-sans);
+  }
+  button {
+    @apply cursor-pointer;
+  }
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+}
+
+/* ============================================================================
+   Brand utilities
+   ========================================================================= */
+
+@utility button-bg-overlay {
+  @apply hover:bg-highlight2 active:bg-highlight3 aria-selected:bg-highlight1;
+}
+
+/* The shared focus ring for every fillable field — plain inputs/textareas fire
+   on :focus; editor wrappers (a contenteditable child holds focus) fire on
+   :focus-within, so both are covered by one utility. outline-none kills the
+   doubled native outline; ring-offset-background keeps the offset gap on-theme
+   instead of Tailwind's default white. The checkbox mirrors these ring values
+   in its module (a module can't @apply a focus utility). */
+@utility focus-input {
+  outline: none;
+  &:focus,
+  &:focus-within {
+    @apply ring-2 ring-accent-1/75;
+  }
+}
+
+@utility button-bg-surface1 {
+  @apply bg-surface-1 hover:bg-surface1-highlight2 active:bg-surface1-highlight3 aria-selected:bg-surface1-highlight1;
+}
+
+@utility button-bg-surface2 {
+  @apply bg-surface-2 hover:bg-surface2-highlight2 active:bg-surface2-highlight3 aria-selected:bg-surface2-highlight1;
+}
+
+/* Display font marker — the --font-display face, for marketing/wordmark only */
+@utility text-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+}
+
+/* Monospace data marker */
+@utility text-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Enables scroll-state container queries such as stuck-top:shadow-lg. */
+@utility scroll-state {
+  container-type: scroll-state;
+}
+
+/* Hides the scrollbar while keeping the element scrollable. WebKit still needs
+   the pseudo-element; scrollbar-width covers Firefox and Chrome 121+. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   Animation kill-switch — set <html data-no-anim> to disable transitions,
+   CSS animations, and (via MotionConfig in main.tsx) framer-motion playback.
+   Used by e2e tests to remove ~72 waitForTimeout calls; opt-in via URL param
+   (?no-anim=1), localStorage.noAnim, or the noAnim=1 cookie (Playwright
+   e2e harness sets this via addCookies). Never set in production paths.
+   The non-zero (0.0001s) duration keeps `animationend` listeners firing so
+   Radix Dialog still completes its close-cleanup path; visually it's a snap.
+   ========================================================================= */
+[data-no-anim] *,
+[data-no-anim] *::before,
+[data-no-anim] *::after {
+  animation-duration: 0.0001s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.0001s !important;
+  transition-delay: 0s !important;
+}
