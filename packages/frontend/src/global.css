@@ -1,1 +1,9 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* The ui design system: tokens, @theme, base layer, brand utilities. It
+   `@source`s its own components, so no `@source` line is needed here. Override
+   any token below this import to reskin — the template ships neutral defaults
+   (system fonts, the default palette); a downstream app sets its brand by
+   overriding tokens (--font-sans, --accent-1, --bg-seed, --radius, …) here. */
+@import "@modules/ui/src/theme/theme.css";

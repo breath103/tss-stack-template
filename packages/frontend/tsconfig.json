@@ -8,9 +8,10 @@
     "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
-    "rootDir": "..",
+    "rootDir": "../..",
     "paths": {
       "@/*": ["./src/*"],
+      "@ui/*": ["../../modules/ui/src/*"],
       "@backend/*": ["../backend/dist/*"]
     }
   },

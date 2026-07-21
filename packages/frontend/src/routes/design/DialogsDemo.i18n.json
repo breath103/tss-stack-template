@@ -1,0 +1,42 @@
+{
+  "en": {
+    "confirmCardTitle": "Confirm dialog",
+    "confirmCardDescription": "The shared destructive confirmation modal — opened imperatively from a handler, awaits a boolean.",
+    "confirmTitle": "Delete goal?",
+    "confirmDescription": "This cascades: every sub-goal, every task under this subtree, and all their subtasks and tags will be deleted.",
+    "delete": "Delete",
+    "openDestructiveConfirm": "Open destructive confirm",
+    "customCardTitle": "Form modal — ModalForm",
+    "customCardDescriptionPrefix": "A form in a modal: ModalForm owns the header, fields, and cancel/submit footer.",
+    "customCardDescriptionSuffix": "pushes a component receiving",
+    "openWaypointEditor": "Open waypoint editor",
+    "editWaypoint": "Edit waypoint",
+    "callsign": "Callsign",
+    "priority": "Priority",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "ko": {
+    "confirmCardTitle": "확인 다이얼로그",
+    "confirmCardDescription": "핸들러에서 명령형으로 열고 boolean을 기다리는 공유 삭제 확인 모달입니다.",
+    "confirmTitle": "트랙을 삭제할까요?",
+    "confirmDescription": "이 하위 트리의 모든 하위 트랙, 작업, 하위 작업, 태그가 함께 삭제됩니다.",
+    "delete": "삭제",
+    "openDestructiveConfirm": "삭제 확인 열기",
+    "customCardTitle": "폼 모달 — ModalForm",
+    "customCardDescriptionPrefix": "모달 안의 폼: ModalForm이 헤더, 필드, 취소/제출 푸터를 담당합니다.",
+    "customCardDescriptionSuffix": "는 다음 props를 받는 컴포넌트를 엽니다",
+    "openWaypointEditor": "경유지 편집기 열기",
+    "editWaypoint": "경유지 편집",
+    "callsign": "콜사인",
+    "priority": "우선순위",
+    "priorityLow": "낮음",
+    "priorityMedium": "중간",
+    "priorityHigh": "높음",
+    "cancel": "취소",
+    "save": "저장"
+  }
+}

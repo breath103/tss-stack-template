@@ -1,0 +1,10 @@
+@reference "../theme/reference.css";
+
+/* The shared panel surface — the root menu and every submenu flyout. w-max
+   (not w-fit): submenus are absolutely positioned, and fit-content resolves
+   against the popper wrapper, pinning them to the minimum regardless of their
+   rows. No animation: a menu is an instant-action surface (see
+   animate-mode-changes-not-instant-action-overlays). */
+.menu {
+  @apply w-max min-w-40 max-w-72 z-50 max-h-72 overflow-y-auto rounded-md border bg-surface-2 p-1 text-text-1 shadow-md outline-hidden;
+}

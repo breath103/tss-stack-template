@@ -1,0 +1,6 @@
+/* Reference-only entry for `@apply` inside this package's CSS modules. Pulls in
+   Tailwind's utilities plus the design tokens/brand utilities so `@reference`d
+   modules resolve `@apply` without emitting any CSS. */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./theme.css";
