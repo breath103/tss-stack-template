@@ -23,6 +23,13 @@ function RootComponent() {
           >
             About
           </Link>
+          <Link
+            to="/design"
+            className="text-gray-600 hover:text-gray-900"
+            activeProps={{ className: "text-blue-600 font-semibold" }}
+          >
+            Design
+          </Link>
         </div>
         <div>
           {session?.user ? (
