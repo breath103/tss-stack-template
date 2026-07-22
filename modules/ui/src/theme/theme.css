@@ -52,8 +52,6 @@
   --surface-1: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 50%);
   --surface-2: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 85%);
 
-  --input: oklch(0.98 0.01 280.71);
-
   --text-1: oklch(0.13 0.025 240);
   --text-2: oklch(0.36 0.02 240);
   --text-3: oklch(0.5 0.015 240);
