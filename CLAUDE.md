@@ -38,6 +38,10 @@ means the safety net stays off for the very code that needs it.
   which drives sync → design → implement → verify → PR → land. Only skip it for
   trivial one-offs.
 - **Never call `npx` directly.** This project has scripts for everything. Use the provided scripts instead.
+- **No `"warn"` lint rules — ever.** Every rule is `"error"` (fix it) or `"off"`
+  (we don't care). A `"warning"` severity is noise nobody acts on. Do NOT add a
+  rule at `"warn"`, and do NOT downgrade an `"error"` to `"warn"` to make lint
+  pass — either fix the code or turn the rule `"off"` deliberately.
 
 ## Worktrees
 

@@ -329,7 +329,14 @@ export function TimeInput({
       onChange={e => {
         if (e.target.value) onChange(e.target.value);
       }}
-      className="rounded-lg border bg-input px-2.5 py-1.5 text-base text-text-1 focus-input transition-all duration-150 disabled:opacity-50"
+      className={cn(
+        // surface
+        "rounded-lg border bg-input px-2.5 py-1.5 text-base text-text-1",
+        // focus / transition
+        "focus-input transition-all duration-150",
+        // disabled
+        "disabled:opacity-50"
+      )}
     />
   );
 }

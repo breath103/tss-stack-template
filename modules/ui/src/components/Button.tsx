@@ -8,7 +8,16 @@ import { Spinner } from "./Spinner";
 
 // Colors + shape only. The control's dimensions come from ButtonLabel (font-size).
 const buttonStyle = cva(
-  "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md font-medium whitespace-nowrap transition-all duration-150 outline-none focus-visible:ring-[3px] focus-visible:ring-accent-1/50 active:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+  [
+    // layout
+    "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md font-medium whitespace-nowrap",
+    // transition
+    "transition-all duration-150 outline-none",
+    // focus
+    "focus-visible:ring-[3px] focus-visible:ring-accent-1/50",
+    // active / disabled
+    "active:opacity-60 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+  ],
   {
     variants: {
       variant: {

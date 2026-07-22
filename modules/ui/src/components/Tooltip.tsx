@@ -31,14 +31,21 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          // surface
-          "z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md bg-text-1 px-3 py-1.5 text-sm text-balance text-background",
-          // enter / exit
+          // surface — box
+          "z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md bg-text-1 px-3 py-1.5",
+          // surface — text
+          "text-sm text-balance text-background",
+          // enter
           "animate-in duration-200 fade-in-0 zoom-in-95",
-          "data-[state=closed]:animate-out data-[state=closed]:duration-150 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
-          // slide direction, per side
-          "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-          "data-[side=bottom]:data-[state=closed]:slide-out-to-top-2 data-[side=left]:data-[state=closed]:slide-out-to-right-2 data-[side=right]:data-[state=closed]:slide-out-to-left-2 data-[side=top]:data-[state=closed]:slide-out-to-bottom-2",
+          // exit
+          "data-[state=closed]:animate-out data-[state=closed]:duration-150",
+          "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+          // slide in, per side
+          "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
+          "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          // slide out, per side
+          "data-[side=bottom]:data-[state=closed]:slide-out-to-top-2 data-[side=left]:data-[state=closed]:slide-out-to-right-2",
+          "data-[side=right]:data-[state=closed]:slide-out-to-left-2 data-[side=top]:data-[state=closed]:slide-out-to-bottom-2",
           className
         )}
         {...props}

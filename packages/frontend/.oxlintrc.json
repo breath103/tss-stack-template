@@ -22,16 +22,16 @@
     "local/no-raw-fetch": "error",
 
     "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "warn",
+    "react/exhaustive-deps": "error",
 
-    "tailwindcss/enforce-sort-order": "warn",
-    "tailwindcss/enforce-consistent-line-wrapping": "off",
-    "tailwindcss/no-deprecated-classes": "warn",
-    "tailwindcss/no-duplicate-classes": "warn",
-    "tailwindcss/no-unnecessary-whitespace": "warn",
-    "tailwindcss/enforce-canonical": "warn",
+    "tailwindcss/enforce-sort-order": "error",
+    "tailwindcss/enforce-consistent-line-wrapping": ["error", { "printWidth": 120 }],
+    "tailwindcss/no-deprecated-classes": "error",
+    "tailwindcss/no-duplicate-classes": "error",
+    "tailwindcss/no-unnecessary-whitespace": "error",
+    "tailwindcss/enforce-canonical": "error",
     "tailwindcss/no-conflicting-classes": "error",
-    "tailwindcss/no-unknown-classes": "warn",
+    "tailwindcss/no-unknown-classes": "error",
 
     "no-restricted-imports": ["error", {
       "paths": [{

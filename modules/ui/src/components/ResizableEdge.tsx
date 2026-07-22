@@ -92,7 +92,16 @@ export const ResizableEdge = memo(function ResizableEdge({
         className
       )}
     >
-      <span className="block h-full w-px bg-border transition-all duration-150 group-hover:w-0.5 group-hover:bg-accent-1 group-active:w-1 group-active:bg-accent-1" />
+      <span
+        className={cn(
+          // base
+          "block h-full w-px bg-border transition-all duration-150",
+          // hover
+          "group-hover:w-0.5 group-hover:bg-accent-1",
+          // active
+          "group-active:w-1 group-active:bg-accent-1"
+        )}
+      />
     </div>
   );
 });
