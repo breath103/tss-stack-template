@@ -1,6 +1,5 @@
 import { Checkbox } from "@ui/components/Checkbox";
 import { Input } from "@ui/components/Input";
-import { Textarea } from "@ui/components/Textarea";
 import { useState } from "react";
 import { SectionTitle } from "./SectionTitle";
 
@@ -24,10 +23,11 @@ export function InputsDemo() {
         <Input value="LOCKED" onChange={() => {}} disabled readOnly />
       </div>
       <div className="space-y-2 md:col-span-2">
-        <SectionTitle className="block">Textarea (native field-sizing auto-grow)</SectionTitle>
-        <Textarea
+        <SectionTitle className="block">Multiline (Input autoresize)</SectionTitle>
+        <Input
+          autoresize
           value={notes}
-          onChange={e => setNotes(e.target.value)}
+          onChange={setNotes}
           placeholder="Multi-line notes — grows with content, then scrolls."
         />
       </div>
