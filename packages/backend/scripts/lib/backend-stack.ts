@@ -14,6 +14,7 @@ interface BackendStackId {
   name: string;
 }
 
+// oxlint-disable-next-line local/no-single-use-type -- CDK stack props contract extending StackProps; the named interface is the idiom
 interface BackendStackProps extends cdk.StackProps {
   project: string;
   name: string;

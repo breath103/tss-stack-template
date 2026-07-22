@@ -18,6 +18,7 @@ export const handler: StreamHandler = Object.assign(async (...args: Parameters<S
     console.log("[warmer] ping");
     // In streaming Lambda, args are (event, responseStream, context).
     // The responseStream must be closed or the invocation hangs until timeout.
+    // oxlint-disable-next-line local/no-double-cast -- awslambda streamifyResponse passes a Writable not typed as one
     const responseStream = args[1] as unknown as import("stream").Writable;
     responseStream.end();
     return;

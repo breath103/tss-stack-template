@@ -14,6 +14,7 @@ import { BackendStack } from "./lib/backend-stack.js";
 const FETCH_LIMIT = 100;
 const MAX_EVENTS_BEFORE_CONFIRMATION = 100;
 
+// oxlint-disable-next-line local/no-single-use-type -- parsed-CLI-args shape; the name documents the arg contract
 interface CliArgs {
   name: string;
   startTime: number;
