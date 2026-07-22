@@ -1,0 +1,8 @@
+# TL;DR — the rules that matter most
+
+1. **Every scenario starts with a fresh DB.** The runner calls `db:seed` before every scenario, reloading a pinned production snapshot. Don't write tests that depend on prior runs' state — or on project/task IDs, which aren't stable across snapshot refreshes.
+2. **Local dev is <100ms per API call.** If something takes longer, it's a real bug — never paper over it with a long wait. This includes `waitForTimeout(...)` and pointless `waitFor({ timeout: 5_000 })` caps. Find the race or the missing wait condition.
+3. **Screenshots first when something fails.** `e2e/fixtures/<scenario>/*.png` is the primary debug surface. Re-running with logs or sleeps before you've looked at the screenshots is wasted time. **Default to the viewport-sized screenshot; only pass `fullPage: true` when the assertion specifically needs content below the fold** — fullPage waits for every lazy section / portal to settle and can hang a scenario on a heavy page.
+4. **Use `harness()` for anything with >1 assertion.** It records pass/fail per step so a mid-scenario failure still tells you what was working.
+5. **Assert on user-observable behavior, not implementation details.** Testing persistence? Reload and check the UI. Don't read `localStorage`. Nobody cares whether the feature is backed by localStorage, IndexedDB, or cookies — they care that it works.
+6. **Don't pre-flight the API.** Direct `api()` calls are for SEEDING fixtures and AUTH (`devLogin`) — not for asserting endpoints work. The UI flow exercises them; a "Backend sanity" block double-tests the same contract and locks the endpoint shape in place.
