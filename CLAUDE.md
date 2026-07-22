@@ -17,6 +17,20 @@ Don't read every rule — find the ones that govern your diff:
 - `./documents/coding-guidelines/check-all.ts [--group <g>]` — run every `check.sh`
 - The `check-guidelines` skill drives the full find → check procedure.
 
+### Optional add-ons (`uses` in `tss.json`)
+
+`tss.json` has a `uses` array listing the optional add-ons this project has
+adopted (e.g. `supabase`, `entity-repository`). It gates automatic checking:
+guideline rules tagged `requires: <add-on>` and oxlint rules with
+`meta.requires` only run when that add-on is in `uses`. A fresh template starts
+with `"uses": []`.
+
+**When you introduce a new library or a new architectural concept, add its
+matching add-on to `uses` if one exists** — that's what switches on the rules
+and checks that guard it. Adopting supabase-js? Add `"supabase"` and the
+supabase guidelines + oxlint rules start enforcing themselves. Skipping this
+means the safety net stays off for the very code that needs it.
+
 ## Important Rules
 
 - **For any proper task, use the `/do-task` skill.** A feature, a bug fix, PR
