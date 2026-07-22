@@ -1,5 +1,6 @@
 import { Checkbox } from "@ui/components/Checkbox";
 import { Input } from "@ui/components/Input";
+import { Textarea } from "@ui/components/Textarea";
 import { useState } from "react";
 import { SectionTitle } from "./SectionTitle";
 
@@ -10,6 +11,7 @@ const NUMBER_INPUT_CLASS =
 
 export function InputsDemo() {
   const [callsign, setCallsign] = useState("");
+  const [notes, setNotes] = useState("");
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -20,6 +22,14 @@ export function InputsDemo() {
       <div className="space-y-2">
         <SectionTitle className="block">Disabled</SectionTitle>
         <Input value="LOCKED" onChange={() => {}} disabled readOnly />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <SectionTitle className="block">Textarea (native field-sizing auto-grow)</SectionTitle>
+        <Textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder="Multi-line notes — grows with content, then scrolls."
+        />
       </div>
       <div className="md:col-span-2">
         <AutoresizePlayground />
