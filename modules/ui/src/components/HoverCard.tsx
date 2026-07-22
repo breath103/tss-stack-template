@@ -30,12 +30,17 @@ function HoverCardContent({
         className={cn(
           // surface
           "z-50 w-64 origin-(--radix-hover-card-content-transform-origin) rounded-md border bg-surface-2 p-3 text-text-1 shadow-md",
-          // enter / exit
+          // enter
           "animate-in duration-200 fade-in-0 zoom-in-95",
-          "data-[state=closed]:animate-out data-[state=closed]:duration-150 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
-          // slide direction, per side
-          "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-          "data-[side=bottom]:data-[state=closed]:slide-out-to-top-2 data-[side=left]:data-[state=closed]:slide-out-to-right-2 data-[side=right]:data-[state=closed]:slide-out-to-left-2 data-[side=top]:data-[state=closed]:slide-out-to-bottom-2",
+          // exit
+          "data-[state=closed]:animate-out data-[state=closed]:duration-150",
+          "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+          // slide in, per side
+          "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
+          "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          // slide out, per side
+          "data-[side=bottom]:data-[state=closed]:slide-out-to-top-2 data-[side=left]:data-[state=closed]:slide-out-to-right-2",
+          "data-[side=right]:data-[state=closed]:slide-out-to-left-2 data-[side=top]:data-[state=closed]:slide-out-to-bottom-2",
           className
         )}
         {...props}

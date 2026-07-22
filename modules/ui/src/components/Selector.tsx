@@ -45,8 +45,14 @@ const triggerStyle = cva(
         normal:
           "button-bg-overlay focus-input ring-1 ring-border ring-inset disabled:cursor-not-allowed disabled:opacity-50",
         // Inline triggers keep the accent-1 keyboard ring; they're not field boxes.
-        ghost:
-          "button-bg-overlay focus-visible:ring-[3px] focus-visible:ring-accent-1/50 disabled:cursor-not-allowed disabled:opacity-50",
+        ghost: cn(
+          // surface
+          "button-bg-overlay",
+          // focus ring
+          "focus-visible:ring-[3px] focus-visible:ring-accent-1/50",
+          // disabled
+          "disabled:cursor-not-allowed disabled:opacity-50"
+        ),
         cell: "size-full rounded-none button-bg-overlay px-2 focus-visible:ring-[3px] focus-visible:ring-accent-1/50",
       },
     },

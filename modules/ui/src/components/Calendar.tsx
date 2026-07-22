@@ -65,7 +65,16 @@ export function CalendarDayButton({ className, day, modifiers, ...props }: React
       type="button"
       data-day={day.date.toLocaleDateString()}
       className={cn(
-        "flex aspect-square w-full min-w-(--cell-size) cursor-pointer items-center justify-center button-bg-overlay text-center leading-none font-normal whitespace-nowrap transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent-1/50 active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:text-sm [&>span]:opacity-70",
+        // layout
+        "flex aspect-square w-full min-w-(--cell-size) cursor-pointer items-center justify-center button-bg-overlay",
+        // text
+        "text-center leading-none font-normal whitespace-nowrap",
+        // transition / focus
+        "transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent-1/50",
+        // active / disabled
+        "active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+        // child span
+        "[&>span]:text-sm [&>span]:opacity-70",
         modifiers.range_start ? "rounded-l-full" : modifiers.range_end ? "rounded-r-full" : "rounded-full",
         fill,
         defaultClassNames.day,

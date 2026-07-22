@@ -96,7 +96,20 @@ function EndpointTrigger({
         disabled={disabled}
         aria-label={label}
         onClick={() => onOpen(endpoint)}
-        className="flex size-7 shrink-0 items-center justify-center rounded-sm button-bg-overlay text-text-2 transition-all duration-150 hover:text-text-1 focus-visible:outline-none active:scale-[0.92] disabled:pointer-events-none"
+        className={cn(
+          // layout
+          "flex size-7 shrink-0 items-center justify-center",
+          // surface
+          "rounded-sm button-bg-overlay text-text-2",
+          // transition
+          "transition-all duration-150",
+          // hover
+          "hover:text-text-1",
+          // focus / active
+          "focus-visible:outline-none active:scale-[0.92]",
+          // disabled
+          "disabled:pointer-events-none"
+        )}
       >
         <Calendar className="size-4" />
       </button>
