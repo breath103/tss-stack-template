@@ -1,6 +1,10 @@
 {
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
   "extends": ["../../.oxlintrc.json"],
+  "jsPlugins": [{ "name": "local", "specifier": "../shared/src/oxlint-rules/plugin.ts" }],
+  "rules": {
+    "local/no-select-star": "error"
+  },
   "overrides": [
     {
       "files": ["src/**/__tests__/**"],

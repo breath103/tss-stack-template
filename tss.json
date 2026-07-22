@@ -2,6 +2,10 @@
   "$schema": "./tss.schema.json",
   "project": "tsss",
   "repo": "breath103/tss-stack-template",
+  "uses": [
+    "supabase",
+    "entity-repository"
+  ],
   "dev": {
     "worktree": "1"
   },
@@ -16,14 +20,16 @@
   "frontend": {
     "bucketSuffix": "",
     "devPort": 3002
-  },  
+  },
   "ssm": {
     "region": "ap-northeast-2"
   },
   "domain": "tsss.cloud",
   "hostedZoneId": "Z0281460Z2VKJY4HRDWP",
   "subdomainMap": {
-    "": { "redirect": "www" },
+    "": {
+      "redirect": "www"
+    },
     "www": "main",
     "main": null
   }
