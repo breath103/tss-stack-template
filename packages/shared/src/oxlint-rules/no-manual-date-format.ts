@@ -1,5 +1,6 @@
-// Flags UI date formatting done manually — format UI dates through DateFormatter
-// (@/lib/date-formatter); machine values via Timestamp (@/lib/timestamp).
+// Flags UI date formatting done manually — format UI dates through the shared
+// DateFormatter (`@ui/lib/date-formatter`), constructed with the current locale:
+// `new DateFormatter(locale).format(date, type)`.
 // (Coding guideline: frontend/format-ui-dates-through-dateformatter.)
 
 interface Node {
@@ -23,7 +24,7 @@ const rule = {
     docs: { description: "Format UI dates through DateFormatter instead of toLocale*String / Intl.DateTimeFormat / date-fns format" },
     messages: {
       manualFormat:
-        "Format UI dates through DateFormatter (@/lib/date-formatter); machine values via Timestamp (@/lib/timestamp).",
+        "Format UI dates through the shared DateFormatter (`@ui/lib/date-formatter`) — `new DateFormatter(locale).format(date, type)` — not toLocale*String / Intl.DateTimeFormat / date-fns format.",
     },
     schema: [],
   },
