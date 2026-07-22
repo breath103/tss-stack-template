@@ -1,3 +1,5 @@
+import { Moon, Sun } from "@phosphor-icons/react";
+import { Button } from "@ui/components/Button";
 import { cn } from "@ui/lib/utils";
 import { type ReactNode, useEffect, useState } from "react";
 import { AccentsDemo } from "./AccentsDemo";
@@ -68,8 +70,29 @@ function PageHeader() {
       <div className="mx-auto flex max-w-6xl items-baseline gap-3 px-8 py-4 lg:px-12">
         <span className="text-display text-lg">TSS</span>
         <SectionTitle>Design system</SectionTitle>
+        <div className="ml-auto self-center">
+          <ThemeToggle />
+        </div>
       </div>
     </header>
+  );
+}
+
+function ThemeToggle() {
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
+
+  return (
+    <Button
+      size="s"
+      variant="ghost"
+      icon={dark ? Sun : Moon}
+      text={dark ? "Light" : "Dark"}
+      onClick={() => setDark(d => !d)}
+    />
   );
 }
 
