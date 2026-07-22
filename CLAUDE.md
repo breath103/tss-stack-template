@@ -5,12 +5,24 @@
 - **CI deploys automatically on merge to main.** Never deploy manually.
 - **Never use `--squash` when merging PRs.** Use `gh pr merge` without `--squash`.
 
-See `documents/coding-guidelines/` for coding standards:
-- `backend.md` - Backend (packages/backend)
-- `frontend.md` - Frontend (packages/frontend)
+## Coding guidelines
+
+Coding standards live in `documents/coding-guidelines/`, **one rule per folder**:
+`<group>/<slug>/rule.md` (the rule) + optional `<group>/<slug>/check.sh`. Groups:
+`frontend`, `backend`, `e2e`, `sharing-code`. Rules tagged `requires: <add-on>`
+apply only when `tss.json` `uses` lists that add-on.
+
+Don't read every rule — find the ones that govern your diff:
+- `./documents/coding-guidelines/search.ts --group <g> --keywords "..."` — find rules by keyword
+- `./documents/coding-guidelines/check-all.ts [--group <g>]` — run every `check.sh`
+- The `check-guidelines` skill drives the full find → check procedure.
 
 ## Important Rules
 
+- **For any proper task, use the `/do-task` skill.** A feature, a bug fix, PR
+  feedback, a refactor pass — anything with a lifecycle — goes through `/do-task`,
+  which drives sync → design → implement → verify → PR → land. Only skip it for
+  trivial one-offs.
 - **Never call `npx` directly.** This project has scripts for everything. Use the provided scripts instead.
 
 ## Worktrees
