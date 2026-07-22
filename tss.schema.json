@@ -9,6 +9,15 @@
       "pattern": "^[a-z][a-z0-9-]*$",
       "description": "Project name (lowercase, used for AWS resource naming)"
     },
+    "uses": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["supabase", "entity-repository"]
+      },
+      "description": "Optional add-ons this project uses. A coding guideline (rule.md frontmatter `requires:`) or oxlint rule (`meta.requires`) tagged with an add-on is enforced only when that add-on is listed here. The baseline stack (React, Hono, Lambda, Tailwind, modules/ui, e2e) is always assumed — its rules carry no tag."
+    },
     "repo": {
       "type": "string",
       "pattern": "^[^/]+/[^/]+$",

@@ -2,9 +2,8 @@ import type { Context, Env, Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
-import type { RouteCollection, RouteDef } from "./route.js";
+import type { HttpMethod, RouteCollection, RouteDef } from "./route.js";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 type SchemaShape = Record<string, z.ZodTypeAny>;
 
 export function registerToHono<E extends Env>(
@@ -45,6 +44,7 @@ export function registerToHono<E extends Env>(
         params,
         query: parsedQuery,
         body: parsedBody,
+        // oxlint-disable-next-line local/no-double-cast -- Hono Context generic is invariant in E; adapter bridges app env to handler
         c: c as unknown as Context<E>,
       });
 

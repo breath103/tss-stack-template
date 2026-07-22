@@ -1,11 +1,42 @@
 {
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
   "extends": ["../../.oxlintrc.json"],
+  "ignorePatterns": ["src/types/database.generated.ts"],
+  "jsPlugins": [{ "name": "local", "specifier": "../shared/src/oxlint-rules/plugin.ts" }],
+  "rules": {
+    "local/no-single-use-type": "error"
+  },
   "overrides": [
+    {
+      "files": ["src/**/*.ts"],
+      "rules": {
+        "local/no-extraneous-dependencies": "error",
+        "local/no-as-error": "error",
+        "local/no-double-cast": "error",
+        "local/no-process-env-bang": "error",
+        "local/no-select-star": "error",
+        "local/no-inline-database-row-type": "error",
+        "local/no-manual-calendar-date": "error"
+      }
+    },
+    {
+      "files": ["src/lib/**", "src/types/**"],
+      "rules": {
+        "local/no-hand-written-event-guard": "error"
+      }
+    },
+    {
+      "files": ["src/types/database.ts"],
+      "rules": {
+        "local/no-inline-database-row-type": "off"
+      }
+    },
     {
       "files": ["src/**/__tests__/**"],
       "rules": {
-        "typescript/no-floating-promises": "off"
+        "typescript/no-floating-promises": "off",
+        "local/no-extraneous-dependencies": "off",
+        "local/no-manual-calendar-date": "off"
       }
     }
   ]

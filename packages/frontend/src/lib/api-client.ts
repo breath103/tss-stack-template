@@ -2,6 +2,7 @@
 type IsNever<T> = [T] extends [never] ? true : false;
 
 // Routes shape from backend's ExtractRoutes
+// oxlint-disable-next-line local/no-single-use-type -- structural shape used as a generic bound; inlining hurts readability
 type Routes = {
   [path: string]: {
     [method: string]: {
@@ -25,6 +26,7 @@ type FetchOptions<T> = (IsNever<T extends { params: infer P } ? P : never> exten
     : { body: T extends { body: infer B } ? B : never });
 
 // Check if options are required
+// oxlint-disable-next-line local/no-single-use-type -- multi-line conditional type; inlining hurts readability
 type HasRequired<T> =
   IsNever<T extends { params: infer P } ? P : never> extends true
     ? IsNever<T extends { query: infer Q } ? Q : never> extends true

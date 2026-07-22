@@ -2,13 +2,25 @@
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
   "extends": ["../../.oxlintrc.json"],
   "plugins": ["typescript", "unicorn", "oxc", "react"],
-  "jsPlugins": ["oxlint-tailwindcss"],
+  "jsPlugins": [
+    "oxlint-tailwindcss",
+    { "name": "local", "specifier": "../shared/src/oxlint-rules/plugin.ts" }
+  ],
   "settings": {
     "tailwindcss": {
       "entryPoint": "./src/global.css"
     }
   },
   "rules": {
+    "local/no-single-use-type": "error",
+    "local/no-double-cast": "error",
+    "local/no-manual-date-format": "error",
+    "local/no-entities-index": "error",
+    "local/no-native-date-input": "error",
+    "local/no-template-literal-classname": "error",
+    "local/no-inline-font-size": "error",
+    "local/no-raw-fetch": "error",
+
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
 
@@ -33,5 +45,31 @@
         "allowTypeImports": true
       }]
     }]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/components/**"],
+      "rules": {
+        "local/no-i18n-prop": "error"
+      }
+    },
+    {
+      "files": ["src/lib/**"],
+      "rules": {
+        "local/no-hand-written-event-guard": "error"
+      }
+    },
+    {
+      "files": ["src/lib/api-client.ts"],
+      "rules": {
+        "local/no-raw-fetch": "off"
+      }
+    },
+    {
+      "files": ["**/__tests__/**"],
+      "rules": {
+        "local/no-double-cast": "off"
+      }
+    }
+  ]
 }

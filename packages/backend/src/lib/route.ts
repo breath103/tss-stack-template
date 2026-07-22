@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 type SchemaShape = Record<string, z.ZodTypeAny>;
 
 // "/users/:id" → "id"
@@ -11,12 +11,14 @@ type ExtractPathParams<T extends string> = T extends `${string}:${infer Param}/$
     : never;
 
 // { foo: string | undefined } → { foo?: string }
+// oxlint-disable-next-line local/no-single-use-type -- mapped-type helper; inlining it into SafeInfer would duplicate the whole key remapping
 type OptionalUndefined<T> = {
   [K in keyof T as undefined extends T[K] ? never : K]: T[K];
 } & {
   [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
 };
 
+// oxlint-disable-next-line local/no-single-use-type -- structural-identity helper that flattens an intersection into one object; inlining hurts readability
 type Simplify<T> = { [K in keyof T]: T[K] };
 
 // Infer zod schema shape, making optional fields actually optional
