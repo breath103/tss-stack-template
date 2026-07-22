@@ -52,10 +52,20 @@ If conflicts occur, handle them:
 | `CLAUDE.md` | Merge, keep project-specific additions |
 | Code in `packages/*` | Take template unless project customized |
 
-## 5. If stuck
+## 5. Upstream lint rules and features — FIX code, never disable
+
+When the template brings in a new or stricter lint rule, or a new feature/pattern, and the current code doesn't comply:
+
+- **Do NOT turn the new rule "off"**, loosen it, or add per-line/per-file suppressions to make the error go away.
+- **FIX the current code** to satisfy the new rule instead. The rule came from upstream on purpose — the code is what's wrong, not the rule.
+- Same for feature/pattern changes: adopt the template's new pattern in the project code rather than reverting to the old one to avoid the work.
+
+Only keep a project-side override if it's a genuine, already-established project-specific customization — not because complying is inconvenient.
+
+## 6. If stuck
 
 Show user both versions, explain changes, ask preference.
 
-## 6. Abort
+## 7. Abort
 
 If user wants to abort: `git merge --abort`
