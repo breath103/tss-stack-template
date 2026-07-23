@@ -6,27 +6,27 @@ function RootComponent() {
   const { data: session } = useSession();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+    <div className="min-h-screen bg-background text-text-1">
+      <nav className="flex items-center justify-between border-b border-border bg-surface-1 px-6 py-4">
         <div className="flex gap-6">
           <Link
             to="/"
-            className="text-gray-600 hover:text-gray-900"
-            activeProps={{ className: "text-blue-600 font-semibold" }}
+            className="text-text-2 hover:text-text-1"
+            activeProps={{ className: "text-accent-1 font-semibold" }}
           >
             Home
           </Link>
           <Link
             to="/about"
-            className="text-gray-600 hover:text-gray-900"
-            activeProps={{ className: "text-blue-600 font-semibold" }}
+            className="text-text-2 hover:text-text-1"
+            activeProps={{ className: "text-accent-1 font-semibold" }}
           >
             About
           </Link>
           <Link
             to="/design"
-            className="text-gray-600 hover:text-gray-900"
-            activeProps={{ className: "text-blue-600 font-semibold" }}
+            className="text-text-2 hover:text-text-1"
+            activeProps={{ className: "text-accent-1 font-semibold" }}
           >
             Design
           </Link>
@@ -34,22 +34,22 @@ function RootComponent() {
         <div>
           {session?.user ? (
             <div className="flex items-center gap-3">
-              <span className="text-gray-700">{session.user.name}</span>
-              <button onClick={() => void signOut()} className="text-sm text-gray-500 hover:text-gray-700">
+              <span className="text-text-2">{session.user.name}</span>
+              <button onClick={() => void signOut()} className="text-sm text-text-3 hover:text-text-1">
                 Sign out
               </button>
             </div>
           ) : (
             <button
               onClick={() => void signIn.social({ provider: "google" })}
-              className="rounded-sm bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+              className="rounded-sm bg-accent-1 px-3 py-1.5 text-sm text-accent-1-fg hover:opacity-90"
             >
               Sign in with Google
             </button>
           )}
         </div>
       </nav>
-      <main className="mx-auto max-w-4xl p-6">
+      <main>
         <Outlet />
       </main>
     </div>

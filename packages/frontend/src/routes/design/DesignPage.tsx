@@ -53,7 +53,7 @@ export function DesignPage() {
     <div className="min-h-screen bg-background text-text-1">
       <PageHeader />
       <FloatingIndex />
-      <div className="mx-auto max-w-6xl px-8 pb-24 lg:px-12">
+      <div className="mx-auto max-w-5xl px-8 pb-24 lg:px-12">
         {SECTIONS.map(s => (
           <Section key={s.id} id={s.id} title={s.title}>
             {s.content}
@@ -67,7 +67,7 @@ export function DesignPage() {
 function PageHeader() {
   return (
     <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-6xl items-baseline gap-3 px-8 py-4 lg:px-12">
+      <div className="mx-auto flex max-w-5xl items-baseline gap-3 px-8 py-4 lg:px-12">
         <span className="text-display text-lg">TSS</span>
         <SectionTitle>Design system</SectionTitle>
         <div className="ml-auto self-center">
