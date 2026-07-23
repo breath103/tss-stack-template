@@ -44,7 +44,7 @@ function Home() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8 p-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">TSS Stack Template</h1>
         <p className="mt-1 text-gray-600">Type-Safe Full Serverless Stack</p>

@@ -10,7 +10,7 @@ export const aboutRoute = createRoute({
 
 function About() {
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6 p-6">
       <h1 className="text-3xl font-bold text-gray-900">About</h1>
       <p className="text-gray-600">TSS Stack Template - Type-Safe Serverless Stack</p>
 
