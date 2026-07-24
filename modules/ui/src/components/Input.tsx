@@ -100,7 +100,7 @@ export function Input(
       onFocus={onFocus}
       onClick={onClick}
       onMount={onMount}
-      className={cn(chromeless ? CHROMELESS_CLASS : BASE_INPUT_CLASS, "h-9 px-3 text-base", className)}
+      className={cn(chromeless ? CHROMELESS_CLASS : BASE_INPUT_CLASS, "h-8 px-3 text-base", className)}
       rest={rest}
     />
   );
