@@ -52,8 +52,6 @@
   --surface-1: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 50%);
   --surface-2: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 85%);
 
-  --input: oklch(0.98 0.01 280.71);
-
   --text-1: oklch(0.13 0.025 240);
   --text-2: oklch(0.36 0.02 240);
   --text-3: oklch(0.5 0.015 240);
@@ -75,7 +73,6 @@
   --success-fg: oklch(0.99 0.005 145);
 
   --border: color-mix(in oklch, var(--background), var(--text-1) 10%);
-  --border-strong: color-mix(in oklch, var(--background), var(--text-1) 30%);
   --overlay: oklch(0 0 0 / 0.5); /* modal/dialog/sheet backdrop scrim */
   --radius: 0.5rem;
 
@@ -95,7 +92,6 @@
   --surface-muted: color-mix(in oklch, var(--bg-seed), black 50%);
   --surface-1: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 10%);
   --surface-2: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 18%);
-  --surface-3: color-mix(in oklch, var(--bg-seed), var(--tint-seed) 28%);
 
   --text-1: oklch(0.96 0.01 230);
   --text-2: oklch(0.78 0.015 230);
@@ -118,7 +114,6 @@
   --success-fg: oklch(0.13 0.04 145);
 
   --border: color-mix(in oklch, var(--background), var(--text-1) 22%);
-  --border-strong: color-mix(in oklch, var(--background), var(--text-1) 40%);
   --overlay: oklch(0 0 0 / 0.5); /* modal/dialog/sheet backdrop scrim */
 
   --input: oklch(from var(--accent-1) calc(l * 0.18) calc(c * 0.3) h);
@@ -165,7 +160,6 @@
   --color-surface-muted: var(--surface-muted);
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
   --color-input: var(--input);
 
   /* Transparent accent overlays — the source of truth for the wash
@@ -202,7 +196,6 @@
   --color-success-fg: var(--success-fg);
 
   --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
   --color-overlay: var(--overlay);
 
   --text-xs: 0.65rem;
