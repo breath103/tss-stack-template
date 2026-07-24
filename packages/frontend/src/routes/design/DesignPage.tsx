@@ -68,7 +68,7 @@ function PageHeader() {
   return (
     <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-5xl items-baseline gap-3 px-8 py-4 lg:px-12">
-        <span className="text-display text-lg">TSS</span>
+        <span className="font-display text-lg">TSS</span>
         <SectionTitle>Design system</SectionTitle>
         <div className="ml-auto self-center">
           <ThemeToggle />

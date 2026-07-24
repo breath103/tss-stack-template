@@ -30,11 +30,11 @@ export function TypographyDemo() {
 
       <div className="rounded-lg bg-surface-2 p-6">
         <SectionTitle className="mb-2">Display font (marketing only)</SectionTitle>
-        <div className="text-display text-xl text-text-1">TSS</div>
+        <div className="font-display text-xl text-text-1">TSS</div>
       </div>
       <div className="rounded-lg bg-surface-2 p-6">
         <SectionTitle className="mb-2">Mono / data</SectionTitle>
-        <div className="text-data text-text-1">apollo-13.launch.timestamp = 1970-04-11T19:13:00Z</div>
+        <div className="font-mono text-text-1">apollo-13.launch.timestamp = 1970-04-11T19:13:00Z</div>
       </div>
     </div>
   );

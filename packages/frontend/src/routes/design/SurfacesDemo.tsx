@@ -16,7 +16,7 @@ export function SurfacesDemo() {
             <div className={cn("aspect-4/3 border-b", s.className)} />
             <div className="p-3">
               <div className="font-medium text-text-1">{s.name}</div>
-              <div className="mt-1 text-data text-sm text-text-3">{s.token}</div>
+              <div className="mt-1 font-mono text-sm text-text-3">{s.token}</div>
             </div>
           </div>
         ))}

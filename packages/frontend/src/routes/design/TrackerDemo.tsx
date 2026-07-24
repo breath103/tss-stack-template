@@ -8,11 +8,11 @@ export function TrackerDemo() {
       </div>
       <div className="rounded-lg border bg-surface-1 p-6">
         <SectionTitle className="mb-2">Velocity</SectionTitle>
-        <div className="text-data text-xl font-semibold text-accent-1">7,847 m/s</div>
+        <div className="font-mono text-xl font-semibold text-accent-1">7,847 m/s</div>
       </div>
       <div className="rounded-lg border bg-surface-1 p-6">
         <SectionTitle className="mb-2">Apoapsis</SectionTitle>
-        <div className="text-data text-xl font-semibold text-text-1">412.3 km</div>
+        <div className="font-mono text-xl font-semibold text-text-1">412.3 km</div>
       </div>
     </div>
   );

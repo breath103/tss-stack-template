@@ -36,9 +36,9 @@ export function SelectorDemo() {
     <div className="space-y-6">
       <p className="text-base text-text-2">
         Built directly on the Radix select primitive. The trigger holds a{" "}
-        <code className="text-data text-sm">SelectValue</code>, which Radix fills by mirroring the selected option into
+        <code className="font-mono text-sm">SelectValue</code>, which Radix fills by mirroring the selected option into
         it — so an option's icon and text appear in the trigger with no trigger-side markup. The trigger and every
-        option share one row built from <code className="text-data text-sm">ButtonLabel</code>'s geometry, so the
+        option share one row built from <code className="font-mono text-sm">ButtonLabel</code>'s geometry, so the
         trigger is dimensionally identical to the Button beside it at each size.
       </p>
 
@@ -53,8 +53,8 @@ export function SelectorDemo() {
       <div className="space-y-3 rounded-lg border bg-surface-1 p-6">
         <SectionTitle>Nullable + placeholder</SectionTitle>
         <p className="text-base text-text-2">
-          <code className="text-data text-sm">value=null</code> with a{" "}
-          <code className="text-data text-sm">placeholder</code> shows the placeholder as the trigger label until a
+          <code className="font-mono text-sm">value=null</code> with a{" "}
+          <code className="font-mono text-sm">placeholder</code> shows the placeholder as the trigger label until a
           value is picked.
         </p>
         <Selector
@@ -79,7 +79,7 @@ export function SelectorDemo() {
       <div className="space-y-3 rounded-lg border bg-surface-1 p-6">
         <SectionTitle>Ghost variant</SectionTitle>
         <p className="text-base text-text-2">
-          <code className="text-data text-sm">variant="ghost"</code> — a borderless trigger for low-emphasis spots like
+          <code className="font-mono text-sm">variant="ghost"</code> — a borderless trigger for low-emphasis spots like
           filter chips.
         </p>
         <Selector
@@ -95,12 +95,12 @@ export function SelectorDemo() {
       <div className="space-y-3 rounded-lg border bg-surface-1 p-6">
         <SectionTitle>Node label, cell trigger, gated options</SectionTitle>
         <p className="text-base text-text-2">
-          <code className="text-data text-sm">label</code> returns{" "}
-          <code className="text-data text-sm">{"{ text, icon }"}</code> or any node — here a{" "}
-          <code className="text-data text-sm">Chip</code>, which Radix mirrors into the trigger untouched.{" "}
-          <code className="text-data text-sm">variant="cell"</code> drops the button shape to fill its container, so a
+          <code className="font-mono text-sm">label</code> returns{" "}
+          <code className="font-mono text-sm">{"{ text, icon }"}</code> or any node — here a{" "}
+          <code className="font-mono text-sm">Chip</code>, which Radix mirrors into the trigger untouched.{" "}
+          <code className="font-mono text-sm">variant="cell"</code> drops the button shape to fill its container, so a
           table cell's whole area opens the picker — the box below is the cell.{" "}
-          <code className="text-data text-sm">optionDisabled</code> gates a row without hiding it; Radix marks it
+          <code className="font-mono text-sm">optionDisabled</code> gates a row without hiding it; Radix marks it
           aria-disabled rather than disabled, so it still takes hover and the label can say why (hover the dimmed chip).
         </p>
         <div className="w-72 overflow-hidden rounded-md border">
@@ -150,7 +150,7 @@ function Comparison({
         <div className="text-sm text-text-3">Button</div>
         {SIZES.map(size => (
           <Fragment key={size}>
-            <div className="text-data text-sm text-text-3">{size}</div>
+            <div className="font-mono text-sm text-text-3">{size}</div>
             <Selector
               value={value}
               onChange={onChange}

@@ -16,7 +16,7 @@ const ICONS = [
 
 function WeightGrid() {
   return (
-    <table className="text-data text-sm">
+    <table className="text-sm">
       <thead className="text-text-3">
         <tr>
           <th />
