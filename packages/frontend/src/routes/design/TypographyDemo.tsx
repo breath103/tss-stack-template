@@ -1,16 +1,30 @@
 import { cn } from "@ui/lib/utils";
+import { Fragment } from "react";
 import { SectionTitle } from "./SectionTitle";
 
 export function TypographyDemo() {
   const sizes = ["text-xl", "text-lg", "text-base", "text-sm", "text-xs"];
+  // Each row shows the same sample at one size across the three text-color tokens,
+  // so text-1/2/3 sit side by side for a direct contrast comparison.
+  const colors = ["text-text-1", "text-text-2", "text-text-3"];
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-[auto_1fr]">
+      <div className="grid grid-cols-[auto_repeat(3,minmax(0,1fr))] gap-x-4">
+        <span />
+        {colors.map(c => (
+          <span key={c} className="pb-2 text-sm text-text-3">
+            {c.replace("text-text-", "text-")}
+          </span>
+        ))}
         {sizes.map(s => (
-          <div key={s} className="col-span-full grid h-12 grid-cols-subgrid gap-4 border-b">
-            <span className="flex items-center text-base">{s}</span>
-            <span className={cn("flex items-center", s)}>The quick brown fox jumps</span>
-          </div>
+          <Fragment key={s}>
+            <span className="flex h-12 items-center border-b text-base text-text-3">{s}</span>
+            {colors.map(c => (
+              <span key={c} className={cn("flex h-12 min-w-0 items-center border-b", s, c)}>
+                <span className="truncate">The quick brown fox jumps</span>
+              </span>
+            ))}
+          </Fragment>
         ))}
       </div>
 
