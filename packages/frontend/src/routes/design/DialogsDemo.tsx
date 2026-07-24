@@ -36,8 +36,8 @@ export function DialogsDemo() {
       <div className="rounded-lg border bg-surface-1 p-6">
         <SectionTitle className="mb-2">{i18n.customCardTitle}</SectionTitle>
         <p className="mb-4 text-text-2">
-          {i18n.customCardDescriptionPrefix} <code className="text-data text-sm">openModal</code>{" "}
-          {i18n.customCardDescriptionSuffix} <code className="text-data text-sm">{"{ onClose }"}</code>.
+          {i18n.customCardDescriptionPrefix} <code className="font-mono text-sm">openModal</code>{" "}
+          {i18n.customCardDescriptionSuffix} <code className="font-mono text-sm">{"{ onClose }"}</code>.
         </p>
         <Button
           size="m"

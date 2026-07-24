@@ -8,7 +8,7 @@ export function DateFormatterDemo() {
   const sample = new Date(2026, 6, 4, 15, 8);
   return (
     <div className="rounded-lg border bg-surface-1 p-6">
-      <table className="w-full text-data text-base">
+      <table className="w-full font-mono text-base">
         <thead>
           <tr className="border-b text-left text-sm tracking-wider text-text-3 uppercase">
             <th className="py-2 pr-6 font-medium">Format</th>

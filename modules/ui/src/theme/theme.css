@@ -276,18 +276,6 @@
   @apply bg-surface-2 hover:bg-surface2-highlight2 active:bg-surface2-highlight3 aria-selected:bg-surface2-highlight1;
 }
 
-/* Display font marker — the --font-display face, for marketing/wordmark only */
-@utility text-display {
-  font-family: var(--font-display);
-  letter-spacing: 0.05em;
-}
-
-/* Monospace data marker */
-@utility text-data {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
 /* Enables scroll-state container queries such as stuck-top:shadow-lg. */
 @utility scroll-state {
   container-type: scroll-state;

@@ -14,7 +14,7 @@ export function DatePickersDemo() {
       <div className="space-y-3 rounded-lg border bg-surface-1 p-6">
         <SectionTitle>Date picker</SectionTitle>
         <p className="text-base text-text-2">
-          Single-date selection. Wraps <code className="text-data text-sm">Calendar mode="single"</code> in a popover.
+          Single-date selection. Wraps <code className="font-mono text-sm">Calendar mode="single"</code> in a popover.
         </p>
         <DatePicker value={date} onChange={setDate} />
         <div className="pt-2 text-sm text-text-3">With time-of-day:</div>
@@ -26,7 +26,7 @@ export function DatePickersDemo() {
       <div className="space-y-3 rounded-lg border bg-surface-1 p-6 md:col-span-2">
         <SectionTitle>Date range picker</SectionTitle>
         <p className="text-base text-text-2">
-          Range selection — two-month view. Wraps <code className="text-data text-sm">Calendar mode="range"</code>.
+          Range selection — two-month view. Wraps <code className="font-mono text-sm">Calendar mode="range"</code>.
         </p>
         <DateRangePicker value={range} onChange={setRange} />
       </div>

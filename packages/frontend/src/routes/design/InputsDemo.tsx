@@ -49,8 +49,8 @@ function AutoresizePlayground() {
       <SectionTitle>Auto-resize playground</SectionTitle>
       <p className="text-base text-text-2">
         Toggle the flag and tune the bounds, then type into the field. Empty stays at{" "}
-        <code className="text-data text-sm">minLine</code>; content grows up to{" "}
-        <code className="text-data text-sm">maxLine</code>, then scrolls inside.
+        <code className="font-mono text-sm">minLine</code>; content grows up to{" "}
+        <code className="font-mono text-sm">maxLine</code>, then scrolls inside.
       </p>
       <div className="flex flex-wrap items-end gap-6 border-y py-4">
         <label className="flex items-center gap-3 text-text-2">
@@ -91,7 +91,7 @@ function AutoresizePlayground() {
         </div>
         <div className="ml-auto text-sm text-text-3">
           rendering:{" "}
-          <code className="text-data">
+          <code className="font-mono">
             {autoresize ? `<textarea> minLine=${minLine} maxLine=${maxLine}` : "<input>"}
           </code>
         </div>
