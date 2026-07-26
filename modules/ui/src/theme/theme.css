@@ -227,6 +227,11 @@
   }
   html {
     font-size: 15px;
+    /* The shell is full-viewport and an inner region owns the scroll, so the
+       document never scrolls — but a gesture past that region's end still
+       chains to the root, which rubber-bands the whole shell out of view.
+       -y only: overscroll-behavior-x also gates the back-swipe gesture. */
+    overscroll-behavior-y: none;
   }
   html,
   body,
