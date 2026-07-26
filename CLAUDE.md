@@ -152,17 +152,19 @@ npm run e2e echo             # run e2e/echo.ts
 ./scripts/e2e.ts run echo    # same, no npm wrapper
 ```
 
-The runner auto-starts headless Chrome if it isn't running. The dev server (`./scripts/dev.ts start`) must already be up.
+The dev server (`./scripts/dev.ts start`) must already be up.
 
 ### Running e2e — don't waste turns
 
-When running `npm run e2e <name>` from agents/scripts:
+**Restart Chrome before every run — unconditionally:**
 
-- **Timeouts live in the scenario, not the shell.** `harness()` accepts `{ timeoutMs }` (default 3000) — set it in the test file matched to actual work, don't wrap calls in `timeout N` from the outside. The runner force-exits at the end so dangling websocket / MQTT / pubsub clients can't hold the process open.
-- **Never `2>&1 | tail -N` a backgrounded run.** `tail` buffers everything until EOF, so the log file stays empty for the entire run and looks identical to "stuck." Either run foreground (output streams directly) or redirect raw (`> log.txt 2>&1`) and `tail -F` the file.
-- **Chrome must be up first.** `./scripts/e2e.ts start` returns in <1s if already running; the runner aborts with "Headless Chrome process is dead" otherwise. Run it before the first e2e, not after a hang.
-- **Dev server too.** `./scripts/dev.ts status` first — if it's not `ready`, start it and wait; don't blindly invoke e2e.
-- **A scenario failed? Read the screenshots first.** `e2e/fixtures/<scenarioName>/*.png` is the primary debugging surface — it's faster than re-running with extra logs. See **Screenshots** below.
+```bash
+./scripts/e2e.ts stop && ./scripts/e2e.ts start && npm run e2e <name>
+```
+
+A wedged headless Chrome is the #1 cause of a hung run and is indistinguishable from a slow one until you've burned the turn. The restart costs ~1s. Do not reuse a warm instance, and do not wait for a hang to justify restarting.
+
+The rest of the gotchas — scenario-level `timeoutMs` vs shell `timeout`, why `2>&1 | tail -N` on a backgrounded run looks identical to "stuck", the `page.goto` nav cap, one-run-at-a-time — live in `documents/coding-guidelines/e2e/running-e2e-from-agents-scripts-gotchas/rule.md`. Read it before running e2e from a script or agent; it is the single source of truth and this section deliberately does not restate it.
 
 ### Writing a scenario
 
