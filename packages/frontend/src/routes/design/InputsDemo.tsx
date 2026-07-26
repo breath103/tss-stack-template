@@ -1,3 +1,4 @@
+import { Button } from "@ui/components/Button";
 import { Checkbox } from "@ui/components/Checkbox";
 import { Input } from "@ui/components/Input";
 import { useState } from "react";
@@ -11,6 +12,7 @@ const NUMBER_INPUT_CLASS =
 export function InputsDemo() {
   const [callsign, setCallsign] = useState("");
   const [notes, setNotes] = useState("");
+  const [message, setMessage] = useState("");
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -30,6 +32,13 @@ export function InputsDemo() {
           onChange={setNotes}
           placeholder="Multi-line notes — grows with content, then scrolls."
         />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <SectionTitle className="block">Composer row — autoresize + Button size m</SectionTitle>
+        <div id="composer-row" className="flex items-start gap-2">
+          <Input autoresize value={message} onChange={setMessage} placeholder="One line sits flush with the button." />
+          <Button size="m" variant="accent1" text="Send" />
+        </div>
       </div>
       <div className="md:col-span-2">
         <AutoresizePlayground />
