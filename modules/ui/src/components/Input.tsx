@@ -86,7 +86,13 @@ export function Input(
         onFocus={onFocus}
         onClick={onClick}
         onMount={onMount}
-        className={cn(chromeless ? CHROMELESS_CLASS : BASE_INPUT_CLASS, "resize-none px-3 py-2 text-base", className)}
+        // A textarea is line-height-driven, not h-8: py-0.75 + 1px border puts one line on
+        // 2rem, flush with a single-line Input and a Button size="m".
+        className={cn(
+          chromeless ? CHROMELESS_CLASS : BASE_INPUT_CLASS,
+          "resize-none px-3 py-0.75 text-base",
+          className
+        )}
         rest={rest}
       />
     );
@@ -231,7 +237,9 @@ function AutoresizeTextarea({
       onFocus={onFocus}
       onClick={onClick}
       rows={minLine}
-      className={cn(chromeless ? CHROMELESS_CLASS : BASE_INPUT_CLASS, "resize-none px-3 py-2 text-base", className)}
+      // A textarea is line-height-driven, not h-8: py-0.75 + 1px border puts one line on
+      // 2rem, flush with a single-line Input and a Button size="m".
+      className={cn(chromeless ? CHROMELESS_CLASS : BASE_INPUT_CLASS, "resize-none px-3 py-0.75 text-base", className)}
       {...rest}
     />
   );
