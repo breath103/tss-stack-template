@@ -42,6 +42,15 @@ means the safety net stays off for the very code that needs it.
   (we don't care). A `"warning"` severity is noise nobody acts on. Do NOT add a
   rule at `"warn"`, and do NOT downgrade an `"error"` to `"warn"` to make lint
   pass — either fix the code or turn the rule `"off"` deliberately.
+- **`./scripts/lint` does NOT cover `modules/ui`.** The shared UI library has its
+  own gates: `npm run -w @modules/ui lint` and `npm run -w @modules/ui typecheck`.
+  A diff touching `modules/ui/**` is unverified until both have run — `./scripts/lint`
+  reports clean over a `modules/ui` lint error.
+- **Keep branch names short (~35 chars).** The preview deploy derives a Lambda name
+  from `<project>-backend-<branch>` and AWS caps function names at 64 characters.
+  A branch like `fix/autoresize-input-height-matches-button-m` overflows it, so
+  `deploy` fails *after* lint/test pass. A PR's head ref can't be renamed — the
+  only fix is a new branch and a new PR.
 
 ## Worktrees
 
