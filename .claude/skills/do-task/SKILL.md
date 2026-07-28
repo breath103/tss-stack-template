@@ -44,7 +44,6 @@ Every DB-related instruction below is tagged **(supabase only)**. In a non-supab
 10. Land                  — manual mode asks "land now?"; auto mode fires immediately. `land-pr` waits for CI, merges, syncs main, moves issue to Done.
 11. DB push (migrations)  — (supabase only) if the diff has a migration, `db:push` it to prod (CI does NOT). Ordering — before OR after land — is a DECISION per `references/db-migrations.md`, not a fixed step.
 12. Cleanup               — stop ./scripts/e2e.ts; stop ./scripts/dev.ts if this session started it
-13. Retro                 — run the retro procedure INLINE (`references/retro.md`); updates a skill / CLAUDE.md if this session's misses revealed a doc-gap
 ```
 
 **Key insight:** the expensive Polish (step 8) runs AFTER the verification phase (step 6/7) — never on code that's about to be rewritten.
@@ -109,7 +108,6 @@ Canonical task list (adapt #4–6 to actual work; gate tasks differ per mode; DB
 #18 Cleanup: stop ./scripts/e2e.ts
 #19 Cleanup: stop ./scripts/dev.ts (only if THIS session started it)
 #20 (supabase only) Cleanup: `npm run -w backend db:stop` to shed idle load (skip on a "hold" or if user asked to keep the DB up)
-#21 Retro: run the retro procedure INLINE (`references/retro.md`) — classify each miss as doc-gap / already-documented / tooling-gap; apply at most one bullet of edits per real doc-gap
 ```
 
 In `auto` mode, **cancel tasks #3, #9, and #14** (the human gates) right after creating the list — don't leave them dangling. **In a non-supabase project (no `"supabase"` in `tss.json` `uses`), also cancel the DB tasks (#16, #20) and drop the `db:status`/`db:restart` prelude from #8.** Everything else runs in both modes; when the project IS supabase, **#16 (db:push) is not a gate, and its placement is the expand/contract decision above.**
@@ -361,11 +359,7 @@ Otherwise this doesn't always run *after* land — it runs at the point the Step
 
 5. Mark cleanup tasks `completed` only after the stop commands actually returned. Cancel (don't complete) tasks for services that were never started this session.
 
-## Step 13: Retro
-
-**Run AFTER cleanup, BEFORE the final summary.** Read and follow `references/retro.md` INLINE in this session (never a subagent). Do NOT pre-judge "this session went fine" — the procedure is the gate, and it self-aborts if there aren't ≥2 real misses.
-
-This is the LAST step. After Step 13, the final summary message can go out.
+This is the LAST step. After Step 12, the final summary message can go out.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: enforce-coding-guideline
-description: Walk the current branch's diff against every applicable coding guideline from documents/coding-guidelines/. Finds the rules that govern the diff (search.ts + per-rule folders), runs each rule's check.sh where one exists, checks the rest by eye, APPLIES every Strong + Medium violation without asking, verifies once, and loops internally until nothing material is left. Use after implementation feels done but before opening / re-pushing a PR.
+description: Walk the current branch's diff against every applicable coding guideline from documents/coding-guidelines/. Finds the rules that govern the diff (search.ts + per-rule folders), runs each rule's check.sh where one exists, checks the rest by eye, APPLIES every Strong + Medium violation without asking, verifies once, and loops internally until nothing material is left. Use after implementation feels done but before opening / re-pushing a PR. Also owns AUTHORING new rules — anything oxlint can decide from a single file's AST becomes a custom oxlint rule in packages/shared/src/oxlint-rules/, not a prose rule.md.
 ---
 
 # Enforce Coding Guideline
@@ -25,6 +25,10 @@ documents/coding-guidelines/
 ```
 
 Groups: `frontend`, `backend`, `e2e`, `sharing-code`.
+
+Writing a *new* rule rather than enforcing an existing one? Jump to
+**[Authoring a rule](#authoring-a-rule--lint-rule-first-prose-only-as-fallback)** — the answer is
+almost always a lint rule, not a `rule.md`.
 
 ## When to invoke
 
@@ -181,8 +185,66 @@ Verify: lint clean, types clean, check-all clean.   (or "skipped — no fixes ap
 
 No VERDICT line. The skill has already self-terminated.
 
+## Authoring a rule — lint rule first, prose only as fallback
+
+A `rule.md` costs a read on every future session and is enforced only if an agent
+remembers it. A lint rule costs nothing and fails the build. **So: if oxlint can
+express the rule, write the lint rule. Do not write prose for it.**
+
+### The gate
+
+Before creating any `documents/coding-guidelines/<group>/<slug>/rule.md`, answer in chat:
+
+> Can this be decided from the AST / source text of a single file?
+
+If **yes** → write an oxlint rule. Stop. There is no `rule.md`. "It's easier to
+write it as prose" is not a reason; neither is "the rule has a few exceptions" —
+exceptions are `overrides` in `.oxlintrc.json` or an early `return` in `create()`.
+
+Yes covers more than it looks like: banned call/API (`.select("*")`, raw `fetch`),
+banned syntax (double casts, `process.env.X!`), banned JSX prop or element,
+required-shape ("this construct must go through helper H"), naming/location
+constraints, "use in-house X instead of Y". Every rule in
+`packages/shared/src/oxlint-rules/` started as one of those.
+
+If **no** → prose `rule.md`. Genuinely-no is cross-file architecture and judgment:
+"components under 100 lines" that needs a whole-repo view, repository-pattern
+layering, render-isolation, "comment the non-obvious". These are the minority.
+Formatting and import order are never either one — Biome already owns those (its
+linter is off in this template on purpose; don't turn it on to host a rule).
+
+### Writing the lint rule
+
+1. `packages/shared/src/oxlint-rules/<kebab-name>.ts` — default-export
+   `{ meta: { type, docs, messages, schema }, create(context) { … } }`. Copy the
+   shape from a neighbour (`no-select-star.ts` is the smallest complete one).
+   The message must name the fix, not just the ban.
+2. Add `meta.requires: "<add-on>"` **only** if the rule is meaningless without an
+   optional add-on (e.g. `"supabase"`). `plugin.ts` no-ops it when the project's
+   `tss.json` `uses` doesn't list that add-on. Baseline rules omit it.
+3. `<kebab-name>.test.ts` beside it — `RuleTester` from `oxlint/plugins-dev`, with
+   `valid` cases covering every carve-out and `invalid` cases asserting `messageId`.
+   A rule without a test is not done.
+4. Register in `plugin.ts`: import it, add `"<kebab-name>": gate(rule)` to `rules`.
+5. Turn it on at `"error"` in the consuming package's `.oxlintrc.json` — scoped via
+   `overrides.files` if it only applies to part of the tree. **Never `"warn"`.**
+6. Run the package's `lint.ts` over the real tree. Pre-existing hits mean you fix
+   them in the same PR or narrow the rule — never land it disabled.
+
+### Writing the prose rule (only after the gate said no)
+
+`documents/coding-guidelines/<group>/<slug>/rule.md`, first line `# <Title>`, then
+the prose with ✅/❌ examples. Add `requires: <add-on>` frontmatter if add-on-gated.
+`search.ts` and `check-all.ts` pick the folder up automatically — no registry.
+
+A `check.sh` beside it is the old escape hatch for mechanically-checkable rules.
+**Prefer an oxlint rule over a new `check.sh`** — it runs in the editor, has a test
+harness, and reports per-node. Reach for `check.sh` only when the check is not
+per-file (repo-wide invariants, file/dependency graph shape).
+
 ## Hard rules
 
+- **Lintable ⇒ lint rule. No prose rule for anything oxlint can decide from one file's AST.** A new `rule.md` whose logic could have been `create(context)` is a defect — delete it and write the rule. State the gate verdict in chat before creating any rule file.
 - **`ls` every applicable group, read the FULL list, then decide.** Skipping the `ls` and just running `check-all.ts` is the #1 failure mode of this skill. `check-all` covers only the `check.sh`-gated minority; the eye-only majority gets silently skipped. If your audit report doesn't begin by quoting the `ls` output (or naming every rule folder in every touched group), the audit didn't happen.
 - **Run the check.sh, don't eyeball a checkable rule.** If a rule has a check.sh, its verdict is the script's exit code — running it is non-negotiable.
 - **Table-shaped eye rules get grepped, not eyeballed.** When a rule ships a "use X instead of Y" table (`use-in-house-components…`), produce the verdict by grepping the scope for each "instead of" pattern (`<button`, `<input`, `<textarea`, `<select`, `fixed inset-0`, rounded-full spans, …) and dispositioning EVERY hit against the table and its carve-outs, in chat. "Looked, nothing jumped out" is exactly how a hand-rolled modal survives the walk.
