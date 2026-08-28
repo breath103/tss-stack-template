@@ -20,6 +20,12 @@ import { ruleDirs } from "./_lib";
 // Anchor to this script's own dir so it works regardless of the caller's cwd.
 const ROOT = __dirname;
 
+// ANSI only on a TTY: piped/redirected output is read by an agent, and escape
+// codes are noise there.
+const COLOR = process.stdout.isTTY === true;
+const bold = (s: string): string => (COLOR ? `\x1b[1m${s}\x1b[0m` : s);
+const red = (s: string): string => (COLOR ? `\x1b[31m${s}\x1b[0m` : s);
+
 function indent(output: string): string {
   return output
     .split("\n")
@@ -48,14 +54,18 @@ function main(): void {
     }
   }
 
-  console.log(`Passed: ${scripts.length - failures.length}, Failed: ${failures.length}`);
-  if (failures.length === 0) return;
-
-  console.log("Failed:");
-  for (const f of failures) {
-    console.log(`- ${f.rule}`);
-    if (f.output) console.log(indent(f.output));
+  const passed = `Passed: ${scripts.length - failures.length}`;
+  if (failures.length === 0) {
+    console.log(`${passed}, Failed: 0`);
+    return;
   }
+
+  console.log(`${passed}, ${red(`Failed: ${failures.length}`)}\n`);
+  console.log("Failed:");
+  failures.forEach((f, i) => {
+    console.log(`${i > 0 ? "\n" : ""}- ${bold(f.rule)}`);
+    if (f.output) console.log(indent(f.output));
+  });
   process.exit(1);
 }
 
