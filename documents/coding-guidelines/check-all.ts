@@ -6,9 +6,11 @@
  *   ./check-all.ts --group backend # run only backend checks
  *
  * Each check.sh exits 0 (pass) or non-zero (violations found) and prints
- * offending file:line on its own stdout. This runner prints a per-rule
- * PASS/FAIL line, echoes the output of any failing check, and exits non-zero
- * if any check failed. Rules without a check.sh are skipped (review by eye).
+ * offending file:line on its own stdout. Passing rules are counted, never
+ * named — this output is read by an agent, and a wall of PASS lines is context
+ * spent on nothing actionable. Only failures get named, each with its check's
+ * output indented under it. Exits non-zero if any check failed. Rules without a
+ * check.sh are skipped (review by eye).
  */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -18,12 +20,25 @@ import { ruleDirs } from "./_lib";
 // Anchor to this script's own dir so it works regardless of the caller's cwd.
 const ROOT = __dirname;
 
+// ANSI only on a TTY: piped/redirected output is read by an agent, and escape
+// codes are noise there.
+const COLOR = process.stdout.isTTY === true;
+const bold = (s: string): string => (COLOR ? `\x1b[1m${s}\x1b[0m` : s);
+const red = (s: string): string => (COLOR ? `\x1b[31m${s}\x1b[0m` : s);
+
+function indent(output: string): string {
+  return output
+    .split("\n")
+    .map(line => `    ${line}`)
+    .join("\n");
+}
+
 function main(): void {
   const groupIdx = process.argv.indexOf("--group");
   const group = groupIdx >= 0 ? (process.argv[groupIdx + 1] ?? null) : null;
 
   const scripts = ruleDirs(ROOT, group)
-    .map((d) => join(d, "check.sh"))
+    .map(d => join(d, "check.sh"))
     .filter(existsSync);
   if (scripts.length === 0) {
     console.log("No check.sh scripts found.");
@@ -34,23 +49,24 @@ function main(): void {
   for (const script of scripts) {
     const rule = script.replace(`${ROOT}/`, "").replace("/check.sh", "");
     const res = spawnSync("bash", [script], { encoding: "utf8" });
-    if (res.status === 0) {
-      console.log(`PASS  ${rule}`);
-    } else {
-      console.log(`FAIL  ${rule}`);
+    if (res.status !== 0) {
       failures.push({ rule, output: `${res.stdout}${res.stderr}`.trim() });
     }
   }
 
-  if (failures.length > 0) {
-    console.log(`\n${failures.length} of ${scripts.length} checks failed:\n`);
-    for (const f of failures) {
-      console.log(`── ${f.rule}`);
-      console.log(`${f.output}\n`);
-    }
-    process.exit(1);
+  const passed = `Passed: ${scripts.length - failures.length}`;
+  if (failures.length === 0) {
+    console.log(`${passed}, Failed: 0`);
+    return;
   }
-  console.log(`\nAll ${scripts.length} checks passed.`);
+
+  console.log(`${passed}, ${red(`Failed: ${failures.length}`)}\n`);
+  console.log("Failed:");
+  failures.forEach((f, i) => {
+    console.log(`${i > 0 ? "\n" : ""}- ${bold(f.rule)}`);
+    if (f.output) console.log(indent(f.output));
+  });
+  process.exit(1);
 }
 
 main();
