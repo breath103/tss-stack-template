@@ -32,8 +32,6 @@ function PortalEventBoundary({ children }: { children: ReactNode }) {
 
 let nextId = 0;
 
-export type ConfirmFn = ReturnType<typeof useModal>["confirm"];
-
 export function useModal() {
   const [stack, setStack] = useState<{ id: number; node: ReactNode }[]>([]);
 

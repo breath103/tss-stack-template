@@ -18,7 +18,7 @@ export const CDP_PORT = 9222 + portOffset(NAMESPACE);
 
 const E2E_STATUS_FILE = path.join(process.cwd(), `.e2e-status-${NAMESPACE}.json`);
 
-export interface E2eStatus {
+interface E2eStatus {
   cdpEndpoint: string;
   pid: number;
 }

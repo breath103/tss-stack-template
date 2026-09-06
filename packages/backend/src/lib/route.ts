@@ -24,6 +24,7 @@ type Simplify<T> = { [K in keyof T]: T[K] };
 // Infer zod schema shape, making optional fields actually optional
 type SafeInfer<T> = [T] extends [never] ? never : Simplify<OptionalUndefined<{ [K in keyof T]: z.infer<T[K]> }>>;
 
+/** @public — required for declaration emit: `route`'s inferred type names it. */
 export interface RouteContext<Context, Path extends string, Query, Body> {
   params: { [K in ExtractPathParams<Path>]: string };
   query: Query;

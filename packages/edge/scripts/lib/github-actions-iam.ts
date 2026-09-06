@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 
-export interface GitHubActionsIamProps {
+interface GitHubActionsIamProps {
   project: string;
   repo: string;
 }

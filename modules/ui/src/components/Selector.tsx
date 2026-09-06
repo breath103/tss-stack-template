@@ -78,7 +78,18 @@ function Row({
   return <Tag className={cn(rowStyle({ size }), className)} {...props} />;
 }
 
-export type SelectorProps<T extends string | null> = {
+export function Selector<T extends string | null>({
+  value,
+  onChange,
+  options,
+  label,
+  placeholder,
+  size = "m",
+  variant = "normal",
+  ariaLabel,
+  disabled,
+  optionDisabled,
+}: {
   value: T;
   onChange: (value: T) => void;
   options: readonly T[];
@@ -100,20 +111,7 @@ export type SelectorProps<T extends string | null> = {
    *  string disabled with that reason in a hover tooltip. Radix marks the row
    *  aria-disabled (not disabled), so it still takes hover for the tooltip. */
   optionDisabled?: (value: T) => string | boolean;
-};
-
-export function Selector<T extends string | null>({
-  value,
-  onChange,
-  options,
-  label,
-  placeholder,
-  size = "m",
-  variant = "normal",
-  ariaLabel,
-  disabled,
-  optionDisabled,
-}: SelectorProps<T>) {
+}) {
   const [open, setOpen] = useState(false);
 
   const nullIsOption = options.includes(null as T);

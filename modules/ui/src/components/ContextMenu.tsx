@@ -27,7 +27,7 @@ export { divider, group, type MenuDecoration };
 /** Where to open: a right-click/mouse event (point, preventDefaulted), an element (its box), or a rect. */
 type MenuAnchor = Element | DOMRect | Pick<globalThis.MouseEvent, "clientX" | "clientY" | "preventDefault">;
 
-export interface ContextMenuController<T, A> {
+interface ContextMenuController<T, A> {
   open: (target: T, at: MenuAnchor) => void;
   /** Feed keys from a host that keeps focus (the mention editor). True = consumed. */
   handleKey: (key: string) => boolean;

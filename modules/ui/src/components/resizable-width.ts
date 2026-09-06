@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { LocalStoredValue } from "../lib/local-stored-value";
 
-export interface ResizableWidthConfig {
+interface ResizableWidthConfig {
   defaultWidth: number;
   maxWidth: number;
   minWidth: number;
