@@ -10,7 +10,7 @@ export type AppEnv = {
   };
 };
 
-export type AppContext = Context<AppEnv>;
+type AppContext = Context<AppEnv>;
 
 export const route = routeFactory<AppContext>();
 export const routes = routesFactory<AppContext>();

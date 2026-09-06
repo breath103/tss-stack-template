@@ -1,6 +1,6 @@
 import type { SubdomainMapValue, TssConfig } from "./config.js";
 
-export interface ValidationResult {
+interface ValidationResult {
   valid: boolean;
   errors: string[];
 }

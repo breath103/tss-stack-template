@@ -40,7 +40,7 @@ export type Scenario = (ctx: {
 // sent — for example, an auth flow that tests "no cookie" and "stale
 // cookie" cases the same context would otherwise auto-fill.
 
-export type JsonInput = string | number | boolean | null | undefined | JsonInput[] | { [k: string]: JsonInput };
+type JsonInput = string | number | boolean | null | undefined | JsonInput[] | { [k: string]: JsonInput };
 
 interface ApiResponse<T> {
   status: number;

@@ -12,13 +12,6 @@ import { SearchField } from "./SearchField";
 const SKELETON_ROWS = [0, 1, 2];
 const NAV_KEYS = ["ArrowDown", "ArrowUp", "Home", "End"];
 
-// Gate one option: `false` selectable, `true` disabled, a string disabled with
-// that reason shown in a per-row tooltip. The tooltip is one Radix Root per row,
-// so a string is only for lists bounded by a const vocabulary (statuses, ≤ a
-// handful); an unbounded list (people) returns a boolean and surfaces its reason
-// through `accessory` instead — see don-t-attach-radix-primitives-per-list-item.
-export type OptionGate<T> = (value: T) => string | boolean;
-
 // The option list every Picker shares: it owns select semantics (single closes
 // on pick, multi toggles and stays open), the selected-set, gating, roving
 // keyboard focus, and the search / loading / empty / error chrome. Pass
@@ -28,7 +21,14 @@ export function OptionList<T extends string>(
   props: {
     options: readonly T[];
     label: (value: T) => TextLabel | ReactNode;
-    optionDisabled?: OptionGate<T>;
+    /**
+     * `false` selectable, `true` disabled, a string disabled with that reason shown in a
+     * per-row tooltip. The tooltip is one Radix Root per row, so a string is only for lists
+     * bounded by a const vocabulary (statuses, ≤ a handful); an unbounded list (people)
+     * returns a boolean and surfaces its reason through `accessory` instead — see
+     * don-t-attach-radix-primitives-per-list-item.
+     */
+    optionDisabled?: (value: T) => string | boolean;
     /** Right-aligned per-row node (a "not a member" tag on a dimmed row). */
     accessory?: (value: T) => ReactNode;
     loading?: boolean;
