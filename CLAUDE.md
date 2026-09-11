@@ -44,7 +44,7 @@ means the safety net stays off for the very code that needs it.
   append such lines.
 - **Open URLs for the user with `./scripts/open-url.ts <url>` — never bash `open`, never
   the Chrome MCP tools.** Inside Orca it opens an Orca browser tab in this session's
-  worktree (`--activate` also brings it to the front); elsewhere it falls back to
+  worktree (`--focus` also brings it to the front); elsewhere it falls back to
   the platform opener. Bash `open` lands in the wrong browser.
 - **Never call `npx` directly.** This project has scripts for everything. Use the provided scripts instead.
 - **No `"warn"` lint rules — ever.** Every rule is `"error"` (fix it) or `"off"`

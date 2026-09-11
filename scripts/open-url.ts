@@ -3,17 +3,17 @@
 // running inside Orca, the platform opener otherwise.
 //
 //   ./scripts/open-url.ts "http://localhost:4010/tasks"
-//   ./scripts/open-url.ts --activate "<pr-url>"   # also make the Orca tab active
+//   ./scripts/open-url.ts --focus "<pr-url>"   # also make the Orca tab active
 import { spawnSync } from "node:child_process";
 import { parseArgs } from "node:util";
 
 const { values, positionals } = parseArgs({
-  options: { activate: { type: "boolean", default: false } },
+  options: { focus: { type: "boolean", default: false } },
   allowPositionals: true,
 });
 const url = positionals[0];
 if (!url) {
-  console.error("Usage: ./scripts/open-url.ts [--activate] <url>");
+  console.error("Usage: ./scripts/open-url.ts [--focus] <url>");
   process.exit(1);
 }
 
@@ -38,4 +38,4 @@ if (!process.env.ORCA_TAB_ID) {
 const worktree = process.env.ORCA_WORKTREE_ID ? ["--worktree", `id:${process.env.ORCA_WORKTREE_ID}`] : [];
 const created = JSON.parse(run("orca", ["tab", "create", "--url", url, ...worktree, "--json"], true));
 const pageId: string | undefined = created.result?.browserPageId;
-if (values.activate && pageId) run("orca", ["tab", "switch", "--page", pageId, "--json"], true);
+if (values.focus && pageId) run("orca", ["tab", "switch", "--page", pageId, "--json"], true);

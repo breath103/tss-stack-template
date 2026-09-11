@@ -33,7 +33,7 @@ git -C ~/Work/tss-stack-template rev-parse --show-toplevel 2>/dev/null
 
 ## 4. Hand off for approval
 
-Stop and let the **user review and approve** the template change, then get it **merged into the template's `main`** (PR merge per the template's rules — e.g. `gh pr merge` without `--squash`).
+Open the template PR for the user with the template's `./scripts/open-url.ts --focus "<pr-url>"` (run from the template repo) — never bash `open`, never the Chrome MCP tools. Then stop and let the **user review and approve** the template change, then get it **merged into the template's `main`** (PR merge per the template's rules — e.g. `gh pr merge` without `--squash`).
 
 Do not proceed to step 5 until the change is actually merged upstream. If the user hasn't confirmed the merge, ask.
 
