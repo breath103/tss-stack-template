@@ -9,11 +9,11 @@ description: "Manage GitHub Project board issues and full lifecycle task executi
 
 - `/do-task manual` (or just `/do-task` — manual is the default) — gates on:
   - **Design approval** (Step 3) — but only for substantive work; trivial / mechanical / cleanup changes per the Step 3 carve-out skip the gate.
-  - **Result check** (Step 7) — `open "<dev-url>"` on the affected route, then always ask.
+  - **Result check** (Step 7) — `./scripts/open-url.ts "<dev-url>"` on the affected route, then always ask.
   - **Land confirmation** (Step 10) — `AskUserQuestion("Land now or hold?")` before `cli.ts land-pr`.
 - `/do-task auto` — no human gates between start and merge:
   - **Design** (Step 3) — trivial → skip doc + no gate (same carve-out as `manual`). Substantive → write the doc as a record but **proceed without asking**. The user can interrupt if they disagree.
-  - **Result check** (Step 7) — question skipped, but still `open "<dev-url>"` on the affected route. E2E green → proceed straight to Polish.
+  - **Result check** (Step 7) — question skipped, but still `./scripts/open-url.ts "<dev-url>"` on the affected route. E2E green → proceed straight to Polish.
   - **Land** (Step 10) — `cli.ts land-pr` fires immediately after Open PR. CI is the only gate.
 
 Parse the mode from the args string passed to the Skill invocation. If the user typed `/do-task` alone (no arg, or any arg other than `auto`) → default to `manual`. If the user typed `/do-task auto` → run in auto mode for the entire lifecycle.
@@ -38,7 +38,7 @@ Every DB-related instruction below is tagged **(supabase only)**. In a non-supab
  4. Read guidelines       — ls + Read the coding-guidelines files for the areas the design touches
  5. Implement             — write code, type-check, build, commit
  6. E2E loop              — verify end-to-end → fix on fail → loop until passes
- 7. Result check          — ALWAYS `open "<dev-url>"` on the affected route first; then manual mode asks AskUserQuestion(works/tweak); auto mode skips the question
+ 7. Result check          — ALWAYS `./scripts/open-url.ts "<dev-url>"` on the affected route first; then manual mode asks AskUserQuestion(works/tweak); auto mode skips the question
  8. Polish                — inline /rethink-and-simplify, then inline /enforce-coding-guideline
  9. Open PR               — demo screenshots in body, no review wait
 10. Land                  — manual mode asks "land now?"; auto mode fires immediately. `land-pr` waits for CI, merges, syncs main, moves issue to Done.
@@ -96,7 +96,7 @@ Canonical task list (adapt #4–6 to actual work; gate tasks differ per mode; DB
 #6  Implement: <file> — <what to change>
 #7  Implement: <file> — <what to change>
 #8  E2E loop: (supabase only) `db:status` (→ `db:restart` if off) before dev → verify end-to-end → fix on fail → loop until passes
-#9  Result check gate: `open "<dev-url>"` on the affected route (BOTH modes) → (manual mode only) show result → AskUserQuestion(works/tweak) → fix → re-verify → loop
+#9  Result check gate: `./scripts/open-url.ts "<dev-url>"` on the affected route (BOTH modes) → (manual mode only) show result → AskUserQuestion(works/tweak) → fix → re-verify → loop
 #10 Polish 1/2: invoke /rethink-and-simplify INLINE via Skill tool — apply every Strong+Medium fix, loop until clean
 #11 Polish 2/2: invoke /enforce-coding-guideline INLINE via Skill tool — apply every Strong+Medium violation, loop until clean
 #12 Build + type-check + lint, commit
@@ -110,7 +110,7 @@ Canonical task list (adapt #4–6 to actual work; gate tasks differ per mode; DB
 #20 (supabase only) Cleanup: `npm run -w backend db:stop` to shed idle load (skip on a "hold" or if user asked to keep the DB up)
 ```
 
-In `auto` mode, **cancel tasks #3 and #14** (the human gates) right after creating the list — don't leave them dangling. Keep #9: its `open "<dev-url>"` half runs in both modes; only the question is skipped. **In a non-supabase project (no `"supabase"` in `tss.json` `uses`), also cancel the DB tasks (#16, #20) and drop the `db:status`/`db:restart` prelude from #8.** Everything else runs in both modes; when the project IS supabase, **#16 (db:push) is not a gate, and its placement is the expand/contract decision above.**
+In `auto` mode, **cancel tasks #3 and #14** (the human gates) right after creating the list — don't leave them dangling. Keep #9: its `./scripts/open-url.ts "<dev-url>"` half runs in both modes; only the question is skipped. **In a non-supabase project (no `"supabase"` in `tss.json` `uses`), also cancel the DB tasks (#16, #20) and drop the `db:status`/`db:restart` prelude from #8.** Everything else runs in both modes; when the project IS supabase, **#16 (db:push) is not a gate, and its placement is the expand/contract decision above.**
 
 Rules: one task per line above (the two Polish skills stay separate — see Step 8); each task is a concrete unit of work with file paths in its description, not a phase name; mark `in_progress` when starting, `completed` when done, and cancel n/a tasks immediately.
 
@@ -204,7 +204,7 @@ Those carve-outs cover the *few* images that demonstrate the change — never ev
 
 **(supabase only) Before starting or using dev, confirm the DB is up.** Run `npm run -w backend db:status`. If it reports down, unresponsive, or anything off, run `npm run -w backend db:restart` and wait for it to come back before touching dev. Never start the E2E loop against a stopped/wedged Supabase — that's the wasted-time trap in the top-level rules. In a non-supabase project, skip this entirely and just bring up dev.
 
-**Before the loop, open the local dev URL for the user.** Once the dev server is ready (or after starting it), run `open "<dev-url>"` using the URL reported by `./scripts/dev.ts status` / `./scripts/dev.ts start` (for example, `open "http://localhost:3000"`, or the per-worktree `http://<dir-basename>.localhost:3000`). Do this even in `auto` mode so the user can watch or spot-check without hunting for the URL. If the change's observable surface is a specific route, open that route directly (for example, `/tasks`).
+**Before the loop, open the local dev URL for the user.** Once the dev server is ready (or after starting it), run `./scripts/open-url.ts "<dev-url>"` using the URL reported by `./scripts/dev.ts status` / `./scripts/dev.ts start` (for example, `./scripts/open-url.ts "http://localhost:3000"`, or the per-worktree `http://<dir-basename>.localhost:3000`). `open-url` opens an Orca browser tab when the session runs inside Orca and falls back to the platform opener otherwise — never call bash `open` directly and never the Chrome MCP browser tools (`mcp__claude-in-chrome__navigate`, `tabs_create_mcp`, …); this is a hand-off to the user, not a page for you to drive. Do this even in `auto` mode so the user can watch or spot-check without hunting for the URL. If the change's observable surface is a specific route, open that route directly (for example, `/tasks`).
 
 **Preferred path: write a scenario, run it, debug from the screenshots.**
 
@@ -233,13 +233,13 @@ If the change has **no observable runtime surface** (pure docs, type-only declar
 
 When the task was "make X look/behave like Y" (mirror an existing surface, match a reference), **self-review your own artifact against Y BEFORE asking** — open your screenshot next to the reference and fix the obvious divergences (header casing, spacing, states) first. The gate is the user's final sign-off, not your visual QA; handing them a screenshot they have to diff for you is the miss.
 
-**ALWAYS open the result for the user first — both modes, no exceptions.** Immediately before the question below (or, in `auto` mode, before the 1-line summary), run the bash command `open "<dev-url>"` on the exact route where the change is visible — the running app, not the code, not a screenshot. Use the URL from `./scripts/dev.ts status` / `./scripts/dev.ts start` plus the affected route (for example, `open "http://localhost:3000/tasks"`). Opening it again after Step 6 is fine — `open` reuses the tab. If the change has no browser surface (backend-only, script, docs), open the closest thing the user can inspect (an API route, a Studio table) and say in one line why no page exists — pointing at the diff does not count. Asking "does this match?" without the page in front of the user is a Step 7 failure.
+**ALWAYS open the result for the user first — both modes, no exceptions.** Immediately before the question below (or, in `auto` mode, before the 1-line summary), run `./scripts/open-url.ts "<dev-url>"` on the exact route where the change is visible — the running app, not the code, not a screenshot. Use the URL from `./scripts/dev.ts status` / `./scripts/dev.ts start` plus the affected route (for example, `./scripts/open-url.ts "http://localhost:3000/tasks"`). Opening it again after Step 6 is fine. If the change has no browser surface (backend-only, script, docs), open the closest thing the user can inspect (an API route, a Studio table) and say in one line why no page exists — pointing at the diff does not count. Asking "does this match?" without the page in front of the user is a Step 7 failure.
 
 **`manual` mode** — with the page open, show the user what you verified (screenshot, demo, curl output, agent transcript — whatever's appropriate) and ask:
 
 ```
 loop:
-  open "<dev-url><affected-route>"
+  ./scripts/open-url.ts "<dev-url><affected-route>"
   AskUserQuestion({
     question: "Verified <feature> end-to-end — open at <dev-url><affected-route>. Result matches what you wanted?",
     header: "Result check",
@@ -254,7 +254,7 @@ loop:
 
 Only proceed to Step 8 after explicit "yes."
 
-**`auto` mode** — skip the question, not the `open`. Post a 1-line summary of what was verified (e.g. "E2E green: <scenario>. Open at <dev-url>/tasks. Proceeding to Polish."), then go straight to Step 8.
+**`auto` mode** — skip the question, not the open-url call. Post a 1-line summary of what was verified (e.g. "E2E green: <scenario>. Open at <dev-url>/tasks. Proceeding to Polish."), then go straight to Step 8.
 
 ## Step 8: Polish — rethink, then enforce guidelines
 
@@ -273,8 +273,8 @@ These are **two separate tasks (#10, #11)** — for each: mark `in_progress`, in
 
 **Browser tabs the user is going to look at — open them, don't make the user hunt for URLs:**
 
-- **BEFORE creating the PR**, open the local dev URL so the user can spot-check the feature in the running app. Use the URL reported by `./scripts/dev.ts status` / `./scripts/dev.ts start` — for example, `open "http://localhost:3000"` (or the specific route the change affects). This is mandatory in both modes. If you already opened it in Step 6, opening again is fine — `open` reuses the tab.
-- **AFTER `cli.ts create-pr` returns**, immediately `open "<pr-url>"` with the URL from its JSON output. Mandatory in both modes. The user needs the PR tab whether they're reviewing, landing, or holding.
+- **BEFORE creating the PR**, open the local dev URL so the user can spot-check the feature in the running app. Use the URL reported by `./scripts/dev.ts status` / `./scripts/dev.ts start` — for example, `./scripts/open-url.ts "http://localhost:3000"` (or the specific route the change affects). This is mandatory in both modes. If you already opened it in Step 6, opening again is fine.
+- **AFTER `cli.ts create-pr` returns**, immediately `./scripts/open-url.ts "<pr-url>"` with the URL from its JSON output. Mandatory in both modes. The user needs the PR tab whether they're reviewing, landing, or holding.
 
 Then:
 
@@ -300,7 +300,7 @@ Then:
 
 The review-wait loop is gone. PR opens → land. CI is the gate, not human review.
 
-Before any land decision or auto-land, open the PR URL for the user with bash: `open "<pr-url>"`. This is mandatory in both modes so the user doesn't have to copy/check the URL manually.
+Before any land decision or auto-land, open the PR URL for the user: `./scripts/open-url.ts "<pr-url>"`. This is mandatory in both modes so the user doesn't have to copy/check the URL manually.
 
 **`manual` mode** — ask before landing. Run `gh pr checks <n>` FIRST and bake the current status into the question — the user's answer depends on whether CI is green, pending, or red. Asking "Land now?" while checks are still yellow/red reads as "please tell me to wait" and gets you called dumb.
 
