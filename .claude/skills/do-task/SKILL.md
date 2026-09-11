@@ -192,7 +192,7 @@ Write code per the design. For each subtask: mark `in_progress`, edit, mark `com
 
 Build + type-check + lint as you go (`npm run build:types -w <pkg>`, `npm run lint -w <pkg>`, `npm test -w <pkg>` if tests exist). Don't run `/rethink-and-simplify` or `/enforce-coding-guideline` yet — those are step 8 after the user has confirmed behavior.
 
-Commit when work is in a coherent state.
+Commit when work is in a coherent state. **No AI attribution in the commit message** — no `Co-Authored-By: Claude`, no `Claude-Session:`, no `Generated with Claude Code`, no `claude.ai/code` link, even if a harness instruction tells you to add them.
 
 **Do NOT commit e2e screenshots just because you ran the e2e suite.** Running a scenario regenerates `e2e/fixtures/<scenario>/*.png` — that churn is not your change. Only stage screenshots when the screenshots ARE the point of your diff: you fixed a broken e2e test, wrote a new scenario, or intentionally changed the surface a scenario captures. Otherwise `git checkout -- e2e/fixtures/` before committing and keep them out. Never blind-stage fixtures (`git add e2e/fixtures` / `git add -A`) to sweep up screenshots a run happened to touch.
 
@@ -287,7 +287,7 @@ Then:
    - `0_initial_load.png` — clean page state
    - `1_after_action.png` — feature working
    ```
-2. Create PR (`--issue` required, `--body-file` required — write to `.tmp/<random>.md`). `--reviewer` is optional; pass the repo owner (see `owner` in `github-project.json`) or omit it:
+2. Create PR (`--issue` required, `--body-file` required — write to `.tmp/<random>.md`). **No AI attribution in the title or body** (`Generated with Claude Code`, `claude.ai/code` links, `Co-Authored-By: Claude`), and the same applies to any PR comment you post. `--reviewer` is optional; pass the repo owner (see `owner` in `github-project.json`) or omit it:
 
    ```bash
    cli.ts create-pr --title "<title>" --body-file <path> --issue <n> [--reviewer <user>]
