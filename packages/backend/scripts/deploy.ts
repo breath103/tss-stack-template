@@ -14,10 +14,10 @@ import { loadEnv } from "./lib/env.js";
 const ROOT = path.resolve(import.meta.dirname, "..");
 
 function main() {
-  const { name, env } = parseCliArgs();
+  const { name, env, skipBuild } = parseCliArgs();
 
   const envVars = loadEnv(env);
-  build();
+  if (!skipBuild) build();
 
   const config = loadConfig();
   const stackName = synthesizeStack(config, name, envVars);
@@ -33,6 +33,7 @@ function parseCliArgs() {
     options: {
       name: { type: "string", short: "n" },
       env: { type: "string", short: "e" },
+      "skip-build": { type: "boolean", default: false },
       help: { type: "boolean", short: "h" },
     },
     strict: true,
@@ -58,7 +59,7 @@ function parseCliArgs() {
     console.log(`Branch name sanitized: "${values.name}" → "${sanitizedName}"`);
   }
 
-  return { name: sanitizedName, env: values.env };
+  return { name: sanitizedName, env: values.env, skipBuild: values["skip-build"] };
 }
 
 function showHelp(): never {
@@ -74,6 +75,7 @@ Options:
                       Loads .env.<env> instead of .env
                       Example: --env=production loads .env.production
   -h, --help          Show this help message
+      --skip-build    Deploy the already prepared dist/ artifact (CI)
 
 Examples:
   ./packages/backend/scripts/deploy.ts --name=main
@@ -112,7 +114,7 @@ function synthesizeStack(config: ReturnType<typeof loadConfig>, name: string, en
 }
 
 function deploy(stackName: string): void {
-  execSync(`npx cdk deploy ${stackName} --app ./cdk.out --require-approval never`, {
+  execSync(`npx cdk deploy ${stackName} --app ./cdk.out --method direct --rollback --require-approval never`, {
     stdio: "inherit",
     cwd: ROOT,
   });

@@ -36,6 +36,9 @@ function main() {
     )
   );
 
+  const lockfile = path.join(ROOT, "package-lock.deploy.json");
+  if (fs.existsSync(lockfile)) fs.copyFileSync(lockfile, path.join(DIST, "package-lock.json"));
+
   console.log("Pack build complete");
 }
 
