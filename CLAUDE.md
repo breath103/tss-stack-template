@@ -2,8 +2,7 @@
 
 ## Deployment
 
-- **CI deploys automatically on merge to main.** Never deploy manually.
-- **Never use `--squash` when merging PRs.** Use `gh pr merge` without `--squash`.
+For how to deploy, read `documents/deployment.md`.
 
 ## Coding guidelines
 

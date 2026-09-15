@@ -26,18 +26,11 @@ jobs:
     name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-      - uses: actions/cache@v4
-        id: nm-cache
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('package-lock.json') }}
-      - if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: ${{ matrix.command }}
+      - name: Verify stack cleanup policies
+        if: matrix.name == 'Build & Lint & Test backend'
+        run: node --import tsx --test .github/scripts/backend-stack.test.mjs
 
   deploy:
     needs: check
@@ -48,17 +41,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-      - uses: actions/cache@v4
-        id: nm-cache
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('package-lock.json') }}
-      - if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm ci
+      - uses: ./.github/actions/setup-node
+        id: node
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -71,9 +55,16 @@ jobs:
         id: deploy-deps
         with:
           path: packages/backend/dist/node_modules
-          key: backend-deploy-deps-${{ hashFiles('packages/backend/package.json') }}
+          key: backend-deploy-deps-v2-${{ runner.os }}-x64-glibc-${{ steps.node.outputs.node-version }}-${{ hashFiles('packages/backend/package-lock.deploy.json', 'packages/backend/package.json', 'packages/backend/scripts/pack-*') }}
+      - if: steps.deploy-deps.outputs.cache-hit != 'true' && steps.node.outputs.cache-hit == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: node-cache-${{ runner.os }}-${{ runner.arch }}-npm-${{ hashFiles('package-lock.json') }}
       - if: steps.deploy-deps.outputs.cache-hit != 'true'
         run: ./packages/backend/scripts/pack-install.ts
+      - name: Verify packaged dependencies
+        run: ./packages/backend/scripts/pack-verify.ts
       - name: Deploy backend
         env:
           # packages/backend/src/env.d.ts
@@ -82,7 +73,13 @@ jobs:
           GOOGLE_CLIENT_ID: "495965151122-nqsuprf3r5e9r8soqa5p15ini6sijhe0.apps.googleusercontent.com"
           GOOGLE_CLIENT_SECRET: "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"
           BETTER_AUTH_SECRET: "RHY2DJS7bHHqwc6/+gSYx5pfx+lwt+epje+7bxjIWuY="
-        run: ./packages/backend/scripts/deploy.ts --name=${{ github.ref_name }}
+          DEPLOY_NAME: ${{ github.ref_name }}
+        run: ./packages/backend/scripts/deploy.ts --name="$DEPLOY_NAME" --skip-build
+
+      - name: Smoke test deployed Lambda
+        env:
+          DEPLOY_NAME: ${{ github.ref_name }}
+        run: node --import tsx .github/scripts/smoke-deployment.mjs
 
       - name: Deploy frontend
         env:
@@ -90,7 +87,8 @@ jobs:
           SITE_URL: "https://www.tsss.cloud"
           REQUIRED_FOO: "frontend-value"
           # OPTIONAL_FOO: ""
-        run: ./packages/frontend/scripts/deploy.ts --name=${{ github.ref_name }}
+          DEPLOY_NAME: ${{ github.ref_name }}
+        run: ./packages/frontend/scripts/deploy.ts --name="$DEPLOY_NAME"
 
   # notify:
   #   needs: [check, deploy]

@@ -1,0 +1,33 @@
+name: Set up Node dependencies
+description: Restore workspace dependencies or install them from the lockfile
+outputs:
+  node-version:
+    description: Installed Node version
+    value: ${{ steps.node.outputs.node-version }}
+  cache-hit:
+    description: Whether workspace node_modules were restored
+    value: ${{ steps.nm-cache.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      id: node
+      with:
+        node-version-file: ".nvmrc"
+    - uses: actions/cache@v4
+      id: nm-cache
+      with:
+        # npm can leave unhoisted dependencies inside individual workspaces.
+        path: |
+          node_modules
+          packages/*/node_modules
+          modules/*/node_modules
+        key: node-modules-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+    - if: steps.nm-cache.outputs.cache-hit != 'true'
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: node-cache-${{ runner.os }}-${{ runner.arch }}-npm-${{ hashFiles('package-lock.json') }}
+    - if: steps.nm-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci --no-audit --no-fund

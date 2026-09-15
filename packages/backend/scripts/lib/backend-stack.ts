@@ -47,6 +47,7 @@ export class BackendStack extends cdk.Stack {
       logGroup: new logs.LogGroup(this, "HandlerLogGroup", {
         logGroupName: `/aws/lambda/${functionName}`,
         retention: logs.RetentionDays.TWO_MONTHS,
+        removalPolicy: props.name === "main" ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
       }),
       environment: {
         NODE_ENV: "production",

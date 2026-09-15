@@ -24,11 +24,10 @@ async function main() {
   const exists = await stackExists(stackName, config.backend.region);
   if (!exists) {
     console.log(`\nBackend stack does not exist: ${stackName}`);
-    console.log("Nothing to destroy.");
-    return;
+  } else {
+    console.log(`\nBackend stack found: ${stackName}`);
   }
 
-  console.log(`\nBackend stack found: ${stackName}`);
   console.log("Would delete this stack and its SSM parameter.");
 
   if (dryRun) {
@@ -45,7 +44,7 @@ async function main() {
 
   console.log(`\nDestroying backend stack: ${stackName}`);
 
-  await deleteStack(stackName, config.backend.region);
+  if (exists) await deleteStack(stackName, config.backend.region);
   await deleteSsmParameter(config, name);
 
   console.log(`\n✅ Destroyed backend: ${name}`);

@@ -148,7 +148,10 @@ async function deletePrefix(s3: S3Client, bucket: string, prefix: string): Promi
       },
     };
 
-    await s3.send(new DeleteObjectsCommand(deleteParams));
+    const result = await s3.send(new DeleteObjectsCommand(deleteParams));
+    if (result.Errors?.length) {
+      throw new Error(`Failed to delete frontend objects: ${JSON.stringify(result.Errors)}`);
+    }
     totalDeleted += objects.length;
     console.log(`  Deleted ${objects.length} objects (total: ${totalDeleted})`);
 
