@@ -101,7 +101,9 @@ function buildConfig(
     $schema: "./tss.schema.json",
     project,
     repo,
-    edge: { devPort: 3000 },
+    uses: [],
+    dev: { worktree: "1" },
+    edge: { devPort: 3000, githubActionsIamRole: true },
     backend: { region, devPort: 3001 },
     frontend: { bucketSuffix: "", devPort: 3002 },
     ssm: { region },
@@ -123,10 +125,10 @@ function copyEnvSamples() {
   const packages = ["backend", "frontend"];
   for (const pkg of packages) {
     const samplePath = path.join(ROOT, "packages", pkg, ".env.sample");
-    const envPath = path.join(ROOT, "packages", pkg, ".env");
+    const envPath = path.join(ROOT, "packages", pkg, ".env.development");
     if (fs.existsSync(samplePath) && !fs.existsSync(envPath)) {
       fs.copyFileSync(samplePath, envPath);
-      console.log(`Copied ${pkg}/.env.sample → ${pkg}/.env`);
+      console.log(`Copied ${pkg}/.env.sample → ${pkg}/.env.development`);
     }
   }
 }
@@ -155,10 +157,7 @@ async function main() {
   copyEnvSamples();
 
   console.log("\nNext steps:");
-  console.log("  1. Edit packages/backend/.env with your secrets");
-  console.log("  2. ./packages/edge/scripts/deploy.ts deploy  # Deploy CloudFront + Lambda@Edge");
-  console.log("  3. ./packages/backend/scripts/deploy.ts --name=main");
-  console.log("  4. ./packages/frontend/scripts/deploy.ts --name=main");
+  console.log("  Follow documents/starting-a-new-project.md from step 2 (rename leftovers, secrets, first deploy).");
 
   rl.close();
 }
