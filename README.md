@@ -4,6 +4,12 @@ Type-Safe Serverless Stack for deploying full-stack TypeScript apps on AWS.
 
 > **Never call `npx` directly.** This project has scripts for everything. Use the provided scripts instead.
 
+## Starting a new project
+
+Starting a new project from this template? Follow the checklist in
+[documents/starting-a-new-project.md](documents/starting-a-new-project.md). It covers
+remotes, renaming, secrets, the first deploy, and syncing template updates later.
+
 ## Live Demo
 
 - **Production (main)**: https://www.tsss.cloud/
@@ -71,10 +77,10 @@ declare namespace NodeJS {
 }
 ```
 
-**Local dev**: Create `.env` in each package (gitignored):
+**Local dev**: Create `.env.development` in each package (gitignored):
 
 ```bash
-# packages/backend/.env
+# packages/backend/.env.development
 DATABASE_URL=postgres://localhost/myapp
 ```
 
@@ -89,7 +95,7 @@ DATABASE_URL=postgres://localhost/myapp
 
 ### 4. Authentication (Google OAuth)
 
-Add to `packages/backend/.env`:
+Add to `packages/backend/.env.development`:
 
 ```bash
 GOOGLE_CLIENT_ID=your_client_id
@@ -97,7 +103,7 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 BETTER_AUTH_SECRET=random_32_char_secret
 ```
 
-Set up Google OAuth at [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with callback URL: `http://localhost:3000/api/auth/callback/google`
+Set up Google OAuth at [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with callback URL: `http://<checkout-dir>.localhost:3000/api/auth/callback/google`
 
 ### 5. Dev
 
