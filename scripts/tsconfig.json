@@ -1,0 +1,21 @@
+{
+  // The root `scripts/` tree had no tsconfig, so nothing typechecked it — not this program,
+  // not the pre-commit hook, not CI. oxlint's type-aware pass reads types but does not report
+  // TS errors, so a genuine type error here used to reach runtime unchallenged.
+  //
+  // `moduleResolution: bundler` because the `shared` package maps its exports straight to
+  // `.ts` source, which NodeNext resolution rejects.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "rootDir": "..",
+    "types": ["node"]
+  },
+  "include": ["."]
+}

@@ -25,7 +25,8 @@ interface E2eStatus {
 
 export function read(): E2eStatus | null {
   try {
-    return JSON.parse(fs.readFileSync(E2E_STATUS_FILE, "utf-8"));
+    // This program wrote the file; a malformed one throws and is caught below.
+    return JSON.parse(fs.readFileSync(E2E_STATUS_FILE, "utf-8")) as E2eStatus;
   } catch {
     return null;
   }
@@ -36,7 +37,11 @@ export function write(s: E2eStatus) {
 }
 
 export function remove() {
-  try { fs.unlinkSync(E2E_STATUS_FILE); } catch { /* already gone */ }
+  try {
+    fs.unlinkSync(E2E_STATUS_FILE);
+  } catch {
+    /* already gone */
+  }
 }
 
 export function requireRunning(): E2eStatus {
@@ -45,7 +50,9 @@ export function requireRunning(): E2eStatus {
     console.error("Headless Chrome is not running. Start it first: ./scripts/e2e.ts start");
     process.exit(1);
   }
-  try { process.kill(s.pid, 0); } catch {
+  try {
+    process.kill(s.pid, 0);
+  } catch {
     console.error("Headless Chrome process is dead. Restart: ./scripts/e2e.ts start");
     remove();
     process.exit(1);

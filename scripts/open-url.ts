@@ -27,7 +27,7 @@ function run(cmd: string, args: string[], capture = false): string {
     if (capture) process.stderr.write(res.stderr);
     process.exit(res.status ?? 1);
   }
-  return res.stdout ?? "";
+  return res.stdout;
 }
 
 if (!process.env.ORCA_TAB_ID) {
@@ -36,6 +36,9 @@ if (!process.env.ORCA_TAB_ID) {
 }
 
 const worktree = process.env.ORCA_WORKTREE_ID ? ["--worktree", `id:${process.env.ORCA_WORKTREE_ID}`] : [];
-const created = JSON.parse(run("orca", ["tab", "create", "--url", url, ...worktree, "--json"], true));
-const pageId: string | undefined = created.result?.browserPageId;
+const created: unknown = JSON.parse(run("orca", ["tab", "create", "--url", url, ...worktree, "--json"], true));
+const result = typeof created === "object" && created !== null && "result" in created ? created.result : null;
+const browserPageId =
+  typeof result === "object" && result !== null && "browserPageId" in result ? result.browserPageId : null;
+const pageId = typeof browserPageId === "string" ? browserPageId : null;
 if (values.focus && pageId) run("orca", ["tab", "switch", "--page", pageId, "--json"], true);

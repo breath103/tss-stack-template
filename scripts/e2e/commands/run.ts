@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 import { chromium, type Page } from "playwright";
 import { z } from "zod";
 
-import { type ScenarioPage } from "../../../e2e/_helpers.js";
+import { type Scenario, type ScenarioPage } from "../../../e2e/_helpers.js";
 import { Command } from "../command.js";
 import { edgeUrl } from "../constants.js";
 import * as status from "../status.js";
@@ -26,16 +26,17 @@ function wrapPage(page: Page, fixturesDir: string): ScenarioPage {
           target.screenshot({ ...opts, path: path.join(fixturesDir, `${opts.name}.png`) });
       }
       const value = Reflect.get(target, prop) as unknown;
-      return typeof value === "function" ? value.bind(target) : value;
+      return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
     },
   }) as unknown as ScenarioPage;
 }
 
 function listTests(): string[] {
   if (!fs.existsSync(E2E_DIR)) return [];
-  return fs.readdirSync(E2E_DIR)
-    .filter((f) => f.endsWith(".ts") && !f.startsWith("_"))
-    .map((f) => f.replace(/\.ts$/, ""))
+  return fs
+    .readdirSync(E2E_DIR)
+    .filter(f => f.endsWith(".ts") && !f.startsWith("_"))
+    .map(f => f.replace(/\.ts$/, ""))
     .sort();
 }
 
@@ -49,9 +50,10 @@ function printAvailable() {
   for (const t of tests) console.log(`  ${t}`);
 }
 
-export const run = new Command("Run an e2e test from ./e2e/<name>.ts (no name = list)",
+export const run = new Command(
+  "Run an e2e test from ./e2e/<name>.ts (no name = list)",
   z.tuple([z.string().describe("name").optional()]),
-  async (name) => {
+  async name => {
     if (!name) {
       printAvailable();
       console.log("\nrun: npm run e2e <name>");
@@ -78,24 +80,24 @@ export const run = new Command("Run an e2e test from ./e2e/<name>.ts (no name = 
     const browser = await chromium.connectOverCDP(e2e.cdpEndpoint);
     const context = await browser.newContext({ baseURL: edgeUrl });
     const rawPage = await context.newPage();
-    rawPage.on("console", (msg) => console.log(`    [browser:${msg.type()}] ${msg.text()}`));
-    rawPage.on("pageerror", (err) => console.error(`    [browser:error] ${err.message}`));
+    rawPage.on("console", msg => console.log(`    [browser:${msg.type()}] ${msg.text()}`));
+    rawPage.on("pageerror", err => console.error(`    [browser:error] ${err.message}`));
 
     const page = wrapPage(rawPage, fixturesDir);
 
     const t0 = Date.now();
     console.log(`> ${name}`);
     try {
-      const mod = await import(pathToFileURL(file).href);
-      const fn = mod.default;
+      const mod: unknown = await import(pathToFileURL(file).href);
+      const fn = typeof mod === "object" && mod !== null && "default" in mod ? mod.default : undefined;
       if (typeof fn !== "function") {
         throw new Error(`e2e/${name}.ts must default-export a Scenario`);
       }
-      await fn({ page, request: context.request });
+      await (fn as Scenario)({ page, request: context.request });
       console.log(`PASS  ${name}  (${Date.now() - t0}ms)`);
     } catch (err) {
       console.error(`FAIL  ${name}  (${Date.now() - t0}ms)`);
-      console.error(err instanceof Error ? err.stack ?? err.message : err);
+      console.error(err instanceof Error ? (err.stack ?? err.message) : err);
       process.exitCode = 1;
     } finally {
       await context.close();
@@ -105,5 +107,5 @@ export const run = new Command("Run an e2e test from ./e2e/<name>.ts (no name = 
     // the scenario can't keep the process alive past the harness summary.
     // Per-scenario timeouts are enforced inside `harness()` in _helpers.ts.
     process.exit(process.exitCode ?? 0);
-  },
+  }
 );
