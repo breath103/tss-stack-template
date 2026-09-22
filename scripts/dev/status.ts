@@ -1,83 +1,60 @@
 #!/usr/bin/env -S node --import tsx
-import { execSync } from "node:child_process";
 import { parseArgs } from "node:util";
 
-const { positionals } = parseArgs({ allowPositionals: true });
-const rootPid = Number(positionals[0]);
+import { type ProcessRow, ProcessTable } from "./process-table.js";
 
-if (!rootPid) {
-  console.error("Usage: ./scripts/dev/status.ts <pid>");
-  process.exit(1);
+interface Node extends ProcessRow {
+  cwd: string | null;
+  children: Node[];
 }
 
-const ps = execSync("ps -eo pid,ppid,command", { encoding: "utf-8" });
-const lines = ps.trim().split("\n").slice(1);
-
-interface Proc {
-  pid: number;
-  ppid: number;
-  command: string;
-  cwd: string;
-  children: Proc[];
+function buildTree(table: ProcessTable, row: ProcessRow): Node {
+  return { ...row, cwd: null, children: table.childrenOf(row.pid).map(child => buildTree(table, child)) };
 }
 
-const procs = new Map<number, Proc>();
-for (const line of lines) {
-  const match = line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/);
-  if (!match) continue;
-  procs.set(Number(match[1]), {
-    pid: Number(match[1]),
-    ppid: Number(match[2]),
-    command: match[3],
-    cwd: "",
-    children: [],
+function collectPids(node: Node): number[] {
+  return [node.pid, ...node.children.flatMap(collectPids)];
+}
+
+function applyCwds(node: Node, cwds: Map<number, string>): void {
+  node.cwd = cwds.get(node.pid) ?? null;
+  for (const child of node.children) applyCwds(child, cwds);
+}
+
+function printNode(node: Node, prefix: string, childrenPrefix: string): void {
+  const cwdLabel = node.cwd === null ? "" : ` \x1b[33mcwd=${node.cwd}\x1b[0m`;
+  console.log(`${prefix}\x1b[2mpid=${node.pid}\x1b[0m ${node.command}${cwdLabel}`);
+  node.children.forEach((child, i) => {
+    const isLast = i === node.children.length - 1;
+    printNode(child, childrenPrefix + (isLast ? "└── " : "├── "), childrenPrefix + (isLast ? "    " : "│   "));
   });
 }
 
-for (const proc of procs.values()) {
-  procs.get(proc.ppid)?.children.push(proc);
+function countAll(node: Node): number {
+  return 1 + node.children.reduce((sum, child) => sum + countAll(child), 0);
 }
 
-const root = procs.get(rootPid);
-if (!root) {
-  console.error(`Process ${rootPid} not found.`);
-  process.exit(1);
-}
-
-// Resolve cwd for all processes in the tree
-function collectPids(proc: Proc): number[] {
-  return [proc.pid, ...proc.children.flatMap(collectPids)];
-}
-const pids = collectPids(root);
-try {
-  const lsofOut = execSync(`lsof -a -d cwd -p ${pids.join(",")} 2>/dev/null`, { encoding: "utf-8" });
-  for (const line of lsofOut.split("\n")) {
-    const cols = line.trim().split(/\s+/);
-    if (cols.length < 9) continue;
-    const pid = Number(cols[1]);
-    const cwd = cols.slice(8).join(" ");
-    const proc = procs.get(pid);
-    if (proc) proc.cwd = cwd;
+function main(): void {
+  const { positionals } = parseArgs({ allowPositionals: true });
+  const rootPid = Number(positionals[0]);
+  if (!rootPid) {
+    console.error("Usage: ./scripts/dev/status.ts <pid>");
+    process.exit(1);
   }
-} catch { /* lsof may fail for some pids */ }
 
-function printNode(proc: Proc, prefix: string, childrenPrefix: string) {
-  const cwdLabel = proc.cwd ? ` \x1b[33mcwd=${proc.cwd}\x1b[0m` : "";
-  console.log(`${prefix}\x1b[2mpid=${proc.pid}\x1b[0m ${proc.command}${cwdLabel}`);
-  for (let i = 0; i < proc.children.length; i++) {
-    const isLast = i === proc.children.length - 1;
-    printNode(
-      proc.children[i],
-      childrenPrefix + (isLast ? "└── " : "├── "),
-      childrenPrefix + (isLast ? "    " : "│   "),
-    );
+  const table = ProcessTable.load();
+  const rootRow = table.rows.find(row => row.pid === rootPid);
+  if (!rootRow) {
+    console.error(`Process ${rootPid} not found.`);
+    process.exit(1);
   }
+
+  const root = buildTree(table, rootRow);
+  applyCwds(root, ProcessTable.cwds(collectPids(root)));
+
+  console.log();
+  printNode(root, "", "");
+  console.log(`\n\x1b[2mTotal: ${countAll(root)} processes\x1b[0m`);
 }
 
-function countAll(proc: Proc): number {
-  return 1 + proc.children.reduce((sum, c) => sum + countAll(c), 0);
-}
-
-console.log();
-printNode(root, "", "");
-console.log(`\n\x1b[2mTotal: ${countAll(root)} processes\x1b[0m`);
+main();
