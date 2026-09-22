@@ -30,6 +30,11 @@
         "worktree": {
           "type": "string",
           "description": "Worktree id used as a per-checkout namespace (auth cookie prefix, e2e Chrome data dir/port). Override via tss.override.json in each git worktree to run multiple instances side-by-side."
+        },
+        "tunnel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Start a cloudflared quick tunnel giving the local edge a public URL, passed to the backend as DEV_TUNNEL_URL. For anything off this machine that must call back in (webhook senders, remote sandboxes, a phone on another network). Requires cloudflared on PATH; a missing binary or a failed tunnel warns rather than fails."
         }
       }
     },

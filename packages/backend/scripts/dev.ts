@@ -52,6 +52,17 @@ function main(): void {
   });
   loadEnv(typeof values.env === "string" ? values.env : undefined);
 
+  // Without this, a SIGTERM'd watcher exits while `scripts/server.ts` keeps the dev port, so
+  // any targeted restart of this process dies with "port already in use". Full shutdown only
+  // ever worked because the top-level reaper blasts the whole process group.
+  for (const sig of ["SIGTERM", "SIGINT"] as const) {
+    process.on(sig, () => {
+      if (server === null) process.exit(0);
+      restarting = false;
+      server.kill("SIGTERM");
+    });
+  }
+
   merge(watch$(srcPath, { recursive: true }))
     .pipe(debounceTime(100), startWith(null))
     .subscribe(() => {
