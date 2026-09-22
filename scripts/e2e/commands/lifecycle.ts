@@ -62,7 +62,7 @@ export const start = new Command("Start headless Chrome (stores CDP endpoint)", 
   console.log(`started | pid:${chrome.pid} | ${endpoint}`);
 });
 
-export const stop = new Command("Stop headless Chrome", z.tuple([]), async () => {
+export const stop = new Command("Stop headless Chrome", z.tuple([]), () => {
   const s = status.read();
   if (!s) {
     console.log("not running");

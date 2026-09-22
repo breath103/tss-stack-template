@@ -4,7 +4,10 @@ export class Command<T extends z.ZodTuple = z.ZodTuple> {
   constructor(
     public readonly description: string,
     public readonly args: T,
-    private readonly handler: (...args: z.infer<T>) => Promise<void>
+    // `void` as well as `Promise<void>`: some commands (e.g. `stop`) are entirely
+    // synchronous, and forcing them to be `async` just to satisfy this type earns a
+    // `require-await` error for a promise nobody needed.
+    private readonly handler: (...args: z.infer<T>) => Promise<void> | void
   ) {}
 
   get usage(): string {
