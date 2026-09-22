@@ -10,7 +10,7 @@
   "rules": {
     "typescript/no-explicit-any": "warn",
     "typescript/no-inferrable-types": "error",
-    "typescript/require-await": "warn",
+    "typescript/require-await": "error",
     "unicorn/prefer-node-protocol": "error"
   }
 }
