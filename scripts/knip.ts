@@ -45,9 +45,9 @@ function parseOptions(argv: string[]): Options {
     parsed = parseArgs({
       args: argv,
       options: {
-        "all": { type: "boolean" },
-        "fix": { type: "boolean" },
-        "help": { type: "boolean", short: "h" },
+        all: { type: "boolean" },
+        fix: { type: "boolean" },
+        help: { type: "boolean", short: "h" },
       },
     });
   } catch (err) {

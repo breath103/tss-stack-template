@@ -1,9 +1,9 @@
 #!/usr/bin/env -S node --import tsx
-import * as readline from "readline";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { Route53Client, ListHostedZonesByNameCommand, GetHostedZoneCommand } from "@aws-sdk/client-route-53";
+import fs from "node:fs";
+import path from "node:path";
+import * as readline from "node:readline";
+import { fileURLToPath } from "node:url";
+import { GetHostedZoneCommand, ListHostedZonesByNameCommand, Route53Client } from "@aws-sdk/client-route-53";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -13,8 +13,8 @@ const rl = readline.createInterface({
 });
 
 function ask(question: string): Promise<string> {
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => resolve(answer.trim()));
+  return new Promise(resolve => {
+    rl.question(question, answer => resolve(answer.trim()));
   });
 }
 
@@ -57,10 +57,8 @@ async function findHostedZone(domain: string): Promise<string> {
 
   let hostedZoneId = "";
   try {
-    const listResult = await route53.send(
-      new ListHostedZonesByNameCommand({ DNSName: domain, MaxItems: 1 })
-    );
-    const zone = listResult.HostedZones?.find((z) => z.Name === `${domain}.`);
+    const listResult = await route53.send(new ListHostedZonesByNameCommand({ DNSName: domain, MaxItems: 1 }));
+    const zone = listResult.HostedZones?.find(z => z.Name === `${domain}.`);
     if (zone?.Id) {
       hostedZoneId = zone.Id.replace("/hostedzone/", "");
       console.log(`Found hosted zone: ${hostedZoneId}`);
@@ -95,7 +93,7 @@ function buildConfig(
   repo: string,
   region: string,
   domain: string | undefined,
-  hostedZoneId: string | undefined,
+  hostedZoneId: string | undefined
 ) {
   return {
     $schema: "./tss.schema.json",
@@ -109,9 +107,7 @@ function buildConfig(
     ssm: { region },
     ...(domain ? { domain } : {}),
     ...(hostedZoneId ? { hostedZoneId } : {}),
-    subdomainMap: domain
-      ? { "": "main", "www": "main", "main": null }
-      : { "": "main" },
+    subdomainMap: domain ? { "": "main", www: "main", main: null } : { "": "main" },
   };
 }
 
@@ -162,7 +158,7 @@ async function main() {
   rl.close();
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });

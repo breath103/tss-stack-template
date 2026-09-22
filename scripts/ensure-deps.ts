@@ -55,10 +55,23 @@ function stalenessReason(repoRoot: string): string | null {
 // package that imports it then crash-loops on ERR_MODULE_NOT_FOUND and dev
 // hangs the full readiness timeout. existsSync follows the symlink, so a
 // dangling link reads as missing too.
+/** Parsed JSON as a plain object, or null when the file is missing, malformed or not an object. */
+function readJsonObject(file: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(fs.readFileSync(file, "utf-8"));
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function unlinkedWorkspaces(repoRoot: string): string[] {
   const rootPkg = path.join(repoRoot, "package.json");
   if (!fs.existsSync(rootPkg)) return [];
-  const globs: string[] = JSON.parse(fs.readFileSync(rootPkg, "utf-8")).workspaces ?? [];
+  const workspaces = readJsonObject(rootPkg)?.workspaces;
+  const globs = Array.isArray(workspaces) ? workspaces.filter(g => typeof g === "string") : [];
 
   const missing: string[] = [];
   for (const glob of globs) {
@@ -68,8 +81,8 @@ function unlinkedWorkspaces(repoRoot: string): string[] {
     for (const entry of fs.readdirSync(dir)) {
       const pkgJson = path.join(dir, entry, "package.json");
       if (!fs.existsSync(pkgJson)) continue;
-      const name: string | undefined = JSON.parse(fs.readFileSync(pkgJson, "utf-8")).name;
-      if (name && !fs.existsSync(path.join(repoRoot, "node_modules", ...name.split("/")))) {
+      const name = readJsonObject(pkgJson)?.name;
+      if (typeof name === "string" && !fs.existsSync(path.join(repoRoot, "node_modules", ...name.split("/")))) {
         missing.push(name);
       }
     }
@@ -80,7 +93,7 @@ function unlinkedWorkspaces(repoRoot: string): string[] {
 function provisioningError(problem: string): Error {
   return new Error(
     `\n  ✗ Dependencies not provisioned: ${problem}.\n` +
-    `    This is a stale/fresh worktree, not a code bug — don't start debugging.\n` +
-    `    Fix: run  npm install\n`,
+      `    This is a stale/fresh worktree, not a code bug — don't start debugging.\n` +
+      `    Fix: run  npm install\n`
   );
 }
