@@ -159,6 +159,12 @@ npm install <package> -w backend
 npm install -D <package> -w frontend  # as devDependency
 ```
 
+After any change to `packages/backend/package.json` dependencies (including a
+template merge), refresh and commit the Lambda deploy lockfile:
+`./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts --update-lock`.
+CI's "Verify packaged dependencies" step fails on a stale
+`packages/backend/package-lock.deploy.json`.
+
 ## E2E Tests
 
 Tests live in `e2e/<name>.ts` and run with `npm run e2e <name>`:

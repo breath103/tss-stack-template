@@ -285,7 +285,7 @@ When you deploy backend for `feature/auth`, it stores:
 /myapp/backend/feature--auth → https://xxx.lambda-url.ap-northeast-2.on.aws/
 ```
 
-Lambda@Edge reads this at runtime (cached 60s) to route API requests.
+Lambda@Edge reads this at runtime (a found URL is cached 1h per container, an unknown branch 60s) to route API requests.
 
 ## CI/CD
 
@@ -305,6 +305,23 @@ This creates an OIDC identity provider and IAM role in AWS. Copy the `RoleArn` f
 
 2. Add to GitHub repo (Settings → Secrets and variables → Actions):
    - Secret: `AWS_ROLE_ARN` = the role ARN from step 1
+
+### Backend dependency changes
+
+The Lambda bundle installs from its own lockfile, `packages/backend/package-lock.deploy.json`,
+not the root `package-lock.json`. Whenever `packages/backend/package.json` dependencies change
+(`npm install <pkg> -w backend`, removing a package, or merging template updates), refresh it and
+commit it with the change:
+
+```bash
+./packages/backend/scripts/pack-build.ts
+./packages/backend/scripts/pack-install.ts --update-lock
+git add packages/backend/package-lock.deploy.json
+```
+
+If you forget, CI fails at **Verify packaged dependencies** with
+`Deployment lockfile is stale`. The check runs in every PR, before merge. See
+[documents/deployment.md](documents/deployment.md) for details.
 
 ## Project Structure
 
