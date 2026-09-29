@@ -17,7 +17,7 @@ const ssm = new SSMClient({ region: SSM_REGION });
 async function cachedFetch<V>(
   cache: Map<string, { value: V; expires: number }>,
   key: string,
-  ttl: number,
+  ttl: (value: V) => number,
   fetcher: (key: string) => Promise<V>
 ): Promise<V> {
   const cached = cache.get(key);
@@ -25,7 +25,7 @@ async function cachedFetch<V>(
     return cached.value;
   }
   const value = await fetcher(key);
-  cache.set(key, { value, expires: Date.now() + ttl });
+  cache.set(key, { value, expires: Date.now() + ttl(value) });
   return value;
 }
 
@@ -36,7 +36,10 @@ const backendUrlCache = new Map<string, { value: string | null; expires: number 
  */
 async function getBackendUrl(branch: string): Promise<string | null> {
   const sanitizedBranchName = sanitizeBranchName(branch);
-  return cachedFetch(backendUrlCache, sanitizedBranchName, 60 * 1000, async (key) => {
+  // backendUrlCache: a Function URL changes when a branch's stack is recreated, and each warm edge
+  // container keeps routing to the old one until its entry expires. Null (unknown branch or SSM error) stays short.
+  const ttl = (url: string | null) => (url === null ? 60 * 1000 : 60 * 60 * 1000);
+  return cachedFetch(backendUrlCache, sanitizedBranchName, ttl, async (key) => {
     try {
       const result = await ssm.send(
         new GetParameterCommand({ Name: SSMParameters.backendUrlName({ project: PROJECT, sanitizedBranchName: key }) })
