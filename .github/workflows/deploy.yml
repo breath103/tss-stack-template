@@ -31,6 +31,10 @@ jobs:
       - name: Verify stack cleanup policies
         if: matrix.name == 'Build & Lint & Test backend'
         run: node --import tsx --test .github/scripts/backend-stack.test.mjs
+      # Needs no AWS access, so PR CI catches a stale package-lock.deploy.json even where the deploy job is main-only.
+      - name: Verify packaged dependencies
+        if: matrix.name == 'Build & Lint & Test backend'
+        run: ./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts && ./packages/backend/scripts/pack-verify.ts
 
   deploy:
     needs: check
