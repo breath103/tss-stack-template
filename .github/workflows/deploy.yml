@@ -25,7 +25,7 @@ jobs:
             command: ./scripts/e2e_build_types.ts && ./scripts/e2e_lint.ts && ./scripts/build_types.ts && ./scripts/scripts_lint.ts
     name: ${{ matrix.name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - run: ${{ matrix.command }}
       - name: Verify stack cleanup policies
@@ -44,24 +44,24 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
         id: node
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
       - run: ./packages/backend/scripts/pack-build.ts
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: deploy-deps
         with:
           path: packages/backend/dist/node_modules
           key: backend-deploy-deps-v2-${{ runner.os }}-x64-glibc-${{ steps.node.outputs.node-version }}-${{ hashFiles('packages/backend/package-lock.deploy.json', 'packages/backend/package.json', 'packages/backend/scripts/pack-*') }}
       - if: steps.deploy-deps.outputs.cache-hit != 'true' && steps.node.outputs.cache-hit == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.npm
           key: node-cache-${{ runner.os }}-${{ runner.arch }}-npm-${{ hashFiles('package-lock.json') }}
