@@ -15,7 +15,7 @@ function main() {
   assert.deepEqual(
     lock.packages[""].dependencies,
     manifest.dependencies,
-    "Deployment lockfile is stale: run pack-build.ts and pack-install.ts --update-lock"
+    "Deployment lockfile is stale. Run ./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts --update-lock, then commit packages/backend/package-lock.deploy.json"
   );
   for (const name of Object.keys(manifest.dependencies)) {
     assert.equal(

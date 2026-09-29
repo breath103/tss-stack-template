@@ -41,6 +41,11 @@ If conflicts occur, handle them:
      - Unclear → ask the user
    - Edit to resolve, then `git add <file>`
 3. After all conflicts resolved, commit the merge
+4. **Regenerate the backend deploy lockfile.** The template's `packages/backend/package-lock.deploy.json`
+   describes the *template's* backend deps, not this project's. Always run
+   `./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts --update-lock && ./packages/backend/scripts/pack-verify.ts`,
+   then commit `packages/backend/package-lock.deploy.json` if it changed. Skipping this passes local checks
+   but fails CI at "Verify packaged dependencies".
 
 ## 4. Common conflict patterns
 
@@ -48,6 +53,7 @@ If conflicts occur, handle them:
 |------|------------|
 | `package.json` name/description | Keep HEAD |
 | `package.json` dependencies | Merge both, prefer template for shared deps |
+| `packages/backend/package-lock.deploy.json` | Never hand-merge. Take either side, then regenerate it (see below) |
 | `tss.json` | Keep HEAD |
 | `CLAUDE.md` | Merge, keep project-specific additions |
 | Code in `packages/*` | Take template unless project customized |

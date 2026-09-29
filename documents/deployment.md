@@ -19,7 +19,10 @@ for linux-x64. After changing backend dependencies, refresh it with:
 ./packages/backend/scripts/pack-install.ts --update-lock
 ```
 
-Commit the deployment lockfile with the dependency change. Normal packaging runs
+Commit the deployment lockfile with the dependency change. This includes a
+template merge that changes backend dependencies. The `check` job runs
+`pack-verify.ts` on every PR, so a stale lockfile fails before merge rather than
+at deploy. Normal packaging runs
 `npm ci` against that lock. It describes the production package only; the root
 workspace lockfile continues to describe the development/check environment.
 
