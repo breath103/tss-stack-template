@@ -9,6 +9,11 @@ import { execFileSync } from "node:child_process";
 // (so you'd watch the previous one), and (b) concurrent merges from other PRs
 // create their own main runs. Both make `--limit 1` watch the wrong run and
 // report a deploy that was never yours. Matching `headSha` removes both.
+//
+// Why `--event push`: deleting the merged branch fires `cleanup.yml` (a
+// `delete` event), which runs on main at the SAME merge SHA and is created
+// after the deploy run. Without the filter it's the newest match, so we'd
+// report "passed" off a 20s cleanup while the deploy is still running.
 export function waitMainCi(mergeSha: string): void {
   const runId = findRunForSha(mergeSha);
 
@@ -41,6 +46,7 @@ function findRunForSha(mergeSha: string): number {
     const runsJson = execFileSync("gh", [
       "run", "list",
       "--branch", "main",
+      "--event", "push",
       "--limit", "20",
       "--json", "databaseId,headSha",
     ], { encoding: "utf-8" });
