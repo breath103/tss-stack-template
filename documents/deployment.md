@@ -1,6 +1,6 @@
 # Deployment
 
-- **CI deploys automatically on every branch push.** Never deploy manually.
+- **CI deploys automatically on every push to `main`.** Other branches run checks only — no per-branch AWS stack. Never deploy manually.
 - **Never use `--squash` when merging PRs.** Use `gh pr merge` without `--squash` (merge commit).
 
 ## Build and dependency caching

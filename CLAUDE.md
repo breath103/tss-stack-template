@@ -54,11 +54,6 @@ means the safety net stays off for the very code that needs it.
   own gates: `npm run -w @modules/ui lint` and `npm run -w @modules/ui typecheck`.
   A diff touching `modules/ui/**` is unverified until both have run — `./scripts/lint`
   reports clean over a `modules/ui` lint error.
-- **Keep branch names short (~35 chars).** The preview deploy derives a Lambda name
-  from `<project>-backend-<branch>` and AWS caps function names at 64 characters.
-  A branch like `fix/autoresize-input-height-matches-button-m` overflows it, so
-  `deploy` fails *after* lint/test pass. A PR's head ref can't be renamed — the
-  only fix is a new branch and a new PR.
 
 ## Worktrees
 
