@@ -31,6 +31,8 @@ type LevelContext<A> = {
   renderItem: RenderItem<A>;
   subItems: SubItems<A>;
   setActive: (path: number[]) => void;
+  /** The highlight last moved by keyboard — its row scrolls into view. */
+  keyed: boolean;
   onPick: (action: A) => void;
   leaveMenu: (e: React.MouseEvent) => void;
 };
@@ -63,9 +65,11 @@ export function useMenuEngine<A>({
   // last entry is the single active highlight, ancestors keep the open-row wash.
   // `null` = dormant: no row washed at all (set when the pointer leaves).
   const [path, setPath] = useState<number[] | null>([]);
+  const [keyed, setKeyed] = useState(false);
 
   /** Whether the menu consumed the key (false = let the host, e.g. the editor caret, handle it). */
   const handleKey = useEvent((key: string): boolean => {
+    setKeyed(true);
     if (path === null) {
       // Dormant: only an arrow key re-engages, landing on the first row.
       if (key !== "ArrowDown" && key !== "ArrowUp") return false;
@@ -121,7 +125,11 @@ export function useMenuEngine<A>({
     levels,
     renderItem,
     subItems,
-    setActive: setPath,
+    setActive: next => {
+      setKeyed(false);
+      setPath(next);
+    },
+    keyed,
     onPick,
     leaveMenu,
   };
@@ -141,7 +149,7 @@ export function useMenuEngine<A>({
 // highlight path — highlighting a parent previews its children (nothing washed
 // inside) until ArrowRight or hover descends into them.
 function renderLevel<A>(list: ReadonlyArray<A | MenuDecoration>, depth: number, ctx: LevelContext<A>): ReactNode {
-  const { open, levels, renderItem, subItems, setActive, onPick, leaveMenu } = ctx;
+  const { open, levels, renderItem, subItems, setActive, keyed, onPick, leaveMenu } = ctx;
   return list.map((entry, i) => {
     if (isDecoration(entry)) return renderDecoration(entry, i);
 
@@ -150,9 +158,11 @@ function renderLevel<A>(list: ReadonlyArray<A | MenuDecoration>, depth: number, 
     const children = disabled ? null : subItems(entry);
     const hasChildren = children != null && children.length > 0;
     const onPath = levels[depth]?.index === i;
+    const active = onPath && levels.length === depth + 1;
     const row = (
       <OptionRow
         key={i}
+        ref={active && keyed ? el => el?.scrollIntoView({ block: "nearest" }) : undefined}
         role="menuitem"
         className={cn(item.variant === "destructive" && "text-error")}
         disabled={disabled}
