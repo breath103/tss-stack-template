@@ -7,6 +7,6 @@ const args = process.argv.slice(2).join(" ");
 const concurrently = path.join(ROOT, "node_modules/.bin/concurrently");
 
 execSync(
-  `${concurrently} "./packages/backend/scripts/lint.ts ${args}" "./packages/frontend/scripts/lint.ts ${args}" "./scripts/e2e_lint.ts ${args}" "./scripts/scripts_lint.ts ${args}"`,
+  `${concurrently} "./packages/backend/scripts/lint.ts ${args}" "./packages/frontend/scripts/lint.ts ${args}" "./scripts/e2e_lint.ts ${args}" "./scripts/scripts_lint.ts ${args}" "./scripts/biome_lint.ts ${args}"`,
   { stdio: "inherit", cwd: ROOT },
 );

@@ -79,7 +79,7 @@
           "description": "Local dev server port"
         }
       }
-    },    
+    },
     "ssm": {
       "type": "object",
       "required": ["region"],

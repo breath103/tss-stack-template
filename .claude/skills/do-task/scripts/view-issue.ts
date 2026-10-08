@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
-import { loadConfig, ghGraphql, type Config } from "./lib.ts";
+import { type Config, ghGraphql, loadConfig } from "./lib.ts";
 
 export function viewIssue(args: string[]): void {
   const { values } = parseArgs({
@@ -18,11 +18,11 @@ export function viewIssue(args: string[]): void {
 
   const config = loadConfig();
 
-  const json = execFileSync("gh", [
-    "issue", "view", values.issue,
-    "--repo", config.repo,
-    "--json", "number,title,state,body,labels,assignees,url",
-  ], { encoding: "utf-8" });
+  const json = execFileSync(
+    "gh",
+    ["issue", "view", values.issue, "--repo", config.repo, "--json", "number,title,state,body,labels,assignees,url"],
+    { encoding: "utf-8" }
+  );
 
   const issue = JSON.parse(json);
 

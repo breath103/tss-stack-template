@@ -17,7 +17,9 @@ export function createPr(args: string[]): void {
   });
 
   if (!values.title || !values["body-file"] || !values.issue) {
-    console.error("Usage: create-pr --title <title> --body-file <path> --issue <issue-number> [--reviewer <user>] [--draft]");
+    console.error(
+      "Usage: create-pr --title <title> --body-file <path> --issue <issue-number> [--reviewer <user>] [--draft]"
+    );
     process.exit(1);
   }
 
@@ -29,12 +31,7 @@ export function createPr(args: string[]): void {
   const closeRef = `Closes #${values.issue}`;
   const fullBody = body.includes(closeRef) ? body : `${body}\n\n${closeRef}`;
 
-  const createArgs = [
-    "pr", "create",
-    "--repo", config.repo,
-    "--title", values.title,
-    "--body", fullBody,
-  ];
+  const createArgs = ["pr", "create", "--repo", config.repo, "--title", values.title, "--body", fullBody];
   if (values.reviewer) createArgs.push("--reviewer", values.reviewer);
   if (values.draft) createArgs.push("--draft");
 

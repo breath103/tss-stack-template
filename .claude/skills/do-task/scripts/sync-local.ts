@@ -1,9 +1,7 @@
 import { execFileSync } from "node:child_process";
 
 export function syncLocal(): void {
-  const prBranch = execFileSync("git", [
-    "rev-parse", "--abbrev-ref", "HEAD",
-  ], { encoding: "utf-8" }).trim();
+  const prBranch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf-8" }).trim();
 
   execFileSync("git", ["fetch", "origin", "--prune"], { stdio: "inherit" });
 

@@ -15,18 +15,16 @@ export function runLint({ cwd, targets, args }: { cwd: string; targets: string[]
   const fix = args.includes("--fix");
   const passthrough = args.filter(a => a !== "--fix" && a !== "--no-cache");
 
-  const oxlint = spawnSync(
-    resolveBin("oxlint", cwd),
-    [...targets, ...(fix ? ["--fix"] : []), ...passthrough],
-    { stdio: "inherit", cwd },
-  );
+  const oxlint = spawnSync(resolveBin("oxlint", cwd), [...targets, ...(fix ? ["--fix"] : []), ...passthrough], {
+    stdio: "inherit",
+    cwd,
+  });
   if (oxlint.error) throw oxlint.error;
 
-  const biome = spawnSync(
-    resolveBin("biome", cwd),
-    ["check", ...(fix ? ["--write", "--unsafe"] : []), ...targets],
-    { stdio: "inherit", cwd },
-  );
+  const biome = spawnSync(resolveBin("biome", cwd), ["check", ...(fix ? ["--write", "--unsafe"] : []), ...targets], {
+    stdio: "inherit",
+    cwd,
+  });
   if (biome.error) throw biome.error;
 
   process.exit((oxlint.status ?? 1) || (biome.status ?? 1));

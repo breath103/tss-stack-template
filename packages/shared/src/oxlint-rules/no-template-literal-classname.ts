@@ -24,10 +24,7 @@ const rule = {
       JSXAttribute(node: Node) {
         if (node.name?.name !== "className") return;
         const value = node.value;
-        if (
-          value?.type === "JSXExpressionContainer" &&
-          value.expression?.type === "TemplateLiteral"
-        ) {
+        if (value?.type === "JSXExpressionContainer" && value.expression?.type === "TemplateLiteral") {
           context.report({ node, messageId: "templateClassName" });
         }
       },

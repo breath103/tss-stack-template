@@ -1,12 +1,7 @@
-import type {
-  CloudFrontRequest,
-  CloudFrontRequestEvent,
-  CloudFrontRequestResult,
-} from "aws-lambda";
+import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import type { CloudFrontRequest, CloudFrontRequestEvent, CloudFrontRequestResult } from "aws-lambda";
 import { sanitizeBranchName } from "shared/branch";
 import * as SSMParameters from "shared/ssm-parameters";
-
-import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 // Injected at build time by esbuild
 const PROJECT = process.env.PROJECT!;
@@ -39,7 +34,7 @@ async function getBackendUrl(branch: string): Promise<string | null> {
   // backendUrlCache: a Function URL changes when a branch's stack is recreated, and each warm edge
   // container keeps routing to the old one until its entry expires. Null (unknown branch or SSM error) stays short.
   const ttl = (url: string | null) => (url === null ? 60 * 1000 : 60 * 60 * 1000);
-  return cachedFetch(backendUrlCache, sanitizedBranchName, ttl, async (key) => {
+  return cachedFetch(backendUrlCache, sanitizedBranchName, ttl, async key => {
     try {
       const result = await ssm.send(
         new GetParameterCommand({ Name: SSMParameters.backendUrlName({ project: PROJECT, sanitizedBranchName: key }) })
@@ -52,9 +47,7 @@ async function getBackendUrl(branch: string): Promise<string | null> {
   });
 }
 
-export const handler = async (
-  event: CloudFrontRequestEvent
-): Promise<CloudFrontRequestResult> => {
+export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFrontRequestResult> => {
   const request = event.Records[0].cf.request;
   const uri = request.uri;
 
@@ -121,10 +114,7 @@ export const handler = async (
   return request;
 };
 
-function rewriteToBackend(
-  request: CloudFrontRequest,
-  backendUrl: string
-): CloudFrontRequest {
+function rewriteToBackend(request: CloudFrontRequest, backendUrl: string): CloudFrontRequest {
   const url = new URL(backendUrl);
 
   request.origin = {

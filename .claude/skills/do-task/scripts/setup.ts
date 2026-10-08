@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { loadConfig, saveConfig, fetchProjectConfig } from "./lib.ts";
+import { fetchProjectConfig, loadConfig, saveConfig } from "./lib.ts";
 
 export function setup(args: string[]): void {
   const { values } = parseArgs({

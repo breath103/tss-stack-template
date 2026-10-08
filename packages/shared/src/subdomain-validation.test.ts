@@ -82,9 +82,7 @@ describe("validateSubdomainMap", () => {
         c: { redirect: "a" },
       });
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes("Cycle detected"))).toBe(
-        true
-      );
+      expect(result.errors.some(e => e.includes("Cycle detected"))).toBe(true);
     });
 
     it("rejects redirect to blocked subdomain", () => {

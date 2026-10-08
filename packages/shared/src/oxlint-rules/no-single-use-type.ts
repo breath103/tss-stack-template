@@ -39,7 +39,7 @@ function isExported(node: Node): boolean {
 }
 
 function externalReferenceCount(variable: Variable, declRange: [number, number]): number {
-  return variable.references.filter((ref) => {
+  return variable.references.filter(ref => {
     const [start, end] = ref.identifier.range ?? [0, 0];
     return start < declRange[0] || end > declRange[1];
   }).length;

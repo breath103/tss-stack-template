@@ -45,9 +45,7 @@ export function parseEnvDts(envDtsPath: string): EnvVar[] {
 
   // Drop comments so `/// <reference ... />`, `//` and `/* */` lines can't be
   // mistaken for members.
-  const source = content
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\/\/.*$/gm, "");
+  const source = content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 
   if (!/declare\s+namespace\s+NodeJS\s*\{/.test(source)) {
     throw new Error("Missing: declare namespace NodeJS");
@@ -62,9 +60,9 @@ export function parseEnvDts(envDtsPath: string): EnvVar[] {
 
   return body
     .split(";")
-    .map((member) => member.trim())
-    .filter((member) => member.length > 0)
-    .map((member) => {
+    .map(member => member.trim())
+    .filter(member => member.length > 0)
+    .map(member => {
       // Allow an optional `?` on the name; classify purely by the declared type.
       const match = member.match(/^([A-Za-z_$][\w$]*)\??\s*:\s*(.+)$/s);
       if (!match) {

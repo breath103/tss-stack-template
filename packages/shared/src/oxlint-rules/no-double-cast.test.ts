@@ -12,7 +12,5 @@ new RuleTester().run("no-double-cast", noDoubleCast, {
     { code: "const x = foo as unknown;", filename: "t.ts" },
     { code: "const x = (foo satisfies Bar);", filename: "t.ts" },
   ],
-  invalid: [
-    { code: "const x = foo as unknown as Bar;", filename: "t.ts", errors: [{ messageId: "doubleCast" }] },
-  ],
+  invalid: [{ code: "const x = foo as unknown as Bar;", filename: "t.ts", errors: [{ messageId: "doubleCast" }] }],
 });

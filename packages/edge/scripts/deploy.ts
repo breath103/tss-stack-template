@@ -24,7 +24,7 @@ async function main() {
   const validation = validateSubdomainMap(config.subdomainMap);
   if (!validation.valid) {
     console.error("Error: Invalid subdomainMap configuration");
-    validation.errors.forEach((e) => console.error(`  - ${e}`));
+    validation.errors.forEach(e => console.error(`  - ${e}`));
     process.exit(1);
   }
 
@@ -41,9 +41,7 @@ async function main() {
     domain: config.domain,
     hostedZoneId: config.hostedZoneId,
     frontendBucketName: frontendBucketName(config),
-    githubActionsIamRole: config.edge.githubActionsIamRole
-      ? { repo: config.repo }
-      : undefined,
+    githubActionsIamRole: config.edge.githubActionsIamRole ? { repo: config.repo } : undefined,
   });
 
   switch (command) {
@@ -172,10 +170,7 @@ function deploy(stackId: string, dryRun: boolean | undefined) {
     console.log(`Built files in ${DIST}:`);
     execSync(`ls -la ${DIST}`, { stdio: "inherit" });
   } else {
-    execSync(
-      `npx cdk deploy ${stackId} --app ./cdk.out --require-approval never`,
-      { stdio: "inherit", cwd: ROOT }
-    );
+    execSync(`npx cdk deploy ${stackId} --app ./cdk.out --require-approval never`, { stdio: "inherit", cwd: ROOT });
   }
 }
 
@@ -193,16 +188,13 @@ async function destroy(stackId: string) {
   }
 
   console.log(`\nDestroying ${stackId}...`);
-  execSync(
-    `npx cdk destroy ${stackId} --app ./cdk.out`,
-    { stdio: "inherit", cwd: ROOT }
-  );
+  execSync(`npx cdk destroy ${stackId} --app ./cdk.out`, { stdio: "inherit", cwd: ROOT });
 }
 
 async function confirm(message: string): Promise<boolean> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => {
-    rl.question(`${message} (y/N): `, (answer) => {
+  return new Promise(resolve => {
+    rl.question(`${message} (y/N): `, answer => {
       rl.close();
       resolve(answer.toLowerCase() === "y");
     });

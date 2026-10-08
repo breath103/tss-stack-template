@@ -13,7 +13,5 @@ new RuleTester().run("no-select-star", noSelectStar, {
     { code: "q.select(cols);", filename: "t.ts" },
     { code: 'q.select("*", { count: "exact", head: true });', filename: "t.ts" },
   ],
-  invalid: [
-    { code: 'q.select("*");', filename: "t.ts", errors: [{ messageId: "selectStar" }] },
-  ],
+  invalid: [{ code: 'q.select("*");', filename: "t.ts", errors: [{ messageId: "selectStar" }] }],
 });

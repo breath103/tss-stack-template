@@ -11,7 +11,5 @@ new RuleTester().run("no-process-env-bang", noProcessEnvBang, {
     { code: "const x = cfg.value!;", filename: "t.ts" },
     { code: "const y = process.env.FOO;", filename: "t.ts" },
   ],
-  invalid: [
-    { code: "const x = process.env.FOO!;", filename: "t.ts", errors: [{ messageId: "envBang" }] },
-  ],
+  invalid: [{ code: "const x = process.env.FOO!;", filename: "t.ts", errors: [{ messageId: "envBang" }] }],
 });

@@ -9,7 +9,7 @@ RuleTester.it = it;
 new RuleTester().run("no-i18n-prop", noI18nProp, {
   valid: [
     { code: "const x = <X placeholder={i18n.foo} />;", filename: "t.tsx" },
-    { code: "const x = <X label=\"hi\" />;", filename: "t.tsx" },
+    { code: 'const x = <X label="hi" />;', filename: "t.tsx" },
   ],
   invalid: [
     {

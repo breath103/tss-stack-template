@@ -1,11 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "vite": false,
-  "entry": [
-    "src/main.tsx",
-    "vite.config.ts",
-    "scripts/*.ts",
-    "src/**/__tests__/*.{ts,tsx}"
-  ],
+  "entry": ["src/main.tsx", "vite.config.ts", "scripts/*.ts", "src/**/__tests__/*.{ts,tsx}"],
   "project": ["src/**/*.{ts,tsx}"]
 }

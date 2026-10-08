@@ -21,7 +21,10 @@ interface Context {
 const rule = {
   meta: {
     type: "suggestion",
-    docs: { description: "Format UI dates through DateFormatter instead of toLocale*String / Intl.DateTimeFormat / date-fns format" },
+    docs: {
+      description:
+        "Format UI dates through DateFormatter instead of toLocale*String / Intl.DateTimeFormat / date-fns format",
+    },
     messages: {
       manualFormat:
         "Format UI dates through the shared DateFormatter (`@ui/lib/date-formatter`) — `new DateFormatter(locale).format(date, type)` — not toLocale*String / Intl.DateTimeFormat / date-fns format.",

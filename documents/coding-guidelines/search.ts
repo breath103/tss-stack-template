@@ -11,8 +11,8 @@
  * shows the rule.md path, its title, and whether a check.sh sits beside it
  * ([check] = programmatic gate, [manual] = review by eye).
  */
-import { readFileSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { ruleDirs } from "./_lib";
 
 // This script lives at the coding-guidelines root, so anchor to its own dir
@@ -28,8 +28,8 @@ function parseArgs(argv: string[]) {
       keywords.push(
         ...(argv[++i] ?? "")
           .split(",")
-          .map((k) => k.trim().toLowerCase())
-          .filter(Boolean),
+          .map(k => k.trim().toLowerCase())
+          .filter(Boolean)
       );
     }
   }
@@ -43,12 +43,12 @@ function titleOf(body: string): string {
 function main(): void {
   const { group, keywords } = parseArgs(process.argv.slice(2));
   const rules = ruleDirs(ROOT, group)
-    .map((d) => join(d, "rule.md"))
+    .map(d => join(d, "rule.md"))
     .filter(existsSync)
-    .map((path) => {
+    .map(path => {
       const text = readFileSync(path, "utf8");
       const haystack = text.toLowerCase();
-      const hits = keywords.filter((k) => haystack.includes(k)).length;
+      const hits = keywords.filter(k => haystack.includes(k)).length;
       return {
         path: path.replace(`${process.cwd()}/`, ""),
         title: titleOf(text),
@@ -57,8 +57,8 @@ function main(): void {
       };
     });
 
-  const matched = (keywords.length === 0 ? rules : rules.filter((r) => r.hits > 0)).sort(
-    (a, b) => b.hits - a.hits || a.title.localeCompare(b.title),
+  const matched = (keywords.length === 0 ? rules : rules.filter(r => r.hits > 0)).sort(
+    (a, b) => b.hits - a.hits || a.title.localeCompare(b.title)
   );
 
   if (matched.length === 0) {

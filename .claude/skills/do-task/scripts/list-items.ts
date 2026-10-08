@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { loadConfig, ghGraphql } from "./lib.ts";
+import { ghGraphql, loadConfig } from "./lib.ts";
 
 export function listItems(args: string[]): void {
   const { values } = parseArgs({

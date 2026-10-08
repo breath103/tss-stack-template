@@ -6,7 +6,8 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": false,
+    "includes": ["**", "!**/cdk.context.json", "!**/package-lock.deploy.json"]
   },
   "formatter": {
     "enabled": true,

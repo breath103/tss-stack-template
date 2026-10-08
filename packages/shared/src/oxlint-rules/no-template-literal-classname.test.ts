@@ -8,8 +8,8 @@ RuleTester.it = it;
 
 new RuleTester().run("no-template-literal-classname", noTemplateLiteralClassName, {
   valid: [
-    { code: "const x = <div className={cn(\"a\", x)} />;", filename: "t.tsx" },
-    { code: "const x = <div className=\"a\" />;", filename: "t.tsx" },
+    { code: 'const x = <div className={cn("a", x)} />;', filename: "t.tsx" },
+    { code: 'const x = <div className="a" />;', filename: "t.tsx" },
     { code: "const x = <div className={styles.foo} />;", filename: "t.tsx" },
   ],
   invalid: [

@@ -12,14 +12,7 @@ interface Context {
   report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
-const DATE_GETTERS = new Set([
-  "getUTCFullYear",
-  "getUTCMonth",
-  "getUTCDate",
-  "getFullYear",
-  "getMonth",
-  "getDate",
-]);
+const DATE_GETTERS = new Set(["getUTCFullYear", "getUTCMonth", "getUTCDate", "getFullYear", "getMonth", "getDate"]);
 
 const rule = {
   meta: {
