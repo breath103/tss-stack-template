@@ -19,10 +19,9 @@ interface Context {
 const rule = {
   meta: {
     type: "problem",
-    docs: { description: "Disallow native `<input type=\"date|datetime-local\">`" },
+    docs: { description: 'Disallow native `<input type="date|datetime-local">`' },
     messages: {
-      nativeDateInput:
-        "Use @/components/ui/Calendar in a Popover/Dialog instead of native date inputs.",
+      nativeDateInput: "Use @/components/ui/Calendar in a Popover/Dialog instead of native date inputs.",
     },
     schema: [],
   },
@@ -33,10 +32,7 @@ const rule = {
         for (const attr of node.attributes ?? []) {
           if (attr.type !== "JSXAttribute" || attr.name?.name !== "type") continue;
           const value = attr.value;
-          if (
-            value?.type === "Literal" &&
-            (value.value === "date" || value.value === "datetime-local")
-          ) {
+          if (value?.type === "Literal" && (value.value === "date" || value.value === "datetime-local")) {
             context.report({ node, messageId: "nativeDateInput" });
           }
         }

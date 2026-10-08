@@ -32,14 +32,17 @@ function createHandler(proto: "http" | "https", expectedHost: string) {
       return;
     }
 
-    const target = req.url?.startsWith("/api") || req.url?.startsWith("/.well-known/oauth-") || req.url?.startsWith("/.well-known/openid-configuration")
-      ? `http://localhost:${backend.devPort}`
-      : `http://localhost:${frontend.devPort}`;
+    const target =
+      req.url?.startsWith("/api") ||
+      req.url?.startsWith("/.well-known/oauth-") ||
+      req.url?.startsWith("/.well-known/openid-configuration")
+        ? `http://localhost:${backend.devPort}`
+        : `http://localhost:${frontend.devPort}`;
 
     req.headers["x-forwarded-proto"] = proto;
     req.headers["x-forwarded-host"] = expectedHost;
 
-    proxy.web(req, res, { target }, (err) => {
+    proxy.web(req, res, { target }, err => {
       res.writeHead(502);
       res.end(`Proxy error: ${err.message}`);
     });

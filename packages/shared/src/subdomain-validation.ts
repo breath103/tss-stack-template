@@ -6,9 +6,7 @@ interface ValidationResult {
 }
 
 /** Type guard for redirect entries */
-export function isRedirect(
-  value: SubdomainMapValue
-): value is { redirect: string } {
+export function isRedirect(value: SubdomainMapValue): value is { redirect: string } {
   return typeof value === "object" && value !== null && "redirect" in value;
 }
 
@@ -18,20 +16,14 @@ export function isRedirect(
  * - Cycle detected (e.g., a -> b -> a)
  * - Redirect chain ends in blocked (null) subdomain
  */
-export function validateSubdomainMap(
-  subdomainMap: TssConfig["subdomainMap"]
-): ValidationResult {
+export function validateSubdomainMap(subdomainMap: TssConfig["subdomainMap"]): ValidationResult {
   const errors: string[] = [];
 
   /**
    * Resolves a subdomain following redirect chains.
    * Returns the final deployment name, null if blocked, or undefined if cycle detected.
    */
-  function resolve(
-    subdomain: string,
-    visited: Set<string>,
-    path: string[]
-  ): string | null | undefined {
+  function resolve(subdomain: string, visited: Set<string>, path: string[]): string | null | undefined {
     // Cycle detection
     if (visited.has(subdomain)) {
       errors.push(`Cycle detected: ${[...path, subdomain].join(" -> ")}`);
@@ -74,9 +66,7 @@ export function validateSubdomainMap(
 
       // Redirect to blocked is an error
       if (finalResult === null) {
-        errors.push(
-          `Redirect from "${subdomain}" ultimately resolves to blocked subdomain`
-        );
+        errors.push(`Redirect from "${subdomain}" ultimately resolves to blocked subdomain`);
       }
     }
   }

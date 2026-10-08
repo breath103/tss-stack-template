@@ -1,12 +1,10 @@
 /// <reference types="vitest/config" />
 import path from "node:path";
-
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
 import { loadConfig } from "shared/config";
 import { parseEnvDts, validateEnv } from "shared/env-parser";
 import { defineConfig } from "vite";
-
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react";
 
 const config = loadConfig();
 
@@ -19,9 +17,7 @@ if (missing.length > 0) {
 }
 
 // Create define entries for process.env.*
-const envDefines = Object.fromEntries(
-  vars.map((v) => [`process.env.${v.name}`, JSON.stringify(provided[v.name] ?? "")])
-);
+const envDefines = Object.fromEntries(vars.map(v => [`process.env.${v.name}`, JSON.stringify(provided[v.name] ?? "")]));
 
 function htmlEnvPlugin() {
   return {

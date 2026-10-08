@@ -34,9 +34,7 @@ export class GitHubActionsIam extends Construct {
       ),
     });
 
-    this.role.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess")
-    );
+    this.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
     new cdk.CfnOutput(this, "RoleArn", {
       value: this.role.roleArn,

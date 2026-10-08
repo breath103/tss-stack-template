@@ -15,7 +15,7 @@ const rule = {
   meta: {
     type: "suggestion",
     requires: "supabase",
-    docs: { description: "Disallow `.select(\"*\")` — use `.select()` or a real projection" },
+    docs: { description: 'Disallow `.select("*")` — use `.select()` or a real projection' },
     messages: {
       selectStar: 'Use .select() (no arg) for the all-columns case, or .select("col1, col2") for a real projection.',
     },

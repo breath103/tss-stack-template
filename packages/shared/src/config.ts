@@ -3,32 +3,30 @@ import path from "path";
 import { z } from "zod";
 
 // Subdomain mapping value: deployment name, null (blocked), or redirect
-const subdomainMapValue = z.union([
-  z.string(),
-  z.null(),
-  z.object({ redirect: z.string() }),
-]);
+const subdomainMapValue = z.union([z.string(), z.null(), z.object({ redirect: z.string() })]);
 
 export type SubdomainMapValue = z.infer<typeof subdomainMapValue>;
 
-const configSchema = z.object({
-  project: z.string(),
-  repo: z.string(),
-  dev: z.object({ worktree: z.string(), tunnel: z.boolean().default(false) }),
-  edge: z.object({
-    devPort: z.number(),
-    githubActionsIamRole: z.boolean().default(false),
-  }),
-  backend: z.object({ region: z.string(), devPort: z.number() }),
-  frontend: z.object({ bucketSuffix: z.string(), devPort: z.number() }),
-  ssm: z.object({ region: z.string() }),
-  domain: z.string().optional(),
-  hostedZoneId: z.string().optional(),
-  subdomainMap: z.record(z.string(), subdomainMapValue),
-}).refine(
-  (cfg) => !cfg.domain || !!cfg.hostedZoneId,
-  { message: "hostedZoneId is required when domain is set", path: ["hostedZoneId"] },
-);
+const configSchema = z
+  .object({
+    project: z.string(),
+    repo: z.string(),
+    dev: z.object({ worktree: z.string(), tunnel: z.boolean().default(false) }),
+    edge: z.object({
+      devPort: z.number(),
+      githubActionsIamRole: z.boolean().default(false),
+    }),
+    backend: z.object({ region: z.string(), devPort: z.number() }),
+    frontend: z.object({ bucketSuffix: z.string(), devPort: z.number() }),
+    ssm: z.object({ region: z.string() }),
+    domain: z.string().optional(),
+    hostedZoneId: z.string().optional(),
+    subdomainMap: z.record(z.string(), subdomainMapValue),
+  })
+  .refine(cfg => !cfg.domain || !!cfg.hostedZoneId, {
+    message: "hostedZoneId is required when domain is set",
+    path: ["hostedZoneId"],
+  });
 
 type ConfigInput = z.infer<typeof configSchema>;
 
@@ -41,10 +39,7 @@ export type TssConfig = ConfigInput & {
   edge: ConfigInput["edge"] & { devHost: string };
 };
 
-export function frontendBucketName({
-  project,
-  frontend,
-}: Pick<TssConfig, "project" | "frontend">): string {
+export function frontendBucketName({ project, frontend }: Pick<TssConfig, "project" | "frontend">): string {
   const suffix = frontend.bucketSuffix;
   return suffix ? `${project}-frontend-${suffix}` : `${project}-frontend`;
 }
@@ -66,7 +61,14 @@ function deepMerge(base: Record<string, unknown>, override: Record<string, unkno
   for (const key of Object.keys(override)) {
     const baseVal = base[key];
     const overVal = override[key];
-    if (baseVal && overVal && typeof baseVal === "object" && typeof overVal === "object" && !Array.isArray(baseVal) && !Array.isArray(overVal)) {
+    if (
+      baseVal &&
+      overVal &&
+      typeof baseVal === "object" &&
+      typeof overVal === "object" &&
+      !Array.isArray(baseVal) &&
+      !Array.isArray(overVal)
+    ) {
       result[key] = deepMerge(baseVal as Record<string, unknown>, overVal as Record<string, unknown>);
     } else {
       result[key] = overVal;

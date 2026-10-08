@@ -22,19 +22,15 @@ export function commentPr(args: string[]): void {
   // If no --pr given, detect from current branch
   let prNumber = values.pr;
   if (!prNumber) {
-    const prJson = execFileSync("gh", [
-      "pr", "view",
-      "--repo", config.repo,
-      "--json", "number",
-    ], { encoding: "utf-8" }).trim();
+    const prJson = execFileSync("gh", ["pr", "view", "--repo", config.repo, "--json", "number"], {
+      encoding: "utf-8",
+    }).trim();
     prNumber = String(JSON.parse(prJson).number);
   }
 
-  const commentUrl = execFileSync("gh", [
-    "pr", "comment", prNumber,
-    "--repo", config.repo,
-    "--body", values.body,
-  ], { encoding: "utf-8" }).trim();
+  const commentUrl = execFileSync("gh", ["pr", "comment", prNumber, "--repo", config.repo, "--body", values.body], {
+    encoding: "utf-8",
+  }).trim();
 
   console.log(JSON.stringify({ url: commentUrl, pr: prNumber }));
 }

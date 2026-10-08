@@ -16,11 +16,9 @@ export function resolveThreads(args: string[]): void {
   // If no --pr given, detect from current branch
   let prNumber = values.pr;
   if (!prNumber) {
-    const prJson = execFileSync("gh", [
-      "pr", "view",
-      "--repo", config.repo,
-      "--json", "number",
-    ], { encoding: "utf-8" }).trim();
+    const prJson = execFileSync("gh", ["pr", "view", "--repo", config.repo, "--json", "number"], {
+      encoding: "utf-8",
+    }).trim();
     prNumber = String(JSON.parse(prJson).number);
   }
 
@@ -41,10 +39,7 @@ export function resolveThreads(args: string[]): void {
     }
   }`;
 
-  const result = execFileSync("gh", [
-    "api", "graphql",
-    "-f", `query=${query}`,
-  ], { encoding: "utf-8" }).trim();
+  const result = execFileSync("gh", ["api", "graphql", "-f", `query=${query}`], { encoding: "utf-8" }).trim();
 
   const threads = JSON.parse(result).data.repository.pullRequest.reviewThreads.nodes as {
     id: string;
@@ -52,7 +47,7 @@ export function resolveThreads(args: string[]): void {
     comments: { nodes: { body: string }[] };
   }[];
 
-  const unresolved = threads.filter((t) => !t.isResolved);
+  const unresolved = threads.filter(t => !t.isResolved);
 
   if (unresolved.length === 0) {
     console.log(JSON.stringify({ resolved: 0, pr: prNumber }));

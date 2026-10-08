@@ -68,7 +68,7 @@ export class EdgeStack extends cdk.Stack {
       viewerRequestFunction,
       bucket,
       oai,
-      customDomain,
+      customDomain
     );
 
     if (customDomain && config.domain) {
@@ -96,9 +96,7 @@ export class EdgeStack extends cdk.Stack {
     fn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ssm:GetParameter"],
-        resources: [
-          `arn:aws:ssm:${config.ssmRegion}:${this.account}:parameter/${config.project}/backend/*`,
-        ],
+        resources: [`arn:aws:ssm:${config.ssmRegion}:${this.account}:parameter/${config.project}/backend/*`],
       })
     );
 
@@ -160,7 +158,7 @@ export class EdgeStack extends cdk.Stack {
     viewerRequestFunction: cloudfront.Function,
     bucket: s3.Bucket,
     oai: cloudfront.OriginAccessIdentity,
-    customDomain: { domain: string; certificate: acm.Certificate } | undefined,
+    customDomain: { domain: string; certificate: acm.Certificate } | undefined
   ): cloudfront.Distribution {
     const cachePolicy = new cloudfront.CachePolicy(this, "FrontendCachePolicy", {
       cachePolicyName: `${config.project}-frontend`,
@@ -179,7 +177,10 @@ export class EdgeStack extends cdk.Stack {
     });
 
     const edgeLambdas: cloudfront.EdgeLambda[] = [
-      { functionVersion: originRequestFunction.currentVersion, eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST },
+      {
+        functionVersion: originRequestFunction.currentVersion,
+        eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
+      },
     ];
 
     const functionAssociations: cloudfront.FunctionAssociation[] = [
@@ -236,11 +237,7 @@ export class EdgeStack extends cdk.Stack {
     });
   }
 
-  private createOutputs(
-    _config: EdgeStackConfig,
-    distribution: cloudfront.Distribution,
-    bucket: s3.Bucket
-  ): void {
+  private createOutputs(_config: EdgeStackConfig, distribution: cloudfront.Distribution, bucket: s3.Bucket): void {
     new cdk.CfnOutput(this, "DistributionId", { value: distribution.distributionId });
     new cdk.CfnOutput(this, "Domain", { value: distribution.distributionDomainName });
     new cdk.CfnOutput(this, "FrontendBucketName", { value: bucket.bucketName });

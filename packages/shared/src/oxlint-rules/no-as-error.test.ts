@@ -14,6 +14,10 @@ new RuleTester().run("no-as-error", noAsError, {
   ],
   invalid: [
     { code: "const x = e as Error;", filename: "t.ts", errors: [{ messageId: "asError" }] },
-    { code: "function f(e: unknown) { return (e as Error).message; }", filename: "t.ts", errors: [{ messageId: "asError" }] },
+    {
+      code: "function f(e: unknown) { return (e as Error).message; }",
+      filename: "t.ts",
+      errors: [{ messageId: "asError" }],
+    },
   ],
 });

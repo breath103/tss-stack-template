@@ -38,12 +38,7 @@ export function saveConfig(config: Config): void {
 }
 
 export function ghGraphql(query: string, variables: Record<string, string | number> = {}): any {
-  const args = [
-    "api",
-    "graphql",
-    "-f",
-    `query=${query}`,
-  ];
+  const args = ["api", "graphql", "-f", `query=${query}`];
   for (const [key, value] of Object.entries(variables)) {
     const flag = typeof value === "number" ? "-F" : "-f";
     args.push(flag, `${key}=${value}`);
@@ -53,9 +48,7 @@ export function ghGraphql(query: string, variables: Record<string, string | numb
 }
 
 export function fetchProjectConfig(projectUrl: string, repo: string): Config {
-  const match = projectUrl.match(
-    /github\.com\/(?:users|orgs)\/([^/]+)\/projects\/(\d+)/
-  );
+  const match = projectUrl.match(/github\.com\/(?:users|orgs)\/([^/]+)\/projects\/(\d+)/);
   if (!match) {
     console.error(`Invalid project URL: ${projectUrl}`);
     console.error("Expected: https://github.com/users/<owner>/projects/<number>");
@@ -117,12 +110,9 @@ export function fetchProjectConfig(projectUrl: string, repo: string): Config {
     columns[opt.name] = opt.id;
   }
 
-  const labelsJson = execFileSync("gh", [
-    "label", "list",
-    "--repo", repo,
-    "--json", "name",
-    "--limit", "100",
-  ], { encoding: "utf-8" });
+  const labelsJson = execFileSync("gh", ["label", "list", "--repo", repo, "--json", "name", "--limit", "100"], {
+    encoding: "utf-8",
+  });
   const labels = JSON.parse(labelsJson).map((l: { name: string }) => l.name);
 
   return {

@@ -22,8 +22,8 @@ export function parseDuration(input: string): number {
  */
 export async function askConfirmation(prompt: string): Promise<boolean> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => {
-    rl.question(prompt, (answer) => {
+  return new Promise(resolve => {
+    rl.question(prompt, answer => {
       rl.close();
       resolve(/^y(es)?$/i.test(answer));
     });
@@ -33,7 +33,7 @@ export async function askConfirmation(prompt: string): Promise<boolean> {
 /**
  * Sleep for the specified number of milliseconds.
  */
-export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export function resolveBin(name: string, from = process.cwd()): string {
   let dir = from;

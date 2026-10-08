@@ -25,46 +25,71 @@ export function waitForReview(args: string[]): void {
     }
   }
 
-  const repo = execFileSync("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"], { encoding: "utf-8" }).trim();
+  const repo = execFileSync("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"], {
+    encoding: "utf-8",
+  }).trim();
 
   if (!since) {
     since = new Date().toISOString().replace(/\.\d+Z$/, "Z");
   }
 
-  process.stderr.write(`Waiting for comments on PR #${prNumber} (since ${since}, polling every ${values.interval}s)...\n`);
+  process.stderr.write(
+    `Waiting for comments on PR #${prNumber} (since ${since}, polling every ${values.interval}s)...\n`
+  );
 
   const poll = () => {
     // Self-terminate if the PR is no longer open — otherwise this process leaks
     // past the session that started it (orphaned tsx/node polling forever).
-    const prState = execFileSync(
-      "gh", ["pr", "view", prNumber, "--json", "state", "-q", ".state"],
-      { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-    ).trim();
+    const prState = execFileSync("gh", ["pr", "view", prNumber, "--json", "state", "-q", ".state"], {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
     if (prState !== "OPEN") {
       process.stderr.write(`PR #${prNumber} is ${prState}; exiting.\n`);
       process.exit(0);
     }
 
     const issueComments = JSON.parse(
-      execFileSync("gh", ["api", `repos/${repo}/issues/${prNumber}/comments`,
-        "--jq", `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, type: "comment"}]`
-      ], { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim() || "[]"
+      execFileSync(
+        "gh",
+        [
+          "api",
+          `repos/${repo}/issues/${prNumber}/comments`,
+          "--jq",
+          `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, type: "comment"}]`,
+        ],
+        { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+      ).trim() || "[]"
     );
 
     const reviewComments = JSON.parse(
-      execFileSync("gh", ["api", `repos/${repo}/pulls/${prNumber}/comments`,
-        "--jq", `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, path, type: "review_comment"}]`
-      ], { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim() || "[]"
+      execFileSync(
+        "gh",
+        [
+          "api",
+          `repos/${repo}/pulls/${prNumber}/comments`,
+          "--jq",
+          `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, path, type: "review_comment"}]`,
+        ],
+        { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+      ).trim() || "[]"
     );
 
     const reviews = JSON.parse(
-      execFileSync("gh", ["api", `repos/${repo}/pulls/${prNumber}/reviews`,
-        "--jq", `[.[] | select(.submitted_at > "${since}" and .body != "") | {author: .user.login, body, created_at: .submitted_at, state, type: "review"}]`
-      ], { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim() || "[]"
+      execFileSync(
+        "gh",
+        [
+          "api",
+          `repos/${repo}/pulls/${prNumber}/reviews`,
+          "--jq",
+          `[.[] | select(.submitted_at > "${since}" and .body != "") | {author: .user.login, body, created_at: .submitted_at, state, type: "review"}]`,
+        ],
+        { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+      ).trim() || "[]"
     );
 
-    const all = [...issueComments, ...reviewComments, ...reviews].sort(
-      (a: any, b: any) => a.created_at.localeCompare(b.created_at)
+    const all = [...issueComments, ...reviewComments, ...reviews].sort((a: any, b: any) =>
+      a.created_at.localeCompare(b.created_at)
     );
 
     if (all.length > 0) {

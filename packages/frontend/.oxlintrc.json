@@ -2,10 +2,7 @@
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
   "extends": ["../../.oxlintrc.json"],
   "plugins": ["typescript", "unicorn", "oxc", "react"],
-  "jsPlugins": [
-    "oxlint-tailwindcss",
-    { "name": "local", "specifier": "../shared/src/oxlint-rules/plugin.ts" }
-  ],
+  "jsPlugins": ["oxlint-tailwindcss", { "name": "local", "specifier": "../shared/src/oxlint-rules/plugin.ts" }],
   "settings": {
     "tailwindcss": {
       "entryPoint": "./src/global.css"
@@ -33,18 +30,25 @@
     "tailwindcss/no-conflicting-classes": "error",
     "tailwindcss/no-unknown-classes": "error",
 
-    "no-restricted-imports": ["error", {
-      "paths": [{
-        "name": "@backend",
-        "message": "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
-        "allowTypeImports": true
-      }],
-      "patterns": [{
-        "regex": "^@backend/",
-        "message": "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
-        "allowTypeImports": true
-      }]
-    }]
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "@backend",
+            "message": "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
+            "allowTypeImports": true
+          }
+        ],
+        "patterns": [
+          {
+            "regex": "^@backend/",
+            "message": "Use 'import type' for @backend imports. Runtime imports from backend are not allowed in frontend.",
+            "allowTypeImports": true
+          }
+        ]
+      }
+    ]
   },
   "overrides": [
     {

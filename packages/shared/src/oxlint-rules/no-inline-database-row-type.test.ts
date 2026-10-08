@@ -12,6 +12,10 @@ new RuleTester().run("no-inline-database-row-type", noInlineDatabaseRowType, {
     { code: 'type B = Other["x"]["y"];', filename: "t.ts" },
   ],
   invalid: [
-    { code: 'type Row = Database["public"]["Tables"]["tasks"]["Row"];', filename: "t.ts", errors: [{ messageId: "inlineRowType" }] },
+    {
+      code: 'type Row = Database["public"]["Tables"]["tasks"]["Row"];',
+      filename: "t.ts",
+      errors: [{ messageId: "inlineRowType" }],
+    },
   ],
 });

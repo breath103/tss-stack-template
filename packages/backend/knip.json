@@ -1,15 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [
-    "src/index.ts",
-    "src/lambda.ts",
-    "scripts/*.ts",
-    "src/**/__tests__/**/*.test.ts"
-  ],
+  "entry": ["src/index.ts", "src/lambda.ts", "scripts/*.ts", "src/**/__tests__/**/*.test.ts"],
   "project": ["src/**/*.ts", "scripts/**/*.ts"],
-  "ignoreUnresolved": [
-    "./scripts/build.ts",
-    "./scripts/pack-build.ts",
-    "./scripts/pack-install.ts"
-  ]
+  "ignoreUnresolved": ["./scripts/build.ts", "./scripts/pack-build.ts", "./scripts/pack-install.ts"]
 }

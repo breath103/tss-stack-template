@@ -15,7 +15,15 @@ new RuleTester().run("no-single-use-type", noSingleUseType, {
   ],
   invalid: [
     { code: "type T = { a: number }; const x: T = { a: 1 };", filename: "t.ts", errors: [{ messageId: "singleUse" }] },
-    { code: "interface I { a: number } const x: I = { a: 1 };", filename: "t.ts", errors: [{ messageId: "singleUse" }] },
-    { code: "type Tree = { kids: Tree[] }; const t: Tree = { kids: [] };", filename: "t.ts", errors: [{ messageId: "singleUse" }] },
+    {
+      code: "interface I { a: number } const x: I = { a: 1 };",
+      filename: "t.ts",
+      errors: [{ messageId: "singleUse" }],
+    },
+    {
+      code: "type Tree = { kids: Tree[] }; const t: Tree = { kids: [] };",
+      filename: "t.ts",
+      errors: [{ messageId: "singleUse" }],
+    },
   ],
 });

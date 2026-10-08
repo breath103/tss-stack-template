@@ -1,10 +1,12 @@
 #!/usr/bin/env -S node --import tsx
 import { parseArgs } from "node:util";
-
+import {
+  CloudWatchLogsClient,
+  FilterLogEventsCommand,
+  ResourceNotFoundException,
+} from "@aws-sdk/client-cloudwatch-logs";
 import { askConfirmation, parseDuration, sleep } from "shared/cli-utils";
 import { loadConfig } from "shared/config";
-
-import { CloudWatchLogsClient, FilterLogEventsCommand, ResourceNotFoundException } from "@aws-sdk/client-cloudwatch-logs";
 
 import { EdgeStack } from "./lib/edge-stack.js";
 

@@ -1,17 +1,17 @@
 #!/usr/bin/env tsx
 
-import { setup, refresh } from "./setup.ts";
+import { linkPr } from "./add-pr.ts";
+import { commentPr } from "./comment-pr.ts";
+import { createIssue } from "./create-issue.ts";
+import { createPr } from "./create-pr.ts";
+import { landPr } from "./land-pr.ts";
 import { listItems } from "./list-items.ts";
 import { moveItem } from "./move-item.ts";
-import { createIssue } from "./create-issue.ts";
-import { viewIssue } from "./view-issue.ts";
-import { linkPr } from "./add-pr.ts";
-import { createPr } from "./create-pr.ts";
-import { waitForReview } from "./wait-for-review.ts";
-import { landPr } from "./land-pr.ts";
-import { commentPr } from "./comment-pr.ts";
-import { updateIssue } from "./update-issue.ts";
 import { resolveThreads } from "./resolve-threads.ts";
+import { refresh, setup } from "./setup.ts";
+import { updateIssue } from "./update-issue.ts";
+import { viewIssue } from "./view-issue.ts";
+import { waitForReview } from "./wait-for-review.ts";
 
 const commands: Record<string, (args: string[]) => void> = {
   setup,

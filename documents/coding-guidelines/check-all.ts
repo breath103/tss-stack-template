@@ -1,4 +1,5 @@
 #!/usr/bin/env -S node --import tsx
+import { spawnSync } from "node:child_process";
 /**
  * Run every rule's check.sh and aggregate pass/fail.
  *
@@ -14,7 +15,6 @@
  */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
 import { ruleDirs } from "./_lib";
 
 // Anchor to this script's own dir so it works regardless of the caller's cwd.

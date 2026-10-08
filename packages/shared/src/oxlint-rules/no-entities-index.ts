@@ -14,9 +14,9 @@ const rule = {
   meta: {
     type: "suggestion",
     requires: "supabase",
-    docs: { description: "Disallow re-deriving backend types via Entities[\"...\"]" },
+    docs: { description: 'Disallow re-deriving backend types via Entities["..."]' },
     messages: {
-      entitiesIndex: "Import the type from \"@backend/types/database\" instead of re-deriving it via Entities[\"...\"].",
+      entitiesIndex: 'Import the type from "@backend/types/database" instead of re-deriving it via Entities["..."].',
     },
     schema: [],
   },
