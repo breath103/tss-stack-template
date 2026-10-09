@@ -149,14 +149,19 @@ export function Selector<T extends string | null>({
         </Row>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
-        {/* item-aligned overlays the trigger with the selected option on top of
-            it, so options share the trigger's size; Radix places the wrapper
-            inline, reading z-index off this node. */}
+        {/* Not item-aligned: that mode grows its box toward the window edge as the list scrolls. */}
         <SelectPrimitive.Content
-          position="item-aligned"
-          className="z-50 rounded-md bg-surface-2 p-1 ring-1 ring-border"
+          position="popper"
+          align="start"
+          sideOffset={4}
+          className={cn(
+            // surface
+            "z-50 rounded-md bg-surface-2 p-1 ring-1 ring-border",
+            // size
+            "max-h-[min(20rem,var(--radix-select-content-available-height))] min-w-(--radix-select-trigger-width)"
+          )}
         >
-          <SelectPrimitive.Viewport className="max-h-80 overflow-y-auto">
+          <SelectPrimitive.Viewport>
             {mounted.map(opt => {
               const gate = optionDisabled?.(opt) ?? false;
               const reason = typeof gate === "string" ? gate : null;
