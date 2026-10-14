@@ -53,7 +53,7 @@ export class BackendStack extends cdk.Stack {
       removalPolicy,
       autoDeleteObjects: removalPolicy === cdk.RemovalPolicy.DESTROY,
     });
-    const bucketPolicy = codeBucket.addToResourcePolicy(
+    codeBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         principals: [new iam.ServicePrincipal("lambda.amazonaws.com")],
         actions: ["s3:GetObject", "s3:GetObjectVersion"],
@@ -113,10 +113,10 @@ export class BackendStack extends cdk.Stack {
         },
       },
     });
-    // Lambda checks its S3 read access when the revision is created.
-    if (bucketPolicy.policyDependable) revision.node.addDependency(bucketPolicy.policyDependable);
+    // Lambda checks its S3 read access when the revision is created, so the bucket policy must exist first.
+    revision.node.addDependency(codeBucket);
 
-    // Public, like the Function URL it replaces; CloudFront in front, the app handles auth.
+    // Public: CloudFront fronts it and the app does its own auth.
     const endpoint = new lambda.CfnWebFunctionEndpoint(this, "Endpoint", {
       functionName: webFunction.ref,
       endpointName: "default",
