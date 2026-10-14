@@ -18,15 +18,21 @@ for (const name of ["main", "feature-x"]) {
         project: "tsss",
         name,
         envVars: {},
-        env: { account: "123456789012", region: "ap-northeast-2" },
+        env: { account: "123456789012", region: "us-west-2" },
       })
     );
-    template.resourceCountIs("AWS::Events::Rule", 0);
-    template.resourceCountIs("AWS::Lambda::Function", 1);
-    template.resourceCountIs("AWS::Logs::LogGroup", 1);
-    template.hasResourceProperties("AWS::Lambda::Function", { FunctionName: `tsss-backend-${name}-handler` });
-    for (const logGroup of Object.values(template.findResources("AWS::Logs::LogGroup"))) {
-      assert.equal(logGroup.DeletionPolicy, name === "main" ? "Retain" : "Delete");
+    template.resourceCountIs("AWS::Lambda::WebFunction", 1);
+    template.resourceCountIs("AWS::Lambda::WebFunctionRevision", 1);
+    template.resourceCountIs("AWS::Logs::LogGroup", 2);
+    template.hasResourceProperties("AWS::Lambda::WebFunction", { FunctionName: `tsss-backend-${name}-handler` });
+    template.hasResourceProperties("AWS::Lambda::WebFunctionEndpoint", {
+      EndpointType: "HomeRegion",
+      AuthType: "ApplicationManaged",
+    });
+    for (const type of ["AWS::Logs::LogGroup", "AWS::S3::Bucket"]) {
+      for (const resource of Object.values(template.findResources(type))) {
+        assert.equal(resource.DeletionPolicy, name === "main" ? "Retain" : "Delete");
+      }
     }
   });
 }

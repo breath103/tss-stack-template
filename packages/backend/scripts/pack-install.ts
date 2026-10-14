@@ -11,7 +11,7 @@ function main() {
   const { values } = parseArgs({ options: { "update-lock": { type: "boolean", default: false } }, strict: true });
   const updateLock = values["update-lock"];
   console.log(
-    updateLock ? "Updating Lambda dependency lockfile..." : "Installing locked dependencies for linux-x64..."
+    updateLock ? "Updating Lambda dependency lockfile..." : "Installing locked dependencies for linux-arm64..."
   );
   execFileSync(
     "npm",
@@ -19,7 +19,7 @@ function main() {
       ...(updateLock ? ["install", "--package-lock-only"] : ["ci"]),
       "--include=optional",
       "--os=linux",
-      "--cpu=x64",
+      "--cpu=arm64",
       "--omit=dev",
       "--force",
       "--no-workspaces",

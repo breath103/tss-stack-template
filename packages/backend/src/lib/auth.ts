@@ -39,7 +39,7 @@ export const auth = betterAuth({
     // Without `database` config, better-auth defaults to stuffing the entire
     // OAuth account record (id_token + access_token + refresh_token) into
     // chunked `account_data.{0,1,2,...}` cookies — ~10KB on every request,
-    // and large enough to blow past the Lambda Function URL header limit
+    // and large enough to blow past the backend endpoint header limit
     // (413 on /api/auth/get-session). The tokens aren't used after callback,
     // so the account record is pure dead weight.
     storeAccountCookie: false,

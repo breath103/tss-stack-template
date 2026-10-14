@@ -28,7 +28,7 @@ async function main() {
   const functionName = BackendStack.functionName({ project: config.project, name });
 
   console.log(`${tail ? "Tailing" : "Fetching"} logs for ${functionName}...\n`);
-  await fetchLogs(`/aws/lambda/${functionName}`, region, startTime, tail);
+  await fetchLogs(`/aws/lambda/web/${functionName}`, region, startTime, tail);
 }
 
 function parseCliArgs(): CliArgs {

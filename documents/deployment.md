@@ -12,7 +12,7 @@ after the cache is restored because rebuilding deletes `dist/`. CDK uses
 CloudFormation change set.
 
 `packages/backend/package-lock.deploy.json` locks the standalone Lambda package
-for linux-x64. After changing backend dependencies, refresh it with:
+for linux-arm64 (Web Functions run on Arm64). After changing backend dependencies, refresh it with:
 
 ```bash
 ./packages/backend/scripts/pack-build.ts
@@ -35,7 +35,7 @@ download cache is restored only when an installation is needed.
 
 ## Deployment verification
 
-After every backend deployment, CI reads the Function URL from the stack outputs
+After every backend deployment, CI reads the Web Function endpoint URL from the stack outputs
 and checks the health endpoint and an anonymous `get-session` call. The URL
 appears in the workflow summary.
 
