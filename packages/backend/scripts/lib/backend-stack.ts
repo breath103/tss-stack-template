@@ -10,11 +10,6 @@ import { Construct } from "constructs";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
 
-// How many HTTP requests one execution environment serves at once (1–128).
-// Lambda may run fewer under load; this is the ceiling. Raise it for I/O-bound
-// handlers, lower it if requests are CPU- or memory-heavy.
-const MAX_CONCURRENCY_PER_ENVIRONMENT = 64;
-
 interface BackendStackId {
   project: string;
   name: string;
@@ -105,7 +100,9 @@ export class BackendStack extends cdk.Stack {
       serviceConfig: {
         executionRoleArn: role.roleArn,
         timeoutSeconds: 30,
-        maxConcurrencyPerEnvironment: MAX_CONCURRENCY_PER_ENVIRONMENT,
+        // Requests one execution environment serves at once (1–128). A ceiling: Lambda may run fewer.
+        // Raise it for I/O-bound handlers, lower it if requests are CPU- or memory-heavy.
+        maxConcurrencyPerEnvironment: 64,
         environmentVariables: {
           AWS_LAMBDA_NODEJS_ENTRYPOINT: "web.js",
           NODE_ENV: "production",

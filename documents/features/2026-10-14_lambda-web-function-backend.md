@@ -23,10 +23,9 @@ L1 constructs from aws-cdk-lib ≥ 2.273:
   same as the Function URL it replaces), 100% weight on the current revision.
   Its `DomainName` is the `EndpointUrl` stack output, stored in SSM for the edge.
 
-**Concurrency** is the `MAX_CONCURRENCY_PER_ENVIRONMENT` constant at the top of
-`backend-stack.ts` (→ revision `serviceConfig.maxConcurrencyPerEnvironment`,
-1–128, Lambda default 64). Lambda manages a dynamic per-environment limit below
-this ceiling.
+**Concurrency** is `maxConcurrencyPerEnvironment` on the revision's
+`serviceConfig` in `backend-stack.ts` (1–128, Lambda default 64). Lambda manages
+a dynamic per-environment limit below this ceiling.
 
 **Code delivery.** Lambda pulls a revision's zip from S3 itself, as the
 `lambda.amazonaws.com` principal, pinned to an object version. The CDK bootstrap
