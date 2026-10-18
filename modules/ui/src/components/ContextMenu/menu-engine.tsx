@@ -1,6 +1,6 @@
 import { CaretRight, Check } from "@phosphor-icons/react";
 import * as PopperPrimitive from "@radix-ui/react-popper";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useEvent } from "../../lib/use-event";
 import { cn } from "../../lib/utils";
@@ -35,6 +35,8 @@ type LevelContext<A> = {
   keyed: boolean;
   onPick: (action: A) => void;
   leaveMenu: (e: React.MouseEvent) => void;
+  /** Mounted submenu panels by depth — their placed side decides which arrow descends / ascends. */
+  panels: Array<HTMLElement | null>;
 };
 
 /**
@@ -66,6 +68,7 @@ export function useMenuEngine<A>({
   // `null` = dormant: no row washed at all (set when the pointer leaves).
   const [path, setPath] = useState<number[] | null>([]);
   const [keyed, setKeyed] = useState(false);
+  const panels = useRef<Array<HTMLElement | null>>([]).current;
 
   /** Whether the menu consumed the key (false = let the host, e.g. the editor caret, handle it). */
   const handleKey = useEvent((key: string): boolean => {
@@ -87,15 +90,19 @@ export function useMenuEngine<A>({
       const next = stepFrom(active.list, active.index, key === "ArrowDown" ? 1 : -1, renderItem);
       setPath([...effective.slice(0, -1), next]);
       return true;
-    } else if (key === "ArrowRight") {
-      const children = subItems(active.list[active.index] as A);
-      const first = children == null ? -1 : firstSelectable(children, renderItem);
-      if (first === -1) return levels.length > 1; // consumed no-op deep in, the host's at the root
-      setPath([...effective, first]);
-      return true;
-    } else if (key === "ArrowLeft") {
+    } else if (key === "ArrowRight" || key === "ArrowLeft") {
+      const inward = panels[levels.length]?.dataset.side === "left" ? "ArrowLeft" : "ArrowRight";
+      if (key === inward) {
+        const children = subItems(active.list[active.index] as A);
+        const first = children == null ? -1 : firstSelectable(children, renderItem);
+        if (first !== -1) {
+          setPath([...effective, first]);
+          return true;
+        }
+      }
       if (levels.length === 1) return false;
-      setPath(effective.slice(0, -1));
+      const outward = panels[levels.length - 1]?.dataset.side === "left" ? "ArrowRight" : "ArrowLeft";
+      if (key === outward) setPath(effective.slice(0, -1));
       return true;
     } else if (key === "Enter" || key === "Tab") {
       onPick(active.list[active.index] as A);
@@ -132,6 +139,7 @@ export function useMenuEngine<A>({
     keyed,
     onPick,
     leaveMenu,
+    panels,
   };
 
   return {
@@ -149,7 +157,7 @@ export function useMenuEngine<A>({
 // highlight path — highlighting a parent previews its children (nothing washed
 // inside) until ArrowRight or hover descends into them.
 function renderLevel<A>(list: ReadonlyArray<A | MenuDecoration>, depth: number, ctx: LevelContext<A>): ReactNode {
-  const { open, levels, renderItem, subItems, setActive, keyed, onPick, leaveMenu } = ctx;
+  const { open, levels, renderItem, subItems, setActive, keyed, onPick, leaveMenu, panels } = ctx;
   return list.map((entry, i) => {
     if (isDecoration(entry)) return renderDecoration(entry, i);
 
@@ -203,6 +211,9 @@ function renderLevel<A>(list: ReadonlyArray<A | MenuDecoration>, depth: number, 
           onPath &&
           createPortal(
             <PopperPrimitive.Content
+              ref={el => {
+                panels[depth + 1] = el;
+              }}
               data-slot="context-menu-submenu"
               data-context-menu=""
               role="menu"
