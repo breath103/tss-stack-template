@@ -53,7 +53,6 @@ export default harness(
 
     // A Selector near the viewport bottom has more room above it, yet must still open below and fit.
     const trigger = page.getByRole("combobox").first();
-    await trigger.scrollIntoViewIfNeeded();
     const viewportHeight = page.viewportSize()?.height ?? 0;
     await page.evaluate(
       ([y, vh]) => window.scrollBy(0, y - (vh - 120)),
