@@ -152,16 +152,14 @@ export function Selector<T extends string | null>({
         {/* Not item-aligned: that mode grows its box toward the window edge as the list scrolls. */}
         <SelectPrimitive.Content
           position="popper"
+          // Without this Radix flips the list above the trigger whenever it doesn't fit below; pinned, it shrinks instead.
+          avoidCollisions={false}
           align="start"
           sideOffset={4}
-          className={cn(
-            // surface
-            "z-50 rounded-md bg-surface-2 p-1 ring-1 ring-border",
-            // size
-            "max-h-[min(20rem,var(--radix-select-content-available-height))] min-w-(--radix-select-trigger-width)"
-          )}
+          className="z-50 min-w-(--radix-select-trigger-width) rounded-md bg-surface-2 p-1 ring-1 ring-border"
         >
-          <SelectPrimitive.Viewport>
+          {/* The cap sits on the element that scrolls, minus Content's p-1, so the padded box never overflows. */}
+          <SelectPrimitive.Viewport className="max-h-[min(20rem,calc(var(--radix-select-content-available-height)-0.5rem))]">
             {mounted.map(opt => {
               const gate = optionDisabled?.(opt) ?? false;
               const reason = typeof gate === "string" ? gate : null;

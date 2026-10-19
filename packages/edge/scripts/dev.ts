@@ -43,13 +43,17 @@ function createHandler(proto: "http" | "https", expectedHost: string) {
     req.headers["x-forwarded-host"] = expectedHost;
 
     proxy.web(req, res, { target }, err => {
-      res.writeHead(502);
+      // A client that went away mid-response already has its headers: just close it
+      if (!res.headersSent) res.writeHead(502);
       res.end(`Proxy error: ${err.message}`);
     });
   };
 }
 
 const onUpgrade = (req: http.IncomingMessage, socket: import("node:stream").Duplex, head: Buffer) => {
+  // A browser dropping its HMR websocket (tab closed, reloaded, asleep) resets the
+  // socket; http-proxy leaves that error unhandled, which kills the whole dev stack
+  socket.on("error", () => socket.destroy());
   proxy.ws(req, socket, head, { target: `http://localhost:${frontend.devPort}` });
 };
 

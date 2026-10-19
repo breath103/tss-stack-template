@@ -50,6 +50,32 @@ export default harness(
       Boolean(wrapped && wrapped.height > buttonBox.height),
       `input=${wrapped?.height} button=${buttonBox.height}`
     );
+
+    // A Selector near the viewport bottom has more room above it, yet must still open below and fit.
+    const trigger = page.getByRole("combobox").first();
+    await trigger.scrollIntoViewIfNeeded();
+    const viewportHeight = page.viewportSize()?.height ?? 0;
+    await page.evaluate(
+      ([y, vh]) => window.scrollBy(0, y - (vh - 120)),
+      [(await trigger.boundingBox())?.y ?? 0, viewportHeight]
+    );
+    // Measure before opening: the open Select aria-hides everything outside it, trigger included.
+    const triggerBox = await trigger.boundingBox();
+    await trigger.click();
+    const list = page.getByRole("listbox");
+    await list.waitFor({ state: "visible" });
+    await page.screenshot({ name: "4_selector_open_near_bottom" });
+    const listBox = await list.boundingBox();
+    step(
+      "Selector list opens below its trigger",
+      Boolean(triggerBox && listBox && listBox.y >= triggerBox.y + triggerBox.height),
+      `trigger.bottom=${triggerBox && triggerBox.y + triggerBox.height} list.top=${listBox?.y}`
+    );
+    step(
+      "Selector list fits in the viewport",
+      Boolean(listBox && listBox.y + listBox.height <= viewportHeight + 0.5),
+      `list.bottom=${listBox && listBox.y + listBox.height} viewport=${viewportHeight}`
+    );
   },
   // Bounded by the 20s first-paint wait above, plus slack for two fullPage captures.
   { timeoutMs: 25_000 }
