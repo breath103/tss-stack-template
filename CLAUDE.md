@@ -240,7 +240,7 @@ How it works:
 
 **When a scenario fails:**
 
-1. Read the FAIL line and stack trace from the runner.
+1. Read the FAIL line and stack trace from the runner. The terminal copy is trimmed (message capped, stack limited to `e2e/` frames, browser console limited to a few errors/warnings); the untrimmed error + full browser console is in `e2e/fixtures/<scenarioName>/failure.log` (gitignored) — `grep`/`sed -n` it rather than `cat`ing it whole.
 2. Open `e2e/fixtures/<scenarioName>/` and view the screenshots **in order**. The last one tells you the state right before the failure.
 3. If the screenshot shows an unexpected state (a 404, a stuck loading spinner, a modal that didn't open), the fix is in the app code or the scenario's selector — not in retrying or adding sleeps.
 4. If the screenshots all look fine but the assertion still failed, the bug is in the assertion logic — re-read the assertion against the screenshot.

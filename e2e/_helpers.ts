@@ -179,14 +179,15 @@ export function harness(body: (ctx: HarnessCtx) => Promise<void>, opts: { timeou
       if (failed.length === 0 && !scenarioErr) {
         console.log(`${GREEN}✅ all ${steps.length} steps passed${RESET}`);
       } else {
-        const summary = scenarioErr ? `: ${scenarioErr.message}` : "";
-        console.log(`${RED}❌ ${failed.length}/${steps.length} steps failed${summary}${RESET}`);
+        // The thrown error's message is printed once, by the runner — don't echo it here.
+        const threw = scenarioErr ? " (scenario threw — error below)" : "";
+        console.log(`${RED}❌ ${failed.length}/${steps.length} steps failed${threw}${RESET}`);
         failed.forEach(s => console.log(`   - ${s.name}${s.detail ? `  ${s.detail}` : ""}`));
       }
     }
 
-    if (failed.length > 0 || scenarioErr) {
-      throw new Error(scenarioErr?.message ?? `${failed.length}/${steps.length} steps failed`);
-    }
+    // Rethrow the original error so its stack still points into the scenario.
+    if (scenarioErr) throw scenarioErr;
+    if (failed.length > 0) throw new Error(`${failed.length}/${steps.length} steps failed`);
   };
 }
