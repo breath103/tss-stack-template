@@ -20,7 +20,7 @@ const MAX_ERROR_LINES = 20;
 const MAX_LINE_CHARS = 200;
 const MAX_BROWSER_LINES = 10;
 
-function clip(line: string): string {
+function clip(line: string) {
   return line.length > MAX_LINE_CHARS
     ? `${line.slice(0, MAX_LINE_CHARS)}… (+${line.length - MAX_LINE_CHARS} chars)`
     : line;
@@ -28,7 +28,7 @@ function clip(line: string): string {
 
 // Message capped to MAX_ERROR_LINES, stack reduced to frames inside the
 // scenario files (`e2e/…`) — runner / node_modules frames never matter.
-function compactError(err: unknown): string {
+function compactError(err: unknown) {
   if (!(err instanceof Error)) return clip(String(err));
   const lines = err.message.split("\n");
   const shown = lines.slice(0, MAX_ERROR_LINES).map(clip);
