@@ -28,11 +28,11 @@ function clip(line: string): string {
 
 // Message capped to MAX_ERROR_LINES, stack reduced to frames inside the
 // scenario files (`e2e/…`) — runner / node_modules frames never matter.
-function compactError(err: unknown, logPath: string): string {
+function compactError(err: unknown): string {
   if (!(err instanceof Error)) return clip(String(err));
   const lines = err.message.split("\n");
   const shown = lines.slice(0, MAX_ERROR_LINES).map(clip);
-  if (lines.length > MAX_ERROR_LINES) shown.push(`… ${lines.length - MAX_ERROR_LINES} more lines in ${logPath}`);
+  if (lines.length > MAX_ERROR_LINES) shown.push(`… ${lines.length - MAX_ERROR_LINES} more lines`);
   const frames = (err.stack ?? "")
     .split("\n")
     .filter(l => l.trimStart().startsWith("at ") && l.includes(`${E2E_DIR}/`))
@@ -145,7 +145,7 @@ export const run = new Command(
         ].join("\n")
       );
       console.error(`FAIL  ${name}  (${Date.now() - t0}ms)`);
-      console.error(compactError(err, logPath));
+      console.error(compactError(err));
       console.error(`full error + browser console: ${logPath}`);
       process.exitCode = 1;
     } finally {
