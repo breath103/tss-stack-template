@@ -13,12 +13,12 @@ description: "Manage GitHub Project board issues and full lifecycle task executi
   - **Land confirmation** (Step 10) — `AskUserQuestion("Land now or hold?")` before `cli.ts land-pr`.
 - `/do-task auto` — no human gates between start and merge:
   - **Design** (Step 3) — trivial → skip doc + no gate (same carve-out as `manual`). Substantive → write the doc as a record but **proceed without asking**. The user can interrupt if they disagree.
-  - **Result check** (Step 7) — question skipped, but still `./scripts/open-url.ts "<dev-url>"` on the affected route. E2E green → proceed straight to Polish.
+  - **Result check** (Step 7) — question skipped, but still `./scripts/open-url.ts "<dev-url>"` on the affected route. Screenshots read and good → proceed straight to Polish.
   - **Land** (Step 10) — `cli.ts land-pr` fires immediately after Open PR. CI is the only gate.
 
 Parse the mode from the args string passed to the Skill invocation. If the user typed `/do-task` alone (no arg, or any arg other than `auto`) → default to `manual`. If the user typed `/do-task auto` → run in auto mode for the entire lifecycle.
 
-Both modes use the same Polish pipeline (Step 8), the same E2E loop (Step 6), and the same Open PR step (Step 9). The only difference is which gates block.
+Both modes use the same Polish pipeline (Step 8), the same E2E process (Step 6), and the same Open PR step (Step 9). The only difference is which gates block.
 
 # Project capabilities — DB steps are gated on `uses`
 
@@ -37,10 +37,10 @@ Every DB-related instruction below is tagged **(supabase only)**. In a non-supab
  3. Design                — substantive → write doc; manual mode also gates on approval; auto mode proceeds
  4. Read guidelines       — ls + Read the coding-guidelines files for the areas the design touches
  5. Implement             — write code, type-check, build, commit
- 6. E2E loop              — verify end-to-end → fix on fail → loop until passes
+ 6. E2E                   — add screenshots to the menu's one scenario → run it → read every screenshot → fix and repeat
  7. Result check          — ALWAYS `./scripts/open-url.ts "<dev-url>"` on the affected route first; then manual mode asks AskUserQuestion(works/tweak); auto mode skips the question
  8. Polish                — inline /rethink-and-simplify, then inline /enforce-coding-guideline
- 9. Open PR               — demo screenshots in body, no review wait
+ 9. Open PR               — no review wait
 10. Land                  — manual mode asks "land now?"; auto mode fires immediately. `land-pr` waits for CI, merges, syncs main, moves issue to Done.
 11. DB push (migrations)  — (supabase only) if the diff has a migration, `db:push` it to prod (CI does NOT). Ordering — before OR after land — is a DECISION per `references/db-migrations.md`, not a fixed step.
 12. Cleanup               — stop ./scripts/e2e.ts; stop ./scripts/dev.ts if this session started it
@@ -95,12 +95,12 @@ Canonical task list (adapt #4–6 to actual work; gate tasks differ per mode; DB
 #5  Implement: <file> — <what to change>
 #6  Implement: <file> — <what to change>
 #7  Implement: <file> — <what to change>
-#8  E2E loop: (supabase only) `db:status` (→ `db:restart` if off) before dev → verify end-to-end → fix on fail → loop until passes
+#8  E2E: (supabase only) `db:status` (→ `db:restart` if off) before dev → add screenshots to the menu's one scenario → run it → read every screenshot → fix and repeat
 #9  Result check gate: `./scripts/open-url.ts "<dev-url>"` on the affected route (BOTH modes) → (manual mode only) show result → AskUserQuestion(works/tweak) → fix → re-verify → loop
 #10 Polish 1/2: invoke /rethink-and-simplify INLINE via Skill tool — apply every Strong+Medium fix, loop until clean
 #11 Polish 2/2: invoke /enforce-coding-guideline INLINE via Skill tool — apply every Strong+Medium violation, loop until clean
 #12 Build + type-check + lint, commit
-#13 Open PR with demo screenshots
+#13 Open PR
 #14 (manual mode only) Land gate: AskUserQuestion("Land now or hold?") — wait for "land" before #15
 #15 Land PR (`cli.ts land-pr`): waits for PR CI, merges, waits for main CI, syncs local main, moves linked issue to Done
 #16 (supabase only) DB push (ONLY if the diff has a migration; CI does NOT run it): `npm run -w backend db:push`. Its slot is NOT fixed at #16 — expand/additive → place it BEFORE Land (#15); contract/removing → AFTER. Decide when you build the list; `references/db-migrations.md`.
@@ -178,7 +178,7 @@ After writing a doc for substantive work, the **gate depends on mode**:
 
 ## Step 4: Read the coding guidelines that apply to this change
 
-**MANDATORY between Step 3 and writing code** — regardless of whether Step 3 wrote a doc, gated on approval, or skipped both. **You write no code, you create no file, you do not even sketch a function signature, until this step has completed in full.** Guidelines live one-per-folder under `documents/coding-guidelines/<group>/<slug>/rule.md`. Groups: `frontend`, `backend`, `e2e`, `sharing-code`.
+**MANDATORY between Step 3 and writing code** — regardless of whether Step 3 wrote a doc, gated on approval, or skipped both. **You write no code, you create no file, you do not even sketch a function signature, until this step has completed in full.** Guidelines live one-per-folder under `documents/coding-guidelines/<group>/<slug>/rule.md`. Groups: `frontend`, `backend`, `sharing-code`. How to do e2e is not a coding guideline: it is Step 6 below.
 
 Some rules are gated on project capabilities: a rule with `requires: <add-on>` frontmatter applies only when `tss.json` `uses` lists that add-on. The `check-guidelines` skill and `documents/coding-guidelines/search.ts` already filter by `uses` for you — a supabase rule won't surface in a non-supabase project.
 
@@ -198,36 +198,113 @@ Commit when work is in a coherent state. **No AI attribution in the commit messa
 
 Those carve-outs cover the *few* images that demonstrate the change — never every file a re-run, viewport, or env tweak re-rendered. Count them: a text diff of ~10 lines against 25 changed PNGs means the PNGs are churn, whatever justified them. Default to committing **zero** images and pasting the screenshot in chat instead — the reviewer reads the code.
 
-## Step 6: E2E loop
+## Step 6: E2E
 
-**Verify end-to-end** — type-checks and unit tests are not verification.
+**The goal of e2e is to check that things work as intended, and you do that primarily by reading screenshots.** Type-checks and unit tests are not verification, and neither is a green assertion: a page can pass every assertion and still look broken. Never call UI work done until you have read its screenshots.
 
-**(supabase only) Before starting or using dev, confirm the DB is up.** Run `npm run -w backend db:status`. If it reports down, unresponsive, or anything off, run `npm run -w backend db:restart` and wait for it to come back before touching dev. Never start the E2E loop against a stopped/wedged Supabase — that's the wasted-time trap in the top-level rules. In a non-supabase project, skip this entirely and just bring up dev.
+### The process
 
-**Before the loop, open the local dev URL for the user.** Once the dev server is ready (or after starting it), run `./scripts/open-url.ts "<dev-url>"` using the URL reported by `./scripts/dev.ts status` / `./scripts/dev.ts start` (for example, `./scripts/open-url.ts "http://localhost:3000"`, or the per-worktree `http://<dir-basename>.localhost:3000`). `open-url` opens an Orca browser tab in this session's worktree when the session runs inside Orca (add `--focus` to also bring that tab to the front) and falls back to the platform opener otherwise — never call bash `open` directly and never the Chrome MCP browser tools (`mcp__claude-in-chrome__navigate`, `tabs_create_mcp`, …); this is a hand-off to the user, not a page for you to drive. Do this even in `auto` mode so the user can watch or spot-check without hunting for the URL. If the change's observable surface is a specific route, open that route directly (for example, `/tasks`).
+1. Implement the feature.
+2. Add the screenshots to the scenario for that menu or feature.
+3. Run that one scenario: `npm run e2e <scenario>`.
+4. Read every screenshot it took, with the Read tool.
+5. If it all looks right, show the screenshots to the developer and move on. If not, fix the code and go back to 3.
 
-**Preferred path: write a scenario, run it, debug from the screenshots.**
+Before step 3, bring the stack up: (supabase only) `npm run -w backend db:status` (down or wedged → `npm run -w backend db:restart`), then `./scripts/dev.ts status` (not running → `./scripts/dev.ts start`). Open the dev URL for the user with `./scripts/open-url.ts "<dev-url>"`, on the affected route, using the URL `./scripts/dev.ts status` reports (for example `http://<dir-basename>.localhost:3000/tasks`). Do this in `auto` mode too. Never use bash `open` or the Chrome MCP tools: this is a hand-off to the user, not a page for you to drive.
 
-If the repo has an `e2e/` directory with `npm run e2e` (TSS-stack-template shape):
+### One scenario per menu or feature
 
-1. Write `e2e/<scenario>.ts` default-exporting a `Scenario` (or `harness()`-wrapped body for multi-step verification).
-2. Capture **`page.screenshot({ name, fullPage })`** at every meaningful checkpoint: after `goto`, after each user action, right before a flaky assertion. Names get a numeric prefix so they sort by execution order — `0_initial_load`, `1_after_login`, `2_modal_open`. Files auto-save to `e2e/fixtures/<scenario>/<name>.png` (wiped + recreated per run, checked into git).
-3. Run with `npm run e2e <scenario>` (auto-starts headless Chrome; dev server must already be up via `./scripts/dev.ts start`).
-4. **On fail, READ THE SCREENSHOTS FIRST.** `e2e/fixtures/<scenario>/*.png` is the primary debugging surface — last image tells you the state right before the failure. Do not re-run with random changes hoping it works; do not add `console.log`s blindly. The Read tool renders PNGs natively.
-5. Loop: fix → rerun → break on pass.
-6. **Pre-existing failure? Prove it and move on.** If the failing code path's files are untouched by your diff (`git diff --name-only origin/main..HEAD`), it cannot be your regression: one-line note in the PR body (or file a separate issue), verify YOUR change's surface, continue. Do not root-cause inherited bugs inside the E2E loop — that archaeology is the #1 verification time sink.
+**Do not make a new scenario for a feature change.** Keep the minimum set of scenarios that can take every screenshot we need:
 
-**Existing harnesses:** if an `e2e/<domain>.ts` already exists for the surface you touched, extend it instead of creating a parallel scenario.
+- Find the scenario that already drives the menu (`ls e2e | grep -i <menu>`) and add your screenshots to it.
+- Create `e2e/<menu>.ts` only for a menu or feature with no scenario at all.
+- A flow worth one screenshot today is not worth a new file, a new section, or anything else that stays in the suite forever.
 
-**Per-category fallback (no e2e/ shape):**
-- **Frontend UI** — dev server + browser, click through the user flow. Screenshot whatever you'd attach to the PR.
-- **Backend HTTP** — curl the edge proxy URL with auth headers if needed; verify status + body.
-- **Agent skill / prompt** — `POST /api/chat`, poll `GET /api/chat/:id` until `current_run_id == null`, confirm the LLM actually uses the new tool/behavior. The proof is the next turn changing, not a `.d.ts` diff.
-- **(supabase only) DB migration** — reset, regen types, exercise the new column/index/constraint with realistic data.
-- **Script/CLI** — run it the way a user would, verify exit code + side effect.
-- **Library/util** — exercise the nearest real consumer, not the util in isolation.
+### Reading screenshots is the test
 
-If the change has **no observable runtime surface** (pure docs, type-only declarations no consumer reads), say so explicitly in the verify task — don't silently skip.
+```ts
+export default harness(async ({ page }) => {
+  await page.goto("/tasks");
+  await page.screenshot({ name: "0_tasks" });
+
+  await page.getByRole("button", { name: "Add" }).click();
+  await page.getByRole("dialog").waitFor();
+  await page.screenshot({ name: "1_add_dialog" });
+});
+```
+
+- Take one screenshot per state that matters: the page, then each thing the feature changes. Include the states people forget, such as empty, long text, error, and the phone width (`page.setViewportSize({ width: 390, height: 844 })`) when the page is used on phones.
+- Names get a numeric prefix so they sort in execution order. Files land in `e2e/fixtures/<scenario>/<name>.png`, and the directory is wiped on every run.
+- Keep the default viewport. Pass `fullPage` only when the thing to check is below the fold, because it can hang on heavy pages.
+- Wait for the thing you are about to photograph, then take the screenshot.
+- **Open every screenshot with the Read tool and look at it like a designer:** alignment, spacing, overflow, clipped or tiny text, wrong colors, states that didn't change, anything that looks unlike the pages around it. Compare against the page it is meant to match. "The run passed" tells you nothing about this.
+
+### Assertions are only for very crucial things
+
+Assert only when a silent failure would be serious and a screenshot can't show it:
+
+- someone sees or can do something they must not (permissions, private data)
+- login and sign-out
+- data being lost or written wrong in a core flow
+
+Everything else is a screenshot. **Do not assert** on counts, class names, computed styles, pixel positions, exact copy, API response shapes, render counts or localStorage contents. These break on harmless changes, take hours to get right, and stop being useful after the first couple of runs. When one is hard to write, that is your signal to delete it and take a screenshot.
+
+Use `step(name, ok)` from `harness()` for the few that qualify. A `waitFor` that exists so a screenshot shows the right state is not an assertion and is fine.
+
+### Login
+
+- **Every scenario starts logged out.** It gets a new browser context with no cookies or storage, so log in first.
+- Never click through the login page unless the login page is what you are testing. Sign in over HTTP instead: Playwright's `request` shares its cookie jar with `page`, so a sign-in through `request` authenticates the page too. `api()` from `_helpers.ts` returns the `setCookie` when you need to choose the cookie per call.
+- **Use relative paths in `page.goto()`.** The context's base URL is the worktree host (`<dir-basename>.localhost:<port>`). Cookies are per hostname, and plain `localhost` redirects to it.
+- A login page in a screenshot means the cookie wasn't set. Fix that rather than clicking through the UI.
+
+### How long things take
+
+This is local dev against a local server. **No UI or network loading should take more than 1s.**
+
+| What | Expected |
+|---|---|
+| API call | under 100ms |
+| UI update after an action | well under 1s |
+| `./scripts/e2e.ts reset` | about 1s |
+| A whole scenario | seconds |
+
+A `harness()` scenario is capped at 3s unless it sets `timeoutMs` for its real length. **A timeout means something is broken, not slow:** a wrong selector, a page that never reached that state, or a hung browser. Never raise a timeout, add `waitForTimeout`, or re-run hoping it passes. Never sit waiting on a run: if it has gone quiet for more than a few seconds, it is hung.
+
+### Hung, or acting strange: reset
+
+**Don't wait on it and don't debug it. Run `./scripts/e2e.ts reset`.** It kills the e2e Chrome, deletes its profile entirely and starts a fresh one in about 1s. Run it before each run too, since a wedged Chrome looks exactly like a slow run. Also:
+
+- Run scenarios in the foreground, one at a time, because they share one DB, dev server and Chrome.
+- **Never run the whole suite.** Run the scenario for the menu you changed. Before running more than two or three, say how long it will take.
+- Don't restart a healthy dev server.
+
+### When a run fails
+
+1. Read the last screenshot in `e2e/fixtures/<scenario>/`. The FAIL line shows the error, and `failure.log` beside the screenshots has the full stack and browser console.
+2. Fix the app or the selector. If you can't tell from the screenshot, add one more screenshot at that point.
+3. If what failed is an assertion that doesn't guard something crucial, delete the assertion.
+4. If the failing surface is untouched by your diff (`git diff --name-only origin/main..HEAD`), it isn't your regression. Note it in one line in the PR and move on.
+
+### Test data
+
+- Create what you need at the top of the scenario through the API, using unique titles (`Date.now()`). Never write to the DB directly.
+- Never hardcode server-generated ids, and don't rely on specific counts.
+
+### Helpers
+
+`e2e/_helpers.ts` has `harness`, `api` and `readError`. Files starting with `_` are helpers, not scenarios. Use Playwright's own API and no wrapper libraries.
+
+For a one-off look without a scenario: `./scripts/e2e.ts navigate <path>`, `click <selector>`, `type <selector> <text>`, `wait <selector>`, `set-viewport <w> <h>`, `screenshot [path]`, `page-text`.
+
+### No browser surface
+
+- **Backend HTTP:** curl the edge proxy URL and check status and body.
+- **Agent skill or prompt:** `POST /api/chat`, poll `GET /api/chat/:id` until `current_run_id == null`, and confirm the next turn actually changed.
+- **(supabase only) DB migration:** reset, regenerate types, and exercise the new column with realistic data.
+- **Script or CLI:** run it the way a user would and check the exit code and side effect.
+- **Library or util:** exercise the nearest real consumer.
+- **Nothing observable at runtime** (pure docs, type-only changes): say so in the verify task instead of silently skipping.
 
 ## Step 7: Result check
 
@@ -235,7 +312,7 @@ When the task was "make X look/behave like Y" (mirror an existing surface, match
 
 **ALWAYS open the result for the user first — both modes, no exceptions.** Immediately before the question below (or, in `auto` mode, before the 1-line summary), run `./scripts/open-url.ts "<dev-url>"` on the exact route where the change is visible — the running app, not the code, not a screenshot. Use the URL from `./scripts/dev.ts status` / `./scripts/dev.ts start` plus the affected route (for example, `./scripts/open-url.ts "http://localhost:3000/tasks"`). Opening it again after Step 6 is fine. If the change has no browser surface (backend-only, script, docs), open the closest thing the user can inspect (an API route, a Studio table) and say in one line why no page exists — pointing at the diff does not count. Asking "does this match?" without the page in front of the user is a Step 7 failure.
 
-**`manual` mode** — with the page open, show the user what you verified (screenshot, demo, curl output, agent transcript — whatever's appropriate) and ask:
+**`manual` mode** — with the page open, show the user the screenshots you read (for no-UI work, the curl output or agent transcript) and ask:
 
 ```
 loop:
@@ -254,7 +331,7 @@ loop:
 
 Only proceed to Step 8 after explicit "yes."
 
-**`auto` mode** — skip the question, not the open-url call. Post a 1-line summary of what was verified (e.g. "E2E green: <scenario>. Open at <dev-url>/tasks. Proceeding to Polish."), then go straight to Step 8.
+**`auto` mode** — skip the question, not the open-url call. Post a 1-line summary of what was verified (e.g. "Screenshots read and look right: <scenario>, <paths>. Open at <dev-url>/tasks. Proceeding to Polish."), then go straight to Step 8.
 
 ## Step 8: Polish — rethink, then enforce guidelines
 
@@ -278,15 +355,7 @@ These are **two separate tasks (#10, #11)** — for each: mark `in_progress`, in
 
 Then:
 
-1. **Verification artifacts** (frontend / UI-observable changes): your Step 6 screenshots are already committed at `e2e/fixtures/<scenario>/*.png` — GitHub renders them inline in the PR diff. Just reference them in the PR body so the reviewer doesn't have to hunt:
-
-   ```markdown
-   ## Verification
-
-   `e2e/<scenario>.ts` run end-to-end. Screenshots checked in at `e2e/fixtures/<scenario>/`:
-   - `0_initial_load.png` — clean page state
-   - `1_after_action.png` — feature working
-   ```
+1. **Verification** (UI-observable changes): say in the PR body which scenario you ran and what its screenshots showed. Per Step 5, commit only the few images that demonstrate the change, and default to none.
 2. Create PR (`--issue` required, `--body-file` required — write to `.tmp/<random>.md`). **No AI attribution in the title or body** (`Generated with Claude Code`, `claude.ai/code` links, `Co-Authored-By: Claude`), and the same applies to any PR comment you post. `--reviewer` is optional; pass the repo owner (see `owner` in `github-project.json`) or omit it:
 
    ```bash

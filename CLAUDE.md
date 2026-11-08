@@ -8,7 +8,7 @@ For how to deploy, read `documents/deployment.md`.
 
 Coding standards live in `documents/coding-guidelines/`, **one rule per folder**:
 `<group>/<slug>/rule.md` (the rule) + optional `<group>/<slug>/check.sh`. Groups:
-`frontend`, `backend`, `e2e`, `sharing-code`. Rules tagged `requires: <add-on>`
+`frontend`, `backend`, `sharing-code`. Rules tagged `requires: <add-on>`
 apply only when `tss.json` `uses` lists that add-on.
 
 Don't read every rule — find the ones that govern your diff:
@@ -102,6 +102,7 @@ All scripts are executable via shebang — no `npm run` or `npx` needed. Run eve
 ./scripts/dev.ts stop           # Stop background dev server
 ./scripts/lint                  # Run linters across packages
 ./scripts/e2e.ts start          # Start headless Chrome for e2e
+./scripts/e2e.ts reset          # Kill e2e Chrome, delete its profile, start fresh
 ./scripts/setup.ts              # Interactive project setup
 ```
 
@@ -167,124 +168,4 @@ CI's "Verify packaged dependencies" step fails on a stale
 
 ## E2E Tests
 
-Tests live in `e2e/<name>.ts` and run with `npm run e2e <name>`:
-
-```bash
-npm run e2e                  # list tests
-npm run e2e echo             # run e2e/echo.ts
-./scripts/e2e.ts run echo    # same, no npm wrapper
-```
-
-The dev server (`./scripts/dev.ts start`) must already be up.
-
-### Running e2e — don't waste turns
-
-**Restart Chrome before every run — unconditionally:**
-
-```bash
-./scripts/e2e.ts stop && ./scripts/e2e.ts start && npm run e2e <name>
-```
-
-A wedged headless Chrome is the #1 cause of a hung run and is indistinguishable from a slow one until you've burned the turn. The restart costs ~1s. Do not reuse a warm instance, and do not wait for a hang to justify restarting.
-
-The rest of the gotchas — scenario-level `timeoutMs` vs shell `timeout`, why `2>&1 | tail -N` on a backgrounded run looks identical to "stuck", the `page.goto` nav cap, one-run-at-a-time — live in `documents/coding-guidelines/e2e/running-e2e-from-agents-scripts-gotchas/rule.md`. Read it before running e2e from a script or agent; it is the single source of truth and this section deliberately does not restate it.
-
-### Writing a scenario
-
-Each file default-exports a `Scenario`. The runner creates a fresh BrowserContext per scenario with `baseURL` preset to the edge proxy, so paths can be relative.
-
-```ts
-// e2e/login.ts
-import assert from "node:assert/strict";
-import { type Scenario } from "./_helpers.js";
-
-const scenario: Scenario = async ({ page, request }) => {
-  await page.goto("/login");
-  await page.screenshot({ name: "0_initial_load", fullPage: true });
-
-  await page.fill('input[name="email"]', "kurt@example.com");
-  await page.click('button[type="submit"]');
-  await page.waitForURL("/");
-  await page.screenshot({ name: "1_after_login", fullPage: true });
-
-  // `request` shares cookies with `page` — the post-login session carries through.
-  const session = await request.get("/api/auth/get-session");
-  assert.equal(session.status(), 200);
-};
-
-export default scenario;
-```
-
-- `page` and `request` share cookies (same BrowserContext). Use `request.*` for any backend call that needs the session; use raw `fetch` only when you specifically want an unauthenticated call.
-- Use Playwright's native API (`page.fill`, `page.click`, `page.waitForSelector`, `page.screenshot({ name, fullPage })`, …) and `node:assert/strict` for assertions.
-- Files in `e2e/` starting with `_` are treated as helpers, not tests. Add reusable scenario helpers (e.g. `login(page, …)`) to `e2e/_helpers.ts`.
-- For ad-hoc probing without writing a file, the one-shot commands still work: `./scripts/e2e.ts navigate /foo`, `./scripts/e2e.ts click <selector>`, etc.
-
-### Screenshots — how to debug e2e failures
-
-**This is the primary debugging surface. Use it.** When a scenario fails, the first thing to do is open the screenshots and *look* — don't re-run with random changes hoping it works, don't add console.logs blindly.
-
-How it works:
-
-- `page.screenshot({ name, fullPage })` saves to `e2e/fixtures/<scenarioName>/<name>.png`.
-- The runner wipes `e2e/fixtures/<scenarioName>/` at the start of every run, so what's on disk is always the latest. A crashed mid-run leaves whatever was captured up to that point — that's the whole reason this dir exists.
-- Screenshots are committed to git per scenario. PRs show diffs visually; future agents see the expected look.
-- `page.screenshot({ path: "…" })` is a **type error** by design. The scenario's `page` is a `ScenarioPage` wrapper whose `screenshot` only accepts `{ name }`. There is no escape hatch — if you find yourself wanting one, the answer is to give the screenshot a `name` and let it land in `fixtures/`.
-
-**Rules for writing screenshot-driven scenarios:**
-
-1. **Numeric-prefixed names so they sort visually.** `0_initial_load`, `1_after_login`, `2_modal_open`. Not `initial`, `after-login`, `modal` — those sort alphabetically and lie about ordering.
-2. **One screenshot per meaningful checkpoint.** After `goto` (was the page even loaded?). After each user action (did the click do what you expected?). Right before an `assert` that's been flaky.
-3. **`fullPage: true` by default.** A 600px viewport hides everything below the fold. There's no reason to crop in a CI run that nobody is watching.
-4. **Don't gate screenshots on success.** Put them before the assertion, not after — if the assertion fails, you still want the screenshot.
-
-**When a scenario fails:**
-
-1. Read the FAIL line and stack trace from the runner. The terminal copy is trimmed (message capped, stack limited to `e2e/` frames, browser console limited to a few errors/warnings); the untrimmed error + full browser console is in `e2e/fixtures/<scenarioName>/failure.log` (gitignored) — `grep`/`sed -n` it rather than `cat`ing it whole.
-2. Open `e2e/fixtures/<scenarioName>/` and view the screenshots **in order**. The last one tells you the state right before the failure.
-3. If the screenshot shows an unexpected state (a 404, a stuck loading spinner, a modal that didn't open), the fix is in the app code or the scenario's selector — not in retrying or adding sleeps.
-4. If the screenshots all look fine but the assertion still failed, the bug is in the assertion logic — re-read the assertion against the screenshot.
-
-Reading the image is allowed and encouraged. The Read tool handles PNGs natively; pass the absolute path.
-
-### Multi-step scenarios — opt into `harness()`
-
-Plain `assert.equal(…)` stops on the first failure. For scenarios with many independent checks where you want to see every failure in one run, wrap the body in `harness(…)` from `_helpers.ts`:
-
-```ts
-// e2e/things.ts
-import { harness } from "./_helpers.js";
-
-export default harness(async ({ step, stepOrExit, log, page, request }) => {
-  const r = await request.get("/api/things");
-  stepOrExit("GET /api/things → 200", r.status() === 200);  // throws on fail; subsequent steps depend on this
-
-  const list = await r.json();
-  step("GET /api/things returns array", Array.isArray(list), `n=${list.length}`);  // records pass/fail, continues
-
-  log("(driving long task — this takes ~30s)");
-  // ...
-}, { timeoutMs: 5000 });  // optional; default 3000ms — match to actual work
-```
-
-`harness` records pass/fail per step, prints a summary at the end, and throws if any step failed — the runner converts that into a `FAIL` line and non-zero exit. `stepOrExit` does NOT narrow types via `asserts ok` (a TS limitation around arrow-function method types); use an explicit `if (!x) throw …` after it when you need narrowing.
-
-The optional second arg `{ timeoutMs }` bounds the whole scenario (default 3000ms). The runner force-exits once the scenario resolves, so dangling websocket/pubsub/MQTT clients can't keep the process alive past the summary — no need for `process.exit(0)` in the scenario or shell-level `timeout`.
-
-### Cookie-control HTTP — `api()` from `_helpers.ts`
-
-When a scenario needs explicit per-call control over which cookie / bearer is sent (e.g. an auth flow that tests "no cookie" and "bad cookie" the same context would otherwise auto-fill), use `api()` instead of `request.*`:
-
-```ts
-import { api } from "./_helpers.js";
-
-const signIn = await api<{ user?: { id: string } }>("POST", "/api/auth/sign-in/email", {
-  body: { email: "x@y.z", password: "..." },
-});
-const sessionCookie = signIn.setCookie;  // string | null
-const tokenRes = await api<{ token?: string }>("GET", "/api/auth/token", { cookie: sessionCookie });
-const noAuth = await api("GET", "/api/me");                                          // 401
-const badJwt = await api("GET", "/api/me", { bearer: "not.a.jwt" });                 // 401
-```
-
-`api()` sets `Origin` to the edge proxy so state-changing requests pass better-auth's CSRF check, and safely parses non-JSON 5xx responses. For most scenarios prefer `request.*` (it shares cookies with `page` automatically).
+See Step 6 of `.claude/skills/do-task/SKILL.md` — e2e exists to check results by reading screenshots, with one scenario per menu or feature.

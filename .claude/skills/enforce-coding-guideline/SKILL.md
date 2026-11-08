@@ -24,7 +24,7 @@ documents/coding-guidelines/
     check.sh           # present ⇒ programmatic gate; absent ⇒ review by eye
 ```
 
-Groups: `frontend`, `backend`, `e2e`, `sharing-code`.
+Groups: `frontend`, `backend`, `sharing-code`.
 
 Writing a *new* rule rather than enforcing an existing one? Jump to
 **[Authoring a rule](#authoring-a-rule--lint-rule-first-prose-only-as-fallback)** — the answer is
@@ -51,7 +51,6 @@ git status --short
 Note which areas the diff touches — that determines which **groups** apply:
 - `packages/backend/**` → `backend`
 - `packages/frontend/**` → `frontend`
-- `e2e/**` → `e2e`
 - shared / boundary pure TS → `sharing-code`
 
 **Skimming the diff is the canonical failure mode.** Even though `/rethink-and-simplify` ran before this, the reshape stage may have introduced new line-level bugs (accidental token swaps, off-by-ones in math that was correct pre-reshape, partial refactors). For every changed file, open it with the Read tool. For every hunk, emit ONE chat line with this structure before you touch the rule enumeration:
@@ -78,7 +77,6 @@ folder names out loud (in chat) — every single one — before deciding which a
 ```bash
 ls documents/coding-guidelines/frontend
 ls documents/coding-guidelines/backend
-ls documents/coding-guidelines/e2e
 ls documents/coding-guidelines/sharing-code   # if shared TS touched
 ```
 
