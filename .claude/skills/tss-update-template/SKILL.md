@@ -41,11 +41,17 @@ If conflicts occur, handle them:
      - Unclear → ask the user
    - Edit to resolve, then `git add <file>`
 3. After all conflicts resolved, commit the merge
-4. **Regenerate the backend deploy lockfile.** The template's `packages/backend/package-lock.deploy.json`
-   describes the *template's* backend deps, not this project's. Always run
-   `./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts --update-lock && ./packages/backend/scripts/pack-verify.ts`,
-   then commit `packages/backend/package-lock.deploy.json` if it changed. Skipping this passes local checks
+4. **Check the backend deploy lockfile.** The template's `packages/backend/package-lock.deploy.json`
+   describes the *template's* backend deps, not this project's. Skipping this passes local checks
    but fails CI at "Verify packaged dependencies".
+   - If the merge touched `packages/backend/package.json` or `packages/backend/package-lock.deploy.json`,
+     regenerate it: `./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts --update-lock`.
+     Otherwise leave it alone — regenerating an unchanged lockfile only adds npm-version churn.
+   - Then always run CI's own check:
+     `./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts && ./packages/backend/scripts/pack-verify.ts`.
+     `pack-verify` reads `dist/node_modules`, which only the plain `pack-install` (`npm ci`) fills —
+     `--update-lock` writes the lockfile alone, so verifying straight after it always fails.
+   - Commit `packages/backend/package-lock.deploy.json` if it changed.
 
 ## 4. Common conflict patterns
 
