@@ -217,8 +217,8 @@ Placeholders used throughout:
       The backend deploy validates its env against `src/env.d.ts`, so a missing
       secret fails the deploy even once `AWS_ROLE_ARN` is set.
 - [ ] Re-run the failed deploy workflow, or push again. From then on:
-  - CI deploys the backend and frontend for every branch push, and deleting a
-    branch tears its deployment down (see [deployment.md](deployment.md)).
+  - CI deploys the backend and frontend on every push to `main`; other
+    branches run checks only (see [deployment.md](deployment.md)).
   - Don't deploy the backend or frontend by hand.
 - [ ] Open the production URL and sign in.
 
