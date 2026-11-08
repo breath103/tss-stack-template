@@ -134,7 +134,7 @@ Placeholders used throughout:
         - Delete the file until you want a board.
 - [ ] Sweep for leftovers:
       ```bash
-      grep -rnIi "tsss\|tss-stack\|tss stack\|647533447" . \
+      grep -rnIi "tsss\|tss-stack\|tss stack" . \
         --exclude-dir={node_modules,.git,dist,cdk.out,.tmp} --exclude=package-lock.json
       ```
       Only these lines should remain, because they point at the template on

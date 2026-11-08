@@ -93,19 +93,3 @@ jobs:
           # OPTIONAL_FOO: ""
           DEPLOY_NAME: ${{ github.ref_name }}
         run: ./packages/frontend/scripts/deploy.ts --name="$DEPLOY_NAME"
-
-  # notify:
-  #   needs: [check, deploy]
-  #   if: always() && (failure() || (success() && github.ref == 'refs/heads/main'))
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Notify Telegram
-  #       run: |
-  #         STATUS="${{ needs.deploy.result == 'success' && '✅ Deploy Success' || '❌ CI Failed' }}"
-  #         curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-  #           -H "Content-Type: application/json" \
-  #           -d '{
-  #             "chat_id": 647533447,
-  #             "parse_mode": "Markdown",
-  #             "text": "*'"$STATUS"'*\n\nBranch: `${{ github.ref_name }}`\nCommit: `${{ github.sha }}`\n\n[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-  #           }'

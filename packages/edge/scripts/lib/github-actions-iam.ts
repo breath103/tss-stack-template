@@ -26,8 +26,10 @@ export class GitHubActionsIam extends Construct {
           StringEquals: {
             "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
           },
+          // Branch pushes only (deploy on push, cleanup on delete run as a branch ref). A bare `repo:…:*` would
+          // also trust `pull_request` and `environment:` subjects, which matter once the repo is public.
           StringLike: {
-            "token.actions.githubusercontent.com:sub": `repo:${props.repo}:*`,
+            "token.actions.githubusercontent.com:sub": `repo:${props.repo}:ref:refs/heads/*`,
           },
         },
         "sts:AssumeRoleWithWebIdentity"
