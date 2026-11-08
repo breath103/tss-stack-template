@@ -147,6 +147,8 @@ Then in the new worktree, create `tss.override.json` (gitignored) with a unique 
 
 ## E2E Testing
 
+See Step 6 of `.claude/skills/do-task/SKILL.md` for everything about writing, running, and debugging e2e tests.
+
 The e2e tool manages a headless Chrome instance via Chrome DevTools Protocol for browser automation.
 
 ### Quick Start
@@ -166,6 +168,7 @@ The e2e tool manages a headless Chrome instance via Chrome DevTools Protocol for
 |---------|-------------|
 | `start` | Start headless Chrome |
 | `stop` | Stop headless Chrome |
+| `reset` | Kill headless Chrome, delete its profile, and start it fresh |
 | `navigate <path>` | Navigate to URL (relative or absolute) |
 | `screenshot [out-path]` | Take screenshot (default: `.tmp/screenshot-{timestamp}.png`) |
 | `run-js <expression>` | Execute JavaScript in page |

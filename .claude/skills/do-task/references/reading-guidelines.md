@@ -28,8 +28,7 @@ If you find yourself thinking any of these, you are about to fuck up:
 
 ## Procedure (do every step, in order)
 
-1. **List ALL rule names** for every group your diff touches (and `e2e` if you'll
-   write/extend a scenario in Step 6):
+1. **List ALL rule names** for every group your diff touches:
    ```bash
    find documents/coding-guidelines -name rule.md | sort
    ```

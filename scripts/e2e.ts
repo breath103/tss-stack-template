@@ -1,7 +1,7 @@
 #!/usr/bin/env -S node --import tsx
 import { type Command } from "./e2e/command.js";
 import { click, navigate, pageText, runJs, screenshot, setViewport, type, wait } from "./e2e/commands/browser.js";
-import { start, stop } from "./e2e/commands/lifecycle.js";
+import { reset, start, stop } from "./e2e/commands/lifecycle.js";
 import { run } from "./e2e/commands/run.js";
 
 // --- Commands ---
@@ -12,6 +12,7 @@ const commands: Partial<Record<string, Command>> = {
   run,
   start,
   stop,
+  reset,
   navigate,
   screenshot,
   "run-js": runJs,

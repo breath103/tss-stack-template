@@ -1,4 +1,5 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 
 import { chromium } from "playwright";
@@ -7,6 +8,8 @@ import { z } from "zod";
 import { Command } from "../command.js";
 import { TMP_DIR } from "../constants.js";
 import * as status from "../status.js";
+
+const PROFILE_DIR = path.join(TMP_DIR, `e2e-chrome-profile-${status.NAMESPACE}`);
 
 async function waitForCdp(port: number, timeoutMs = 10_000): Promise<string> {
   const start = Date.now();
@@ -46,7 +49,7 @@ export const start = new Command("Start headless Chrome (stores CDP endpoint)", 
       "--disable-background-networking",
       "--disable-sync",
       "--window-size=1280,800",
-      `--user-data-dir=${path.join(TMP_DIR, `e2e-chrome-profile-${status.NAMESPACE}`)}`,
+      `--user-data-dir=${PROFILE_DIR}`,
     ],
     { stdio: "ignore", detached: true }
   );
@@ -76,3 +79,15 @@ export const stop = new Command("Stop headless Chrome", z.tuple([]), () => {
   status.remove();
   console.log("stopped");
 });
+
+export const reset = new Command(
+  "Kill headless Chrome, delete its profile entirely, and start it fresh",
+  z.tuple([]),
+  async () => {
+    // Matches on the profile path so a hung Chrome the status file lost track of dies too.
+    spawnSync("pkill", ["-9", "-f", PROFILE_DIR]);
+    status.remove();
+    fs.rmSync(PROFILE_DIR, { recursive: true, force: true });
+    await start.run("start", []);
+  }
+);
