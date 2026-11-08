@@ -1,4 +1,11 @@
+import { randomUUID } from "node:crypto";
+
 import { route as createRoute } from "../lib/app-context.js";
+
+// One server process per execution environment, so a per-process ID identifies the instance.
+// Logged once so it can be matched to the environment's log stream.
+const instanceId = randomUUID();
+console.log({ instanceId });
 
 export const route = createRoute("/api/health", "GET", {
   handler: ({ c }) => {
@@ -7,6 +14,8 @@ export const route = createRoute("/api/health", "GET", {
       status: "ok" as const,
       branch: "'main' backend",
       timestamp: Date.now(),
+      region: process.env.AWS_REGION ?? null,
+      instanceId,
       envs: {
         REQUIRED_FOO: process.env.REQUIRED_FOO,
         OPTIONAL_FOO: process.env.OPTIONAL_FOO,

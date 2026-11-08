@@ -66,7 +66,7 @@ function showHelp(): never {
   console.log(`
 Usage: ./packages/backend/scripts/deploy.ts [options]
 
-Deploy backend to AWS Lambda
+Deploy backend as an AWS Lambda Web Function
 
 Options:
   -n, --name <name>   Deployment name (required)
@@ -121,8 +121,8 @@ function deploy(stackName: string): void {
 }
 
 function storeUrlInSsm(stackName: string, name: string, config: ReturnType<typeof loadConfig>): void {
-  const functionUrl = execSync(
-    `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`FunctionUrl\`].OutputValue' --output text --region ${config.backend.region}`,
+  const endpointUrl = execSync(
+    `aws cloudformation describe-stacks --stack-name ${stackName} --query 'Stacks[0].Outputs[?OutputKey==\`EndpointUrl\`].OutputValue' --output text --region ${config.backend.region}`,
     { encoding: "utf-8" }
   ).trim();
 
@@ -131,13 +131,13 @@ function storeUrlInSsm(stackName: string, name: string, config: ReturnType<typeo
     sanitizedBranchName: name,
   });
 
-  console.log(`\nStoring Function URL in SSM: ${ssmPath}`);
+  console.log(`\nStoring endpoint URL in SSM: ${ssmPath}`);
   execSync(
-    `aws ssm put-parameter --name "${ssmPath}" --value "${functionUrl}" --type String --overwrite --region ${config.ssm.region}`,
+    `aws ssm put-parameter --name "${ssmPath}" --value "${endpointUrl}" --type String --overwrite --region ${config.ssm.region}`,
     { stdio: "inherit" }
   );
 
-  console.log(`\n✅ Deployed: ${functionUrl}`);
+  console.log(`\n✅ Deployed: ${endpointUrl}`);
 }
 
 main();

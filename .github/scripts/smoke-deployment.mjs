@@ -19,7 +19,7 @@ async function main() {
       "--stack-name",
       stack,
       "--query",
-      "Stacks[0].Outputs[?OutputKey=='FunctionUrl'].OutputValue | [0]",
+      "Stacks[0].Outputs[?OutputKey=='EndpointUrl'].OutputValue | [0]",
       "--output",
       "text",
       "--region",
@@ -27,7 +27,7 @@ async function main() {
     ],
     { encoding: "utf8" }
   ).trim();
-  assert.match(new URL(url).hostname, /\.lambda-url\.[a-z0-9-]+\.on\.aws$/);
+  assert.match(new URL(url).hostname, /\.lambda-web\.[a-z0-9-]+\.on\.aws$/);
 
   const health = await fetch(new URL("api/health", url), { signal: AbortSignal.timeout(30000) });
   assert.equal(health.status, 200, "Lambda health endpoint");

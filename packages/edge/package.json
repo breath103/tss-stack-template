@@ -5,14 +5,14 @@
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.700.0",
-    "aws-cdk-lib": "^2.170.0",
+    "aws-cdk-lib": "^2.273.0",
     "constructs": "^10.4.0"
   },
   "devDependencies": {
     "@aws-sdk/client-cloudwatch-logs": "^3",
     "@types/aws-lambda": "^8.10.145",
     "@types/http-proxy": "^1.17.17",
-    "aws-cdk": "^2.170.0",
+    "aws-cdk": "^2.1145.0",
     "esbuild": "^0.27.2",
     "http-proxy": "^1.18.1",
     "tsx": "^4.21.0",

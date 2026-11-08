@@ -40,7 +40,7 @@ Or manually edit `tss.json`:
 {
   "project": "myapp",
   "repo": "yourorg/yourrepo",
-  "backend": { "region": "ap-northeast-2" },
+  "backend": { "region": "us-west-2" },
   "ssm": { "region": "ap-northeast-2" },
   "domain": "myapp.com",
   "hostedZoneId": "Z1234567890"
@@ -280,12 +280,12 @@ const user = await api.fetch("/api/users/:id", "GET", {
 Backend URLs are stored in SSM so Lambda@Edge can route dynamically:
 
 ```
-/{project}/backend/{branch} → Lambda Function URL
+/{project}/backend/{branch} → Lambda Web Function endpoint URL
 ```
 
 When you deploy backend for `feature/auth`, it stores:
 ```
-/myapp/backend/feature--auth → https://xxx.lambda-url.ap-northeast-2.on.aws/
+/myapp/backend/feature--auth → https://xxx.yyy.lambda-web.us-west-2.on.aws/
 ```
 
 Lambda@Edge reads this at runtime (a found URL is cached 1h per container, an unknown branch 60s) to route API requests.
@@ -357,8 +357,9 @@ Rules: lowercase, `/` → `--`, non-alphanumeric → `-`, max 63 chars, no leadi
 ## AWS Resources
 
 ### Per backend deployment (`{project}-backend-{branch}`)
-- Lambda Function + Alias + Function URL
-- IAM Role
+- Lambda Web Function + revision + endpoint (Node.js 24, Arm64)
+- Versioned S3 code bucket (Lambda reads each revision's zip from it)
+- Execution IAM Role + log groups (`/aws/lambda/web/{fn}` and `.local`)
 - SSM Parameter (`/{project}/backend/{branch}`)
 
 ### Per frontend deployment

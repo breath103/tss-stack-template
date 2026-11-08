@@ -11,7 +11,7 @@
     "githubActionsIamRole": true
   },
   "backend": {
-    "region": "ap-northeast-2",
+    "region": "us-west-2",
     "devPort": 3001
   },
   "frontend": {
