@@ -37,7 +37,7 @@ Every DB-related instruction below is tagged **(supabase only)**. In a non-supab
  3. Design                — substantive → write doc; manual mode also gates on approval; auto mode proceeds
  4. Read guidelines       — ls + Read the coding-guidelines files for the areas the design touches
  5. Implement             — write code, type-check, build, commit
- 6. E2E                   — add screenshots to the menu's one scenario → run it → read every screenshot → fix and repeat
+ 6. E2E                   — iterate on the LIVE page (navigate + screenshot) → run the menu's one scenario ONCE when converged → critique every screenshot
  7. Result check          — ALWAYS `./scripts/open-url.ts "<dev-url>"` on the affected route first; then manual mode asks AskUserQuestion(works/tweak); auto mode skips the question
  8. Polish                — inline /rethink-and-simplify, then inline /enforce-coding-guideline
  9. Open PR               — no review wait
@@ -56,6 +56,8 @@ Every DB-related instruction below is tagged **(supabase only)**. In a non-supab
 4. **`./documents/` before any code search or Explore agent.** Every feature is documented in `./documents/features/` — `ls` it + `grep -ril <keywords> ./documents/` and READ the matches before reading code; they hand you the architecture and file list directly. Opening an investigation with an `Explore`/`general-purpose` agent is a DEFECT — reach for one only after the docs are exhausted, and say why.
 5. **A "hold" is a pause, not an exit.** "Stop after PR" / "don't land yet" / a Step 10 "hold" = stop at that step with the task list intact and dev + e2e STILL RUNNING (the user returns to this checkout to land later). Cleanup (Step 12) runs ONLY after `land-pr` succeeds — so keep at least one task open until then (completing every task makes the list vanish). About to stop dev/e2e with no completed land-pr this session? You're misreading "hold" as "done."
 6. **Every background task you start, you own** — its `KillBash` cleanup task must exist before you launch it. Orphaned `tsx`/`node` pollers linger in `ps` for days.
+7. **A scenario run is expensive; a live look is free.** `npm run e2e <scenario>` starts from a fresh, logged-out context, replays every step and may reseed the DB. Iterating with it is the single biggest waste in this lifecycle: 15–25 full runs to check one-class tweaks. Verify every tweak with Step 6 Loop A, and run a scenario only under Step 6 Loop B's conditions. If you're about to run a scenario for a CSS, spacing, copy, user-tweak or Polish change, stop: that's Loop A.
+8. **One PR.** Never split the work into several PRs unless the user asked.
 
 # CLI
 
@@ -95,7 +97,7 @@ Canonical task list (adapt #4–6 to actual work; gate tasks differ per mode; DB
 #5  Implement: <file> — <what to change>
 #6  Implement: <file> — <what to change>
 #7  Implement: <file> — <what to change>
-#8  E2E: (supabase only) `db:status` (→ `db:restart` if off) before dev → add screenshots to the menu's one scenario → run it → read every screenshot → fix and repeat
+#8  E2E: (supabase only) `db:status` (→ `db:restart` if off) before dev → Loop A (live navigate + screenshot, fix, repeat) → Loop B (add screenshots to the menu's one scenario, run it ONCE) → critique every screenshot
 #9  Result check gate: `./scripts/open-url.ts "<dev-url>"` on the affected route (BOTH modes) → (manual mode only) show result → AskUserQuestion(works/tweak) → fix → re-verify → loop
 #10 Polish 1/2: invoke /rethink-and-simplify INLINE via Skill tool — apply every Strong+Medium fix, loop until clean
 #11 Polish 2/2: invoke /enforce-coding-guideline INLINE via Skill tool — apply every Strong+Medium violation, loop until clean
@@ -140,6 +142,13 @@ git checkout -b <slug-from-issue-title>
 ```
 
 ## Step 3: Design
+
+**Before anything else in this step, post two lines in chat (both modes, trivial or not):**
+
+- **Reuses:** the existing component, system or pattern this builds on: a picker, a filter, a form, the overflow menu for infrequent actions like delete, or the reference the user named. Find it with a grep, on a branch rebased onto `origin/main`. "Nothing exists" is allowed only after that grep. Building a parallel system next to an existing one is the most-corrected mistake there is.
+- **Model:** the smallest data shape that works. A new column, stored list, cache field or one-line wrapper method needs one sentence saying why it can't be computed from what already exists. The default is to compute it: permissions are derived (can act ⇒ can see), never stored. Data the user specified (exact fields, real links) is used as given, so no extra "title" fields and no fake URLs.
+
+A new column or table is never trivial.
 
 First decision: **trivial or substantive?**
 
@@ -202,15 +211,29 @@ Those carve-outs cover the *few* images that demonstrate the change — never ev
 
 **The goal of e2e is to check that things work as intended, and you do that primarily by reading screenshots.** Type-checks and unit tests are not verification, and neither is a green assertion: a page can pass every assertion and still look broken. Never call UI work done until you have read its screenshots.
 
-### The process
+### The process: two loops
 
-1. Implement the feature.
-2. Add the screenshots to the scenario for that menu or feature.
-3. Run that one scenario: `npm run e2e <scenario>`.
-4. Read every screenshot it took, with the Read tool.
-5. If it all looks right, show the screenshots to the developer and move on. If not, fix the code and go back to 3.
+**Loop A — iterate on the live page (the default; seconds, no reset).** Drive the running app in the e2e Chrome against the current state. Sign in once; the e2e profile keeps the cookie.
 
-Before step 3, bring the stack up: (supabase only) `npm run -w backend db:status` (down or wedged → `npm run -w backend db:restart`), then `./scripts/dev.ts status` (not running → `./scripts/dev.ts start`). Open the dev URL for the user with `./scripts/open-url.ts "<dev-url>"`, on the affected route, using the URL `./scripts/dev.ts status` reports (for example `http://<dir-basename>.localhost:3000/tasks`). Do this in `auto` mode too. Never use bash `open` or the Chrome MCP tools: this is a hand-off to the user, not a page for you to drive.
+```bash
+./scripts/e2e.ts navigate "<route>"
+./scripts/e2e.ts click <selector>          # / type / wait / set-viewport 390 844 — reach the state
+./scripts/e2e.ts screenshot <scratchpad>/a.png
+```
+
+Read it, critique it (below), fix, screenshot again — HMR applies the edit. Every CSS, spacing, size, color or copy tweak; every "tweak" the user asks for after Step 7; every UI change Polish makes is verified here and ONLY here.
+
+**Loop B — the scenario (once, when Loop A has converged).** `npm run e2e <scenario>` runs only when:
+
+- the change adds or alters a state worth keeping in the suite → add its screenshots to the menu's one scenario, run it once;
+- a crucial guarded behavior changed (permissions, login, data written in a core flow);
+- that scenario just failed and you fixed the cause → rerun that one scenario.
+
+**Never** run a scenario for: a styling or copy tweak, a user tweak request, a Polish refactor, "to double check", or a menu your diff doesn't touch. **Never** the whole suite. A second run of the same scenario for any reason other than fixing its own failure is a defect — go back to Loop A.
+
+If the project reseeds the DB before each scenario, a run wipes whatever demo data the user is testing with — so build the example the user will test (Step 7) AFTER the last scenario run, never before.
+
+Before either loop, bring the stack up: (supabase only) `npm run -w backend db:status` (down or wedged → `npm run -w backend db:restart`), then `./scripts/dev.ts status` (not running → `./scripts/dev.ts start`). Open the dev URL for the user with `./scripts/open-url.ts "<dev-url>"`, on the affected route, using the URL `./scripts/dev.ts status` reports (for example `http://<dir-basename>.localhost:3000/tasks`). Do this in `auto` mode too. Never use bash `open` or the Chrome MCP tools: this is a hand-off to the user, not a page for you to drive.
 
 ### One scenario per menu or feature
 
@@ -237,7 +260,15 @@ export default harness(async ({ page }) => {
 - Names get a numeric prefix so they sort in execution order. Files land in `e2e/fixtures/<scenario>/<name>.png`, and the directory is wiped on every run.
 - Keep the default viewport. Pass `fullPage` only when the thing to check is below the fold, because it can hang on heavy pages.
 - Wait for the thing you are about to photograph, then take the screenshot.
-- **Open every screenshot with the Read tool and look at it like a designer:** alignment, spacing, overflow, clipped or tiny text, wrong colors, states that didn't change, anything that looks unlike the pages around it. Compare against the page it is meant to match. "The run passed" tells you nothing about this.
+- **Open every screenshot with the Read tool and critique it in writing.** Reading a PNG is not the same as reviewing it: users keep catching flaws that were visible in screenshots Claude had already read. Before you call a screenshot good, write one line about it in chat that answers each of these:
+  - Are rows, labels and controls aligned, both vertically and horizontally?
+  - Do padding and gaps match the neighbouring elements? Too big is the usual failure, and on mobile, x-padding is wasted space.
+  - Is every piece of readable text at least `text-sm`, and is the font size the same as on the surrounding pages?
+  - Do control heights match the controls beside them, such as a chip next to an input or a tag next to a button?
+  - Is there anything that wasn't asked for, such as a border around a section, a collapse, a toggle, an extra field, duplicated data, or a raw id or label?
+  - Does the state actually show the change, and does the loading skeleton match the loaded content?
+
+  If any answer is a problem, fix it before showing anything. Never hand back UI with "I haven't looked at it on screen". Compare against the page it is meant to match; "the run passed" tells you nothing about any of this.
 
 ### Assertions are only for very crucial things
 
@@ -276,7 +307,7 @@ A `harness()` scenario is capped at 3s unless it sets `timeoutMs` for its real l
 **Don't wait on it and don't debug it. Run `./scripts/e2e.ts reset`.** It kills the e2e Chrome, deletes its profile entirely and starts a fresh one in about 1s. Run it before each run too, since a wedged Chrome looks exactly like a slow run. Also:
 
 - Run scenarios in the foreground, one at a time, because they share one DB, dev server and Chrome.
-- **Never run the whole suite.** Run the scenario for the menu you changed. Before running more than two or three, say how long it will take.
+- **Never run the whole suite, and never more than the one scenario for the menu you changed** (Loop B rules above).
 - Don't restart a healthy dev server.
 
 ### When a run fails
@@ -310,7 +341,7 @@ For a one-off look without a scenario: `./scripts/e2e.ts navigate <path>`, `clic
 
 When the task was "make X look/behave like Y" (mirror an existing surface, match a reference), **self-review your own artifact against Y BEFORE asking** — open your screenshot next to the reference and fix the obvious divergences (header casing, spacing, states) first. The gate is the user's final sign-off, not your visual QA; handing them a screenshot they have to diff for you is the miss.
 
-**ALWAYS open the result for the user first — both modes, no exceptions.** Immediately before the question below (or, in `auto` mode, before the 1-line summary), run `./scripts/open-url.ts "<dev-url>"` on the exact route where the change is visible — the running app, not the code, not a screenshot. Use the URL from `./scripts/dev.ts status` / `./scripts/dev.ts start` plus the affected route (for example, `./scripts/open-url.ts "http://localhost:3000/tasks"`). Opening it again after Step 6 is fine. If the change has no browser surface (backend-only, script, docs), open the closest thing the user can inspect (an API route, a Studio table) and say in one line why no page exists — pointing at the diff does not count. Asking "does this match?" without the page in front of the user is a Step 7 failure.
+**ALWAYS open the result for the user first — both modes, no exceptions.** Immediately before the question below (or, in `auto` mode, before the 1-line summary), run `./scripts/open-url.ts "<dev-url>"` on the exact route where the change is visible — the running app, not the code, not a screenshot. Use the URL from `./scripts/dev.ts status` / `./scripts/dev.ts start` plus the affected route (for example, `./scripts/open-url.ts "http://localhost:3000/tasks"`). Opening it again after Step 6 is fine. **Open it on an example that shows the feature.** Create a record that exercises every case, after the last scenario run, and open that record's exact route while signed in. An empty page, a list without the new thing, or the login page is a Step 7 failure. If the change has no browser surface (backend-only, script, docs), open the closest thing the user can inspect (an API route, a Studio table) and say in one line why no page exists — pointing at the diff does not count. Asking "does this match?" without the page in front of the user is a Step 7 failure.
 
 **`manual` mode** — with the page open, show the user the screenshots you read (for no-UI work, the curl output or agent transcript) and ask:
 
@@ -326,7 +357,7 @@ loop:
     ]
   })
   if yes: break
-  else: read user's reason, fix → back into Step 6 → return here
+  else: read user's reason, fix → verify with Step 6 Loop A (live screenshot, NO scenario run) → return here
 ```
 
 Only proceed to Step 8 after explicit "yes."
@@ -343,6 +374,8 @@ Two skills, invoked **inline in this session via the Skill tool** — never as A
 The order is non-negotiable: rethink first, so the style pass audits the final shape instead of code that's about to be reshaped out from under it. Each skill loops internally until clean — no outer pass-cap, no VERDICT line to parse; "found nothing" is the expected steady state, not an error.
 
 These are **two separate tasks (#10, #11)** — for each: mark `in_progress`, invoke the skill, commit whatever it applied, mark `completed`. Never collapse them into one, so the task list always shows which half has run.
+
+If Polish changes anything visible, verify it with Step 6 Loop A — a live screenshot, not a scenario re-run.
 
 **Carve-outs (skip Polish entirely):** pure CSS value tweaks (≤10 numeric/color/spacing changes, no new selectors); docs-only changes; test/fixture-only changes that don't touch production code.
 

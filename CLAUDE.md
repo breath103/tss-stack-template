@@ -169,3 +169,5 @@ CI's "Verify packaged dependencies" step fails on a stale
 ## E2E Tests
 
 See Step 6 of `.claude/skills/do-task/SKILL.md` — e2e exists to check results by reading screenshots, with one scenario per menu or feature.
+
+**Never run an e2e scenario to check a tweak, whether or not you're in `/do-task`.** A scenario starts from a fresh, logged-out context and replays every step, and it may reseed the DB. To check a UI tweak, take a live screenshot instead: `./scripts/e2e.ts navigate` / `click` / `screenshot`. Run a scenario only when its screenshots or a guarded behavior actually changed, and run it once; the one exception is rerunning it after fixing its own failure. Never run the whole suite.
