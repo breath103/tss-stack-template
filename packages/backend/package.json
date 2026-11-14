@@ -9,6 +9,7 @@
     "dotenv": "^16.6.1",
     "hono": "^4.0.0",
     "rxjs": "^7.8.2",
+    "safe-stable-stringify": "^2.5.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {

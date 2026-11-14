@@ -1,4 +1,7 @@
 import { BetterAuthOptions, betterAuth } from "better-auth";
+import { customSession } from "better-auth/plugins";
+
+import { SESSION_HASH_COOKIE, sessionHash } from "./session-hash.js";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -44,6 +47,17 @@ export const auth = betterAuth({
     // so the account record is pure dead weight.
     storeAccountCookie: false,
   },
+
+  plugins: [
+    customSession((session, ctx) => {
+      const cookie = ctx.context.createAuthCookie(SESSION_HASH_COOKIE, { maxAge: ctx.context.sessionConfig.expiresIn });
+      ctx.setCookie(cookie.name, sessionHash(session), cookie.attributes);
+      return Promise.resolve(session);
+    }),
+  ],
   // No database = automatic stateless mode
   // Session stored in signed cookie
 } satisfies BetterAuthOptions);
+
+/** @public */
+export type Session = typeof auth.$Infer.Session;

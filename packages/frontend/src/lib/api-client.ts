@@ -1,4 +1,5 @@
 import type { ApiErrorBody } from "@backend/types/api-error";
+import { Subject } from "rxjs";
 
 /** A non-2xx response carrying a structured `{ error: ApiErrorBody }`. Show it with
  *  `useApiErrorMessage`, never `.message`. */
@@ -49,6 +50,9 @@ type HasRequired<T> =
       : true
     : true;
 
+export const unauthenticated$ = new Subject<void>();
+export const sessionStale$ = new Subject<void>();
+
 // API client class
 export class ApiClient<T extends Routes> {
   async fetch<P extends keyof T & string, M extends keyof T[P] & string>(
@@ -98,11 +102,14 @@ export class ApiClient<T extends Routes> {
       body: options?.body ? JSON.stringify(options.body) : undefined,
     });
 
+    if (response.status === 401) unauthenticated$.next();
     if (!response.ok) {
       const { error } = (await response.json().catch(() => ({}))) as { error?: string | ApiErrorBody };
       if (typeof error === "object") throw new ApiRequestError(response.status, error);
       throw new Error(error ?? `HTTP ${response.status}`);
     }
+
+    if (response.headers.has("x-session-stale")) sessionStale$.next();
 
     return response.json() as Promise<T[P][M] extends { response: infer R } ? R : never>;
   }
