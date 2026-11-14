@@ -1,4 +1,5 @@
 import type { ApiErrorBody } from "@backend/types/api-error";
+import { Subject } from "rxjs";
 
 /** A non-2xx response carrying a structured `{ error: ApiErrorBody }`. Show it with
  *  `useApiErrorMessage`, never `.message`. */
@@ -49,17 +50,8 @@ type HasRequired<T> =
       : true
     : true;
 
-let onUnauthenticated: (() => void) | null = null;
-
-export function setOnUnauthenticated(handler: typeof onUnauthenticated): void {
-  onUnauthenticated = handler;
-}
-
-let onSessionStale: ((requestStartedAt: number) => void) | null = null;
-
-export function setOnSessionStale(handler: typeof onSessionStale): void {
-  onSessionStale = handler;
-}
+export const unauthenticated$ = new Subject<void>();
+export const sessionStale$ = new Subject<void>();
 
 // API client class
 export class ApiClient<T extends Routes> {
@@ -104,21 +96,20 @@ export class ApiClient<T extends Routes> {
       if (qs) url += `?${qs}`;
     }
 
-    const startedAt = performance.now();
     const response = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: options?.body ? JSON.stringify(options.body) : undefined,
     });
 
-    if (response.status === 401) onUnauthenticated?.();
+    if (response.status === 401) unauthenticated$.next();
     if (!response.ok) {
       const { error } = (await response.json().catch(() => ({}))) as { error?: string | ApiErrorBody };
       if (typeof error === "object") throw new ApiRequestError(response.status, error);
       throw new Error(error ?? `HTTP ${response.status}`);
     }
 
-    if (response.headers.has("x-session-stale")) onSessionStale?.(startedAt);
+    if (response.headers.has("x-session-stale")) sessionStale$.next();
 
     return response.json() as Promise<T[P][M] extends { response: infer R } ? R : never>;
   }

@@ -45,10 +45,10 @@ frontend: response has x-session-stale → call get-session once → new cache +
    `packages/backend/src/index.ts` hashes the session it just resolved and compares it with the
    cookie. Only on a mismatch does it add `x-session-stale: 1`. A missing cookie counts as a
    mismatch, so a browser that never had one reloads once and then has one.
-4. **The frontend reacts.** `api-client.ts` reports the header through `setOnSessionStale`.
-   `AuthProvider` (`packages/frontend/src/contexts/AuthContext.ts`) then calls `get-session` once.
-   Concurrent stale responses share one in-flight reload, and responses whose request started
-   before the last reload finished are ignored, because they were answered with the old cookie.
+4. **The frontend reacts.** `api-client.ts` emits on `sessionStale$` for every response with the
+   header, and on `unauthenticated$` for every `401`. `AuthProvider`
+   (`packages/frontend/src/contexts/AuthContext.ts`) reloads through `exhaustMap`, so signals that
+   arrive while a reload is in flight are dropped instead of starting another one.
 5. **Failure is safe.** A reload that fails while a session is cached leaves the user signed in on
    the cached session; the next API response signals again. A `401` clears the cache and the
    in-memory session. `signOut` clears the cache before it signs out, so the next page load can't
@@ -93,7 +93,7 @@ the server's current state, not from the session cookie's cached payload — rea
 - `packages/backend/src/index.ts` — session middleware adds `x-session-stale`
 - `packages/frontend/src/lib/session-cache.ts` — the localStorage entry
 - `packages/frontend/src/contexts/AuthContext.ts` — `AuthProvider`, `useSession`
-- `packages/frontend/src/lib/api-client.ts` — `setOnSessionStale`, `setOnUnauthenticated`
+- `packages/frontend/src/lib/api-client.ts` — `sessionStale$`, `unauthenticated$`
 - `packages/frontend/src/lib/auth-client.ts` — `signOut` clears the cache
 
 ## Risks
