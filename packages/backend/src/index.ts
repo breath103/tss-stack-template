@@ -17,7 +17,7 @@ app.onError((err, c) => {
   if (err instanceof ApiError) {
     return c.json({ error: err.body }, err.status);
   } else if (err instanceof HTTPException) {
-    return c.json({ error: err.message }, err.status);
+    return c.json({ error: { type: "http_error" } satisfies ApiErrorBody }, err.status);
   } else {
     return c.json({ error: { type: "internal_server_error" } satisfies ApiErrorBody }, 500);
   }

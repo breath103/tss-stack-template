@@ -7,4 +7,5 @@
 export type ApiErrorBody =
   | { type: "invalid_query_parameters" }
   | { type: "invalid_request_body" }
+  | { type: "http_error" }
   | { type: "internal_server_error" };

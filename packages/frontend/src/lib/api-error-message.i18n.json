@@ -2,12 +2,14 @@
   "en": {
     "invalid_query_parameters": "The request's query parameters are invalid.",
     "invalid_request_body": "The request body is invalid.",
+    "http_error": "The request failed.",
     "internal_server_error": "Something went wrong on the server. Try again.",
     "unknown": "Something went wrong."
   },
   "ko": {
     "invalid_query_parameters": "요청의 쿼리 파라미터가 올바르지 않아요.",
     "invalid_request_body": "요청 본문이 올바르지 않아요.",
+    "http_error": "요청이 실패했어요.",
     "internal_server_error": "서버에서 문제가 발생했어요. 다시 시도해 주세요.",
     "unknown": "문제가 발생했어요."
   }
