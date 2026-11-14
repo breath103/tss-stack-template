@@ -3,6 +3,7 @@ import { createRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { ApiClient } from "../lib/api-client";
+import { useApiErrorMessage } from "../lib/api-error-message";
 import { rootRoute } from "./__root";
 
 const api = new ApiClient<ApiRoutes>();
@@ -19,14 +20,16 @@ function Home() {
   const [echoResult, setEchoResult] = useState<Awaited<ReturnType<typeof api.fetch<"/api/echo/:id", "POST">>> | null>(
     null
   );
+  const [error, setError] = useState<unknown>(null);
+  const errorMessage = useApiErrorMessage();
 
   useEffect(() => {
-    api.fetch("/api/health", "GET").then(setHealth).catch(console.error);
+    api.fetch("/api/health", "GET").then(setHealth).catch(setError);
 
     api
       .fetch("/api/hello", "GET", { query: { name: "TypeSafe" } })
       .then(data => setMessage(data.message))
-      .catch(console.error);
+      .catch(setError);
 
     api
       .fetch("/api/echo/:id", "POST", {
@@ -40,7 +43,7 @@ function Home() {
         },
       })
       .then(setEchoResult)
-      .catch(console.error);
+      .catch(setError);
   }, []);
 
   return (
@@ -49,6 +52,8 @@ function Home() {
         <h1 className="text-3xl font-bold text-gray-900">TSS Stack Template</h1>
         <p className="mt-1 text-gray-600">Type-Safe Full Serverless Stack</p>
       </div>
+
+      {error !== null && <p className="rounded-lg bg-red-50 p-4 text-red-700">{errorMessage(error)}</p>}
 
       <section className="rounded-lg bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold text-gray-800">Frontend Env</h2>

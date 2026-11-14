@@ -13,6 +13,7 @@ import noDoubleCast from "./no-double-cast.ts";
 import noEntitiesIndex from "./no-entities-index.ts";
 import noExtraneousDependencies from "./no-extraneous-dependencies.ts";
 import noHandWrittenEventGuard from "./no-hand-written-event-guard.ts";
+import noHttpExceptionMessage from "./no-http-exception-message.ts";
 import noI18nProp from "./no-i18n-prop.ts";
 import noInlineDatabaseRowType from "./no-inline-database-row-type.ts";
 import noInlineFontSize from "./no-inline-font-size.ts";
@@ -38,6 +39,7 @@ export default {
     "no-double-cast": gate(noDoubleCast),
     "no-entities-index": gate(noEntitiesIndex),
     "no-hand-written-event-guard": gate(noHandWrittenEventGuard),
+    "no-http-exception-message": gate(noHttpExceptionMessage),
     "no-i18n-prop": gate(noI18nProp),
     "no-inline-database-row-type": gate(noInlineDatabaseRowType),
     "no-inline-font-size": gate(noInlineFontSize),

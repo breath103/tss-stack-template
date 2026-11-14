@@ -1,3 +1,16 @@
+import type { ApiErrorBody } from "@backend/types/api-error";
+
+/** A non-2xx response carrying a structured `{ error: ApiErrorBody }`. Show it with
+ *  `useApiErrorMessage`, never `.message`. */
+export class ApiRequestError extends Error {
+  constructor(
+    readonly status: number,
+    readonly body: ApiErrorBody
+  ) {
+    super(body.type);
+  }
+}
+
 // Check if a type is never
 type IsNever<T> = [T] extends [never] ? true : false;
 
@@ -86,10 +99,9 @@ export class ApiClient<T extends Routes> {
     });
 
     if (!response.ok) {
-      const error = (await response.json().catch(() => ({ error: "Request failed" }))) as {
-        error?: string;
-      };
-      throw new Error(error.error ?? `HTTP ${response.status}`);
+      const { error } = (await response.json().catch(() => ({}))) as { error?: string | ApiErrorBody };
+      if (typeof error === "object") throw new ApiRequestError(response.status, error);
+      throw new Error(error ?? `HTTP ${response.status}`);
     }
 
     return response.json() as Promise<T[P][M] extends { response: infer R } ? R : never>;
