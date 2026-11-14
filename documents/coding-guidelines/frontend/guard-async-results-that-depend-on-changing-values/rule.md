@@ -27,3 +27,6 @@ useOnChange(() => {
 If the request cannot be expressed as an observable pipeline, the cleanup must
 still make stale completion harmless. The important invariant is that only the
 latest value for this mounted component can update UI state.
+
+This is one case of `coordinate-concurrency-with-rxjs-not-flags`, which covers
+every kind of overlapping async work.
