@@ -1,6 +1,6 @@
 import type { Session } from "@backend/lib/auth";
 import { createContext, createElement, type ReactNode, useContext, useEffect, useState } from "react";
-import { exhaustMap, startWith } from "rxjs";
+import { exhaustMap, filter, startWith } from "rxjs";
 
 import { sessionStale$, unauthenticated$ } from "@/lib/api-client";
 import { authClient } from "@/lib/auth-client";
@@ -8,11 +8,14 @@ import { sessionCache } from "@/lib/session-cache";
 
 const AuthContext = createContext<Session | null | undefined>(undefined);
 
+let loadedAt = Number.NEGATIVE_INFINITY;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(() => sessionCache.load() ?? undefined);
 
   useEffect(() => {
-    const reloads = (sessionCache.load() ? sessionStale$ : sessionStale$.pipe(startWith(undefined)))
+    const stale$ = sessionStale$.pipe(filter(startedAt => startedAt > loadedAt));
+    const reloads = (sessionCache.load() ? stale$ : stale$.pipe(startWith(undefined)))
       // Signals that arrive while a reload is in flight ride on that reload.
       .pipe(exhaustMap(() => authClient.getSession()))
       .subscribe(({ data, error }) => {
@@ -24,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionCache.clear();
         }
         setSession(data);
+        loadedAt = performance.now();
       });
     const signOuts = unauthenticated$.subscribe(() => {
       sessionCache.clear();

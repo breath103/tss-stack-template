@@ -17,7 +17,6 @@ const sessionSchema = z.object({
   session: z.object({
     id: z.string(),
     userId: z.string(),
-    token: z.string(),
     expiresAt: z.date(),
     createdAt: z.date(),
     updatedAt: z.date(),

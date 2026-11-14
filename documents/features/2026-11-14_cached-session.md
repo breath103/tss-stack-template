@@ -40,7 +40,9 @@ frontend: response has x-session-stale → call get-session once → new cache +
 2. **`get-session` writes it.** A `customSession` plugin in `packages/backend/src/lib/auth.ts` sets
    the `session_hash` cookie (created with `createAuthCookie`, so it gets the same prefix, `Secure`
    and `SameSite` as the auth cookies) on every `get-session` response. The cookie and the cached
-   body are always written by the same response, so they describe the same session.
+   body are always written by the same response, so they describe the same session. It also drops
+   `session.token` from the response: the frontend never uses it, and anything in localStorage is
+   readable by any script on the page, while the cookie that carries it is `httpOnly`.
 3. **The session middleware compares.** For every cookie-authenticated request,
    `packages/backend/src/index.ts` hashes the session it just resolved and compares it with the
    cookie. Only on a mismatch does it add `x-session-stale: 1`. A missing cookie counts as a
@@ -48,7 +50,9 @@ frontend: response has x-session-stale → call get-session once → new cache +
 4. **The frontend reacts.** `api-client.ts` emits on `sessionStale$` for every response with the
    header, and on `unauthenticated$` for every `401`. `AuthProvider`
    (`packages/frontend/src/contexts/AuthContext.ts`) reloads through `exhaustMap`, so signals that
-   arrive while a reload is in flight are dropped instead of starting another one.
+   arrive while a reload is in flight are dropped instead of starting another one. Each signal
+   carries when its request started, and a signal from a request that started before the last
+   successful reload is ignored: that response was already on its way and has nothing new to say.
 5. **Failure is safe.** A reload that fails while a session is cached leaves the user signed in on
    the cached session; the next API response signals again. A `401` clears the cache and the
    in-memory session. `signOut` clears the cache before it signs out, so the next page load can't
@@ -56,7 +60,7 @@ frontend: response has x-session-stale → call get-session once → new cache +
 
 ### The cache entry
 
-`packages/frontend/src/lib/session-cache.ts` stores `{ session, cachedAt }` under
+`packages/frontend/src/lib/session-cache.ts` stores the session under
 `auth-session:v1` through `LocalStoredValue` (`modules/ui/src/lib/local-stored-value.ts`). Its zod
 schema is checked against the backend `Session` type with `satisfies`, so a backend session change
 fails the frontend type-check until the schema is updated. Anything that doesn't parse — an older
