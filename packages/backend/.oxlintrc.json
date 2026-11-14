@@ -12,6 +12,7 @@
       "rules": {
         "local/no-extraneous-dependencies": "error",
         "local/no-as-error": "error",
+        "local/no-http-exception-message": "error",
         "local/no-double-cast": "error",
         "local/no-process-env-bang": "error",
         "local/no-select-star": "error",

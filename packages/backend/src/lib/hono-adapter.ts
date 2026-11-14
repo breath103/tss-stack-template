@@ -1,7 +1,7 @@
 import type { Context, Env, Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
+import { ApiError } from "./api-error.js";
 import type { HttpMethod, RouteCollection, RouteDef } from "./route.js";
 
 type SchemaShape = Record<string, z.ZodTypeAny>;
@@ -24,7 +24,7 @@ export function registerToHono<E extends Env>(
         const schema = z.object(querySchema as SchemaShape);
         const result = schema.safeParse(rawQuery);
         if (!result.success) {
-          throw new HTTPException(400, { message: "Invalid query parameters" });
+          throw new ApiError(400, { type: "invalid_query_parameters" });
         }
         parsedQuery = result.data;
       }
@@ -35,7 +35,7 @@ export function registerToHono<E extends Env>(
         const schema = z.object(bodySchema as SchemaShape);
         const result = schema.safeParse(rawBody);
         if (!result.success) {
-          throw new HTTPException(400, { message: "Invalid request body" });
+          throw new ApiError(400, { type: "invalid_request_body" });
         }
         parsedBody = result.data;
       }

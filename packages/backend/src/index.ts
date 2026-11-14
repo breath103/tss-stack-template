@@ -2,9 +2,11 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 
 import { api } from "./api.js";
+import { ApiError } from "./lib/api-error.js";
 import type { AppEnv } from "./lib/app-context.js";
 import { auth } from "./lib/auth.js";
 import { registerToHono } from "./lib/hono-adapter.js";
+import type { ApiErrorBody } from "./types/api-error.js";
 
 const app = new Hono<AppEnv>();
 
@@ -12,11 +14,13 @@ const app = new Hono<AppEnv>();
 app.onError((err, c) => {
   console.error("Request error:", err);
 
-  if (err instanceof HTTPException) {
+  if (err instanceof ApiError) {
+    return c.json({ error: err.body }, err.status);
+  } else if (err instanceof HTTPException) {
     return c.json({ error: err.message }, err.status);
+  } else {
+    return c.json({ error: { type: "internal_server_error" } satisfies ApiErrorBody }, 500);
   }
-
-  return c.json({ error: "Internal server error" }, 500);
 });
 
 // Mount better-auth handler
