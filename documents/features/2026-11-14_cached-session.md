@@ -92,7 +92,7 @@ the server's current state, not from the session cookie's cached payload — rea
 - `packages/backend/src/lib/auth.ts` — `customSession` writes the cookie; exports `Session`
 - `packages/backend/src/index.ts` — session middleware adds `x-session-stale`
 - `packages/frontend/src/lib/session-cache.ts` — the localStorage entry
-- `packages/frontend/src/contexts/AuthContext.ts` — `AuthProvider`, `useSession`, `getCurrentSession`
+- `packages/frontend/src/contexts/AuthContext.ts` — `AuthProvider`, `useSession`
 - `packages/frontend/src/lib/api-client.ts` — `setOnSessionStale`, `setOnUnauthenticated`
 - `packages/frontend/src/lib/auth-client.ts` — `signOut` clears the cache
 
