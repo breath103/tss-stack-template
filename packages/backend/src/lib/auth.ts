@@ -49,10 +49,12 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    customSession((session, ctx) => {
+    customSession(({ user, session: { token: _token, ...session } }, ctx) => {
+      // The frontend caches this in localStorage; the token stays in the httpOnly cookie.
+      const result = { user, session };
       const cookie = ctx.context.createAuthCookie(SESSION_HASH_COOKIE, { maxAge: ctx.context.sessionConfig.expiresIn });
-      ctx.setCookie(cookie.name, sessionHash(session), cookie.attributes);
-      return Promise.resolve(session);
+      ctx.setCookie(cookie.name, sessionHash(result), cookie.attributes);
+      return Promise.resolve(result);
     }),
   ],
   // No database = automatic stateless mode

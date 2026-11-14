@@ -51,7 +51,8 @@ type HasRequired<T> =
     : true;
 
 export const unauthenticated$ = new Subject<void>();
-export const sessionStale$ = new Subject<void>();
+// Carries when the request started, so a reload can ignore responses already in flight.
+export const sessionStale$ = new Subject<number>();
 
 // API client class
 export class ApiClient<T extends Routes> {
@@ -96,6 +97,7 @@ export class ApiClient<T extends Routes> {
       if (qs) url += `?${qs}`;
     }
 
+    const startedAt = performance.now();
     const response = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
@@ -109,7 +111,7 @@ export class ApiClient<T extends Routes> {
       throw new Error(error ?? `HTTP ${response.status}`);
     }
 
-    if (response.headers.has("x-session-stale")) sessionStale$.next();
+    if (response.headers.has("x-session-stale")) sessionStale$.next(startedAt);
 
     return response.json() as Promise<T[P][M] extends { response: infer R } ? R : never>;
   }
