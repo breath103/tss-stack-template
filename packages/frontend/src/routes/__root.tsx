@@ -1,9 +1,10 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 
-import { signIn, signOut, useSession } from "@/lib/auth-client";
+import { useSession } from "@/contexts/AuthContext";
+import { signIn, signOut } from "@/lib/auth-client";
 
 function RootComponent() {
-  const { data: session } = useSession();
+  const session = useSession();
 
   return (
     <div className="min-h-screen bg-background text-text-1">
