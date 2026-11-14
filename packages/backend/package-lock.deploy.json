@@ -13,6 +13,7 @@
         "dotenv": "^16.6.1",
         "hono": "^4.0.0",
         "rxjs": "^7.8.2",
+        "safe-stable-stringify": "^2.5.0",
         "zod": "^4.3.5"
       }
     },
@@ -20,6 +21,7 @@
       "version": "1.4.18",
       "resolved": "https://registry.npmjs.org/@better-auth/core/-/core-1.4.18.tgz",
       "integrity": "sha512-q+awYgC7nkLEBdx2sW0iJjkzgSHlIxGnOpsN1r/O1+a4m7osJNHtfK2mKJSL1I+GfNyIlxJF8WvD/NLuYMpmcg==",
+      "peer": true,
       "dependencies": {
         "@standard-schema/spec": "^1.0.0",
         "zod": "^4.3.5"
@@ -49,12 +51,14 @@
       "version": "0.3.0",
       "resolved": "https://registry.npmjs.org/@better-auth/utils/-/utils-0.3.0.tgz",
       "integrity": "sha512-W+Adw6ZA6mgvnSnhOki270rwJ42t4XzSK6YWGF//BbVXL6SwCLWfyzBc1lN2m/4RM28KubdBKQ4X5VMoLRNPQw==",
-      "license": "MIT"
+      "license": "MIT",
+      "peer": true
     },
     "node_modules/@better-fetch/fetch": {
       "version": "1.1.21",
       "resolved": "https://registry.npmjs.org/@better-fetch/fetch/-/fetch-1.1.21.tgz",
-      "integrity": "sha512-/ImESw0sskqlVR94jB+5+Pxjf+xBwDZF/N5+y2/q4EqD7IARUTSpPfIo8uf39SYpCxyOCtbyYpUrZ3F/k0zT4A=="
+      "integrity": "sha512-/ImESw0sskqlVR94jB+5+Pxjf+xBwDZF/N5+y2/q4EqD7IARUTSpPfIo8uf39SYpCxyOCtbyYpUrZ3F/k0zT4A==",
+      "peer": true
     },
     "node_modules/@hono/node-server": {
       "version": "1.19.17",
@@ -203,6 +207,7 @@
       "resolved": "https://registry.npmjs.org/better-call/-/better-call-1.1.8.tgz",
       "integrity": "sha512-XMQ2rs6FNXasGNfMjzbyroSwKwYbZ/T3IxruSS6U2MJRsSYh3wYtG3o6H00ZlKZ/C/UPOAD97tqgQJNsxyeTXw==",
       "license": "MIT",
+      "peer": true,
       "dependencies": {
         "@better-auth/utils": "^0.3.0",
         "@better-fetch/fetch": "^1.1.4",
@@ -241,6 +246,7 @@
       "resolved": "https://registry.npmjs.org/hono/-/hono-4.13.7.tgz",
       "integrity": "sha512-c8/gF9ac8Y78/agExVocyLevgR+JlpNB444Py0FSX8pJoPdYUfUzRcXtYEYGwt6l19qIlVZPN5Mfsw9jFShmQQ==",
       "license": "MIT",
+      "peer": true,
       "engines": {
         "node": ">=16.9.0"
       }
@@ -250,6 +256,7 @@
       "resolved": "https://registry.npmjs.org/jose/-/jose-6.2.12.tgz",
       "integrity": "sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==",
       "license": "MIT",
+      "peer": true,
       "funding": {
         "url": "https://github.com/sponsors/panva"
       }
@@ -259,6 +266,7 @@
       "resolved": "https://registry.npmjs.org/kysely/-/kysely-0.28.17.tgz",
       "integrity": "sha512-nbD8lB9EB3wNdMhOCdx5Li8DxnLbvKByylRLcJ1h+4SkrowVeECAyZlyiKMThF7xFdRz0jSQ2MoJr+wXux2y0Q==",
       "license": "MIT",
+      "peer": true,
       "engines": {
         "node": ">=20.0.0"
       }
@@ -274,6 +282,7 @@
         }
       ],
       "license": "MIT",
+      "peer": true,
       "engines": {
         "node": "^20.0.0 || >=22.0.0"
       }
@@ -291,6 +300,15 @@
       "license": "Apache-2.0",
       "dependencies": {
         "tslib": "^2.1.0"
+      }
+    },
+    "node_modules/safe-stable-stringify": {
+      "version": "2.5.0",
+      "resolved": "https://registry.npmjs.org/safe-stable-stringify/-/safe-stable-stringify-2.5.0.tgz",
+      "integrity": "sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=10"
       }
     },
     "node_modules/set-cookie-parser": {

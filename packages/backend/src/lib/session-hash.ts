@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { stringify } from "safe-stable-stringify";
 
 export const SESSION_HASH_COOKIE = "session_hash";
 
@@ -9,7 +10,7 @@ export const SESSION_HASH_COOKIE = "session_hash";
  */
 export function sessionHash<S>(session: S, pick: (session: S) => unknown = s => s): string {
   return createHash("sha256")
-    .update(JSON.stringify(pick(session)))
+    .update(stringify(pick(session)) ?? "")
     .digest("base64url")
     .slice(0, 16);
 }

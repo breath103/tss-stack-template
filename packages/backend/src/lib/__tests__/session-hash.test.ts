@@ -17,6 +17,11 @@ describe("sessionHash", () => {
     assert.match(sessionHash(session), /^[\w-]{16}$/);
   });
 
+  it("ignores key order", () => {
+    const reordered = { session: session.session, user: { image: null, email: "kim@x.test", name: "Kim", id: "u1" } };
+    assert.equal(sessionHash(reordered), sessionHash(session));
+  });
+
   it("changes when any field changes", () => {
     assert.notEqual(sessionHash({ ...session, user: { ...session.user, name: "Lee" } }), sessionHash(session));
     assert.notEqual(
