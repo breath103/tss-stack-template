@@ -13,6 +13,7 @@
   },
   "rules": {
     "local/no-single-use-type": "error",
+    "local/expired-todo": "error",
 
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "error",
