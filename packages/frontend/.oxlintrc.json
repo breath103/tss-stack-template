@@ -10,6 +10,7 @@
   },
   "rules": {
     "local/no-single-use-type": "error",
+    "local/expired-todo": "error",
     "local/no-double-cast": "error",
     "local/no-manual-date-format": "error",
     "local/no-entities-index": "error",

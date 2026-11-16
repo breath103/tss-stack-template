@@ -8,6 +8,7 @@
 // `uses` array — so the same plugin ships everywhere and each project's manifest
 // decides which add-on rules are live. Untagged (baseline) rules always run.
 import { isEnabled, projectUses } from "../uses.ts";
+import expiredTodo from "./expired-todo.ts";
 import noAsError from "./no-as-error.ts";
 import noDoubleCast from "./no-double-cast.ts";
 import noEntitiesIndex from "./no-entities-index.ts";
@@ -33,6 +34,7 @@ const gate = (rule: { meta?: { requires?: string | string[] } }) =>
 export default {
   meta: { name: "local" },
   rules: {
+    "expired-todo": gate(expiredTodo),
     "no-single-use-type": gate(noSingleUseType),
     "no-extraneous-dependencies": gate(noExtraneousDependencies),
     "no-as-error": gate(noAsError),
