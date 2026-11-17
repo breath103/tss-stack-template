@@ -5,6 +5,9 @@ cdk.out
 .DS_Store
 .tmp
 
+# development.keychain-db: the empty lock file macOS drops beside a keychain file
+/.fl????????
+
 # Environment files (contain secrets)
 .env
 .env.development
