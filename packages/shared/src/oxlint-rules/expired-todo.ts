@@ -1,4 +1,4 @@
-// Turns a dated `// TODO: [yyyy/mm/dd] …` into a lint error once that day
+// Turns a dated TODO (`TODO:`, then `[yyyy/mm/dd]`) into a lint error once that day
 // arrives, so code written to support a retiring format (legacy URL params, an
 // old payload shape) gets deleted instead of living forever. A `TODO: [` whose
 // date isn't `yyyy/mm/dd` is flagged too, or it would silently never expire.
