@@ -44,7 +44,7 @@ export function frontendBucketName({ project, frontend }: Pick<TssConfig, "proje
   return suffix ? `${project}-frontend-${suffix}` : `${project}-frontend`;
 }
 
-function findProjectRoot(): string {
+export function findProjectRoot(): string {
   let dir = process.cwd();
   while (dir !== "/") {
     if (fs.existsSync(path.join(dir, "tss.json"))) {
