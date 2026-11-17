@@ -58,11 +58,12 @@ export class DevKeychain {
   /** Item names. Attributes are readable while the keychain is locked. */
   names() {
     DevKeychain.assertExists();
-    return [
-      ...execFileSync("security", ["dump-keychain", DevKeychain.FILE], { encoding: "utf8" }).matchAll(
+    return Array.from(
+      execFileSync("security", ["dump-keychain", DevKeychain.FILE], { encoding: "utf8" }).matchAll(
         /^\s*"svce"<blob>="(.+)"$/gm
       ),
-    ].map(match => match[1]);
+      match => match[1]
+    );
   }
 
   secrets(names: string[]) {
