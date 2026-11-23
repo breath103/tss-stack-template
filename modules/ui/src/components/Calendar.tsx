@@ -58,6 +58,11 @@ export function CalendarDayButton({ className, day, modifiers, ...props }: React
     if (modifiers.today) return "bg-accent-2 text-accent-2-fg";
     return "";
   })();
+  const shape = (() => {
+    if (modifiers.range_start) return "rounded-l-full";
+    else if (modifiers.range_end) return "rounded-r-full";
+    else return "rounded-full";
+  })();
 
   return (
     <button
@@ -75,7 +80,7 @@ export function CalendarDayButton({ className, day, modifiers, ...props }: React
         "active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
         // child span
         "[&>span]:text-sm [&>span]:opacity-70",
-        modifiers.range_start ? "rounded-l-full" : modifiers.range_end ? "rounded-r-full" : "rounded-full",
+        shape,
         fill,
         defaultClassNames.day,
         className

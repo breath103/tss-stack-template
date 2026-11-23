@@ -26,8 +26,11 @@ export function OptionRow({
   trailing?: ReactNode;
   children: ReactNode;
 } & Omit<ComponentProps<"button">, "children" | "onSelect">) {
-  const mark =
-    trailing !== undefined ? trailing : check && selected ? <Check className="size-4 text-accent-1" /> : null;
+  const mark = (() => {
+    if (trailing !== undefined) return trailing;
+    else if (check && selected) return <Check className="size-4 text-accent-1" />;
+    else return null;
+  })();
   return (
     <button
       type="button"

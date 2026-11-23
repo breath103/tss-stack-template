@@ -56,7 +56,13 @@ export function OptionList<T extends string>(
   const [pending, setPending] = useState<T | null>(null);
   const busy = pending !== null;
 
-  const selected = new Set(props.multiple ? props.value : props.value === null ? [] : [props.value]);
+  const selected = new Set(
+    (() => {
+      if (props.multiple) return props.value;
+      else if (props.value === null) return [];
+      else return [props.value];
+    })()
+  );
 
   const pick = (value: T | null) => {
     if (busy) return;
@@ -96,17 +102,12 @@ export function OptionList<T extends string>(
     const last = navigable.length - 1;
     const i = focused ?? -1;
     setFocused(
-      e.key === "Home"
-        ? 0
-        : e.key === "End"
-          ? last
-          : e.key === "ArrowDown"
-            ? i >= last
-              ? 0
-              : i + 1
-            : i <= 0
-              ? last
-              : i - 1
+      (() => {
+        if (e.key === "Home") return 0;
+        else if (e.key === "End") return last;
+        else if (e.key === "ArrowDown") return i >= last ? 0 : i + 1;
+        else return i <= 0 ? last : i - 1;
+      })()
     );
   };
 

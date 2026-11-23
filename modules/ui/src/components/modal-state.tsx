@@ -30,6 +30,7 @@ function PortalEventBoundary({ children }: { children: ReactNode }) {
   );
 }
 
+// singleton: allocator for modal ids, unique across the document
 let nextId = 0;
 
 export function useModal() {

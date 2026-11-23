@@ -8,12 +8,11 @@ import { sessionCache } from "@/lib/session-cache";
 
 const AuthContext = createContext<Session | null | undefined>(undefined);
 
-let loadedAt = Number.NEGATIVE_INFINITY;
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(() => sessionCache.load() ?? undefined);
 
   useEffect(() => {
+    let loadedAt = Number.NEGATIVE_INFINITY;
     const stale$ = sessionStale$.pipe(filter(startedAt => startedAt > loadedAt));
     const reloads = (sessionCache.load() ? stale$ : stale$.pipe(startWith(undefined)))
       // Signals that arrive while a reload is in flight ride on that reload.

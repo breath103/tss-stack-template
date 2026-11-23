@@ -1,31 +1,15 @@
 {
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
-  "extends": ["../../.oxlintrc.json"],
-  "plugins": ["typescript", "unicorn", "oxc", "react"],
-  "jsPlugins": [
-    "oxlint-tailwindcss",
-    { "name": "local", "specifier": "../../packages/shared/src/oxlint-rules/plugin.ts" }
-  ],
+  "extends": ["../../.oxlintrc.react.json"],
   "settings": {
     "tailwindcss": {
       "entryPoint": "./src/theme/reference.css"
     }
   },
+  // Deliberately NOT in `.oxlintrc.react.json`, so it does not reach `packages/frontend`.
+  // The library ships a neutral type scale that consumers reskin by overriding tokens,
+  // so an arbitrary `text-[…]` here is unthemeable; an app owns its own scale.
   "rules": {
-    "local/no-single-use-type": "error",
-    "local/expired-todo": "error",
-
-    "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "error",
-
-    "tailwindcss/enforce-sort-order": "error",
-    "tailwindcss/enforce-consistent-line-wrapping": ["error", { "printWidth": 120 }],
-    "tailwindcss/no-deprecated-classes": "error",
-    "tailwindcss/no-duplicate-classes": "error",
-    "tailwindcss/no-unnecessary-whitespace": "error",
-    "tailwindcss/enforce-canonical": "error",
-    "tailwindcss/no-conflicting-classes": "error",
-    "tailwindcss/no-unknown-classes": "error",
     "tailwindcss/no-restricted-classes": [
       "error",
       {

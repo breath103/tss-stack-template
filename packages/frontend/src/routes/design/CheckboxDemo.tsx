@@ -2,16 +2,17 @@ import { Checkbox } from "@ui/components/Checkbox";
 import { useState } from "react";
 import { SectionTitle } from "./SectionTitle";
 
+const labels = [
+  { key: "a", label: "Pre-flight checklist complete" },
+  { key: "b", label: "Range safety armed" },
+  { key: "c", label: "Telemetry stream active" },
+] as const;
+
 export function CheckboxDemo() {
   const [checked, setChecked] = useState(true);
   const [items, setItems] = useState({ a: true, b: false, c: true });
   const allChecked = items.a && items.b && items.c;
   const noneChecked = !items.a && !items.b && !items.c;
-  const labels: { key: keyof typeof items; label: string }[] = [
-    { key: "a", label: "Pre-flight checklist complete" },
-    { key: "b", label: "Range safety armed" },
-    { key: "c", label: "Telemetry stream active" },
-  ];
 
   return (
     <div className="grid gap-6 md:grid-cols-2">

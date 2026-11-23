@@ -3,6 +3,8 @@
 // `new DateFormatter(locale).format(date, type)`.
 // (Coding guideline: frontend/format-ui-dates-through-dateformatter.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   callee?: { type?: string; property?: { name?: string }; object?: { name?: string } };
@@ -13,9 +15,6 @@ interface Node {
 interface Specifier {
   type: string;
   imported?: { name?: string };
-}
-interface Context {
-  report: (diagnostic: { node: Node | Specifier; messageId: string }) => void;
 }
 
 const rule = {

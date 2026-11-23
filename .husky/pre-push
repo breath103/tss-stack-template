@@ -1,0 +1,2 @@
+#!/bin/sh
+./scripts/ci_local.ts

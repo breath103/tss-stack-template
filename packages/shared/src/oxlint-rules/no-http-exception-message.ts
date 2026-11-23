@@ -2,13 +2,12 @@
 // error. Throw `new ApiError(status, { type, ...data })` instead; the frontend owns the text.
 // (Coding guideline: sharing-code/api-errors-are-typed-codes-messages-live-on-the-frontend.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   callee?: { type: string; name?: string };
   arguments?: { type: string; properties?: { type: string; key?: { type: string; name?: string } }[] }[];
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

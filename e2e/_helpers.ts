@@ -40,23 +40,18 @@ export type Scenario = (ctx: {
 // sent — for example, an auth flow that tests "no cookie" and "stale
 // cookie" cases the same context would otherwise auto-fill.
 
-type JsonInput = string | number | boolean | null | undefined | JsonInput[] | { [k: string]: JsonInput };
-
-interface ApiResponse<T> {
-  status: number;
-  body: T;
-  setCookie: string | null;
-}
-
-interface ApiOpts {
-  body?: JsonInput;
-  headers?: Record<string, string>;
-  /** Accepts `null` so callers can pass `response.headers.get("set-cookie")` directly. */
-  cookie?: string | null;
-  bearer?: string;
-}
-
-export async function api<T>(method: string, path: string, opts: ApiOpts = {}): Promise<ApiResponse<T>> {
+export async function api<T>(
+  method: string,
+  path: string,
+  opts: {
+    /** Sent as `JSON.stringify(body)`. */
+    body?: unknown;
+    headers?: Record<string, string>;
+    /** Accepts `null` so callers can pass `response.headers.get("set-cookie")` directly. */
+    cookie?: string | null;
+    bearer?: string;
+  } = {}
+): Promise<{ status: number; body: T; setCookie: string | null }> {
   // `Origin` defaults to BASE so state-changing requests pass better-auth's
   // CSRF check. node `fetch` sends no Origin by default; setting it lets
   // harness traffic look like real same-origin requests.
@@ -122,11 +117,6 @@ interface Reporter {
   log: (line: string) => void;
 }
 
-type HarnessCtx = Reporter & {
-  page: ScenarioPage;
-  request: APIRequestContext;
-};
-
 /**
  * Wrap a scenario body in a step reporter. Records pass/fail per step,
  * prints a summary at the end, and throws if any step failed — the runner
@@ -142,7 +132,10 @@ type HarnessCtx = Reporter & {
  *     ...
  *   }, { timeoutMs: 5000 });
  */
-export function harness(body: (ctx: HarnessCtx) => Promise<void>, opts: { timeoutMs?: number } = {}): Scenario {
+export function harness(
+  body: (ctx: Reporter & { page: ScenarioPage; request: APIRequestContext }) => Promise<void>,
+  opts: { timeoutMs?: number } = {}
+): Scenario {
   const timeoutMs = opts.timeoutMs ?? 3000;
   return async ({ page, request }) => {
     const steps: Step[] = [];

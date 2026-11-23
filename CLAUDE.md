@@ -50,15 +50,65 @@ means the safety net stays off for the very code that needs it.
   (we don't care). A `"warning"` severity is noise nobody acts on. Do NOT add a
   rule at `"warn"`, and do NOT downgrade an `"error"` to `"warn"` to make lint
   pass — either fix the code or turn the rule `"off"` deliberately.
-- **`./scripts/lint` does NOT cover `modules/ui`.** The shared UI library has its
-  own gates: `npm run -w @modules/ui lint` and `npm run -w @modules/ui typecheck`.
-  A diff touching `modules/ui/**` is unverified until both have run — `./scripts/lint`
-  reports clean over a `modules/ui` lint error.
+- **Always finish a change by running the linters with `--fix`, never bare.**
+  `./scripts/lint.ts --fix` covers **every** tree; `./scripts/lint.ts <tree> --fix`
+  does one (run it with an unknown name to list them). Import order and formatting
+  are auto-fixable; running bare lint, reading the report, and hand-editing the file
+  wastes a turn on something the tool does in 10ms. Bare `./scripts/lint.ts` is for
+  the final green check only.
+- **One lint entrypoint, one list of trees.** The `LINT_TREES` table in
+  `scripts/lint.ts` is the source of truth for what gets linted; CI runs that one
+  script over all of it, and the pre-commit hook calls `--staged` so it derives the
+  affected trees from the same table. **Adding a package means adding it there** —
+  there are no per-package lint scripts, and a tree absent from the table is linted
+  by nothing.
+- **oxlint config is three root presets, layered by capability.**
+  `.oxlintrc.base.json` (universal, and the ONE `jsPlugins` declaration — a
+  `specifier` resolves relative to the file declaring it and inherits through
+  `extends`), `.oxlintrc.json` (Node/server tier), `.oxlintrc.react.json`
+  (React + Tailwind). A per-tree `.oxlintrc.json` holds only what is genuinely
+  local to it. **Overrides are order-sensitive and an inherited config's overrides
+  apply first**, so a carve-out cannot switch off a rule that a downstream tier's
+  override switches back on — that is why the test-file carve-outs sit at the end of
+  each tier rather than in the base.
 - **Keep branch names short (~35 chars).** The preview deploy derives a Lambda name
   from `<project>-backend-<branch>` and AWS caps function names at 64 characters.
   A branch like `fix/autoresize-input-height-matches-button-m` overflows it, so
   `deploy` fails *after* lint/test pass. A PR's head ref can't be renamed — the
   only fix is a new branch and a new PR.
+
+## Pre-push CI parity — every `git push` runs the full CI suite locally
+
+The git pre-push hook (`.husky/pre-push`) runs `./scripts/ci_local.ts` on **every**
+push and refuses the push when it is red. **Just push; do not run the suite yourself
+first**, that only runs it twice. On a red push, fix what the output names and push
+again. Never bypass the hook (`--no-verify`, `HUSKY=0`).
+
+```bash
+./scripts/ci_local.ts                 # typecheck + lint + test — the verdict without pushing
+./scripts/ci_local.ts --only test     # one job: typecheck | lint | test
+```
+
+It runs the backend `build-types` first (the frontend typecheck and type-aware oxlint
+read its declarations), then every other step in parallel, and prints one
+`pass`/`FAIL` line per step plus the output of failed steps only.
+
+**The `JOBS` table in `ci_local.ts` is the step list for typecheck and test.** The
+workflow's `typecheck` and `test` jobs run `./scripts/ci_local.ts --only <job>`, so a
+step added to `JOBS` runs in CI with no second edit. Lint is the exception: the
+workflow shards it (`lint.ts --shard=k/2` plus `knip.ts`), and `JOBS.lint` mirrors
+those steps by hand.
+
+## Bash tool hook — the shell rules are enforced
+
+`.claude/settings.json` registers `scripts/hook_bash_policy.mts` as a PreToolUse hook
+on the Bash tool. It rejects a command that breaks `.claude/rules/shell.md`,
+`.claude/rules/git.md` or a command rule in this file (chaining, `cd` inside the repo,
+`$()`, `2>&1`, heredocs, `sed -i` / `python3 -` / `node -e`, `npx`, `tsc`, `git -C`,
+`--no-verify`, …) and the rejection names each broken rule and its replacement. Fix
+the command; do not look for a spelling the hook misses. The rules are the `RULES`
+table in `packages/shared/src/bash-command-policy.ts`: a rule added to the prose is
+added there, with a row in its test table, in the same PR.
 
 ## Worktrees
 
@@ -100,7 +150,8 @@ All scripts are executable via shebang — no `npm run` or `npx` needed. Run eve
 ./scripts/dev.ts start          # Start dev servers in background, return when ready
 ./scripts/dev.ts status         # Show running status + per-process pids
 ./scripts/dev.ts stop           # Stop background dev server
-./scripts/lint                  # Run linters across packages
+./scripts/ci_local.ts           # The whole CI suite (typecheck + lint + test)
+./scripts/lint.ts --fix         # Lint + format every tree, auto-fix
 ./scripts/e2e.ts start          # Start headless Chrome for e2e
 ./scripts/e2e.ts reset          # Kill e2e Chrome, delete its profile, start fresh
 ./scripts/setup.ts              # Interactive project setup
@@ -135,23 +186,23 @@ If you need to inspect what's running: `./scripts/dev/status.ts <pid>` prints th
 ### Other common commands
 
 ```bash
-./packages/backend/scripts/lint.ts                     # Lint backend
-./packages/backend/scripts/lint.ts --fix               # Lint backend with auto-fix
-./packages/frontend/scripts/lint.ts                    # Lint frontend
-./packages/frontend/scripts/lint.ts --fix              # Lint frontend with auto-fix
+./scripts/lint.ts                                      # Lint every tree
+./scripts/lint.ts --fix                                # Every tree, auto-fix
+./scripts/lint.ts backend --fix                        # One tree
+./scripts/lint.ts --staged                             # Only the trees owning staged files
 ./packages/backend/scripts/build-types.ts              # Type check backend
 ./packages/frontend/scripts/build-types.ts             # Type check frontend
-./packages/backend/scripts/knip.ts                     # Unused exports/types — backend (CI gate)
-./scripts/knip.ts                                      # Unused exports/types — frontend (CI gate)
+./scripts/knip.ts                                      # Unused exports/types — every target (CI gate)
+./scripts/knip.ts backend                              # One target
 ```
 
-Both knip wrappers report unused exports + types by default (the CI gate); pass
-`--all` to also surface unused files/deps/members for a manual audit, or `--fix`
-to auto-remove what knip can safely delete. Mark an intentional cross-package
-export (e.g. a type the frontend imports from the backend) with a `/** @public */`
-JSDoc tag so the gate treats it as used.
+knip reports unused exports + types by default (the CI gate); pass `--all` to also
+surface unused files/deps/members for a manual audit, or `--fix` to auto-remove what
+knip can safely delete. Mark an intentional cross-package export (e.g. a type the
+frontend imports from the backend) with a `/** @public */` JSDoc tag so the gate
+treats it as used.
 
-Linting is [oxlint](https://oxc.rs) (correctness + type-aware rules, plus Tailwind rules via the native `oxlint-tailwindcss` JS plugin — config in each package's `.oxlintrc.json`) plus [Biome](https://biomejs.dev) (formatting and import order, config in root `biome.json`). Both are Rust-based and fast enough that no caching is needed — every run is a full run. The `--no-cache` flag is still accepted (and ignored) for backwards compatibility. Run `./scripts/lint` from repo root to lint everything, or a package's `lint.ts` directly; add `--fix` to auto-fix.
+Linting is [oxlint](https://oxc.rs) (correctness + type-aware rules, plus Tailwind rules via the native `oxlint-tailwindcss` JS plugin) plus [Biome](https://biomejs.dev) (formatting and import order, config in root `biome.json`). Both are Rust-based and fast enough that no caching is needed — every run is a full run.
 
 ### Install packages
 

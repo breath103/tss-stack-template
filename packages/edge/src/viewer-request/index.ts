@@ -38,7 +38,13 @@ function resolveBranch(start: string): string {
 // oxlint-disable-next-line no-unused-vars
 function handler(event: CloudFrontFunctionsEvent) {
   const request = event.request;
-  const host = request.headers.host?.value ?? "";
+  // `headers` is a `Record`, so its type claims every lookup hits; a request with no
+  // Host header is still `undefined` here at runtime. The cast widens the lookup to
+  // what it can actually return, which keeps the guard below meaningful — a plain
+  // annotation does not work, because control-flow analysis narrows the declared type
+  // straight back to the non-nullish initializer.
+  const hostHeader = request.headers.host as { value: string } | undefined;
+  const host = hostHeader?.value ?? "";
 
   // No custom domain: every request hits the cloudfront.net hostname, so
   // subdomain-based routing isn't meaningful. Always use the root subdomain

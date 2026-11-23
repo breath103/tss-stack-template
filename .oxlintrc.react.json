@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["./.oxlintrc.base.json"],
+  // The React/Tailwind tier, shared by `packages/frontend` and `modules/ui`.
+  //
+  // `settings.tailwindcss.entryPoint` is NOT set here: it differs per tree (the app's
+  // `global.css` vs the library's `theme/reference.css`), so each config supplies its own.
+  // `plugins` and `jsPlugins` MERGE with the base's, so don't restate the base's entries.
+  "plugins": ["react"],
+  "jsPlugins": ["oxlint-tailwindcss"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "local/no-setterless-usestate": "error",
+    "local/no-static-literal-in-component": "error",
+    "local/no-ui-glyph-in-text": "error",
+
+    "tailwindcss/enforce-sort-order": "error",
+    "tailwindcss/enforce-consistent-line-wrapping": ["error", { "printWidth": 120 }],
+    "tailwindcss/no-deprecated-classes": "error",
+    "tailwindcss/no-duplicate-classes": "error",
+    "tailwindcss/no-unnecessary-whitespace": "error",
+    "tailwindcss/enforce-canonical": "error",
+    "tailwindcss/no-conflicting-classes": "error",
+    "tailwindcss/no-unknown-classes": "error"
+  },
+  "overrides": [
+    {
+      // Console output and test names are not UI text.
+      "files": ["scripts/**", "**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "local/no-ui-glyph-in-text": "off"
+      }
+    }
+  ]
+}

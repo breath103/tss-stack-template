@@ -2,33 +2,34 @@ import { Button } from "@ui/components/Button";
 import { cn } from "@ui/lib/utils";
 import { SectionTitle } from "./SectionTitle";
 
+const accents = [
+  {
+    n: "1",
+    name: "Flight Blue",
+    solid: "bg-accent-1",
+    fg: "text-accent-1-fg",
+    wash: "bg-accent-1/15 text-accent-1",
+    textOn: "text-accent-1",
+  },
+  {
+    n: "2",
+    name: "Flare",
+    solid: "bg-accent-2",
+    fg: "text-accent-2-fg",
+    wash: "bg-accent-2/15 text-accent-2",
+    textOn: "text-accent-2",
+  },
+  {
+    n: "3",
+    name: "Mint Cyan",
+    solid: "bg-accent-3",
+    fg: "text-accent-3-fg",
+    wash: "bg-accent-3/15 text-accent-3",
+    textOn: "text-accent-3",
+  },
+] as const;
+
 export function AccentsDemo() {
-  const accents = [
-    {
-      n: "1",
-      name: "Flight Blue",
-      solid: "bg-accent-1",
-      fg: "text-accent-1-fg",
-      wash: "bg-accent-1/15 text-accent-1",
-      textOn: "text-accent-1",
-    },
-    {
-      n: "2",
-      name: "Flare",
-      solid: "bg-accent-2",
-      fg: "text-accent-2-fg",
-      wash: "bg-accent-2/15 text-accent-2",
-      textOn: "text-accent-2",
-    },
-    {
-      n: "3",
-      name: "Mint Cyan",
-      solid: "bg-accent-3",
-      fg: "text-accent-3-fg",
-      wash: "bg-accent-3/15 text-accent-3",
-      textOn: "text-accent-3",
-    },
-  ] as const;
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {accents.map(a => (

@@ -1,35 +1,22 @@
 {
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
-  "extends": ["../../.oxlintrc.json"],
-  "plugins": ["typescript", "unicorn", "oxc", "react"],
-  "jsPlugins": ["oxlint-tailwindcss", { "name": "local", "specifier": "../shared/src/oxlint-rules/plugin.ts" }],
+  "extends": ["../../.oxlintrc.react.json"],
   "settings": {
     "tailwindcss": {
       "entryPoint": "./src/global.css"
     }
   },
   "rules": {
-    "local/no-single-use-type": "error",
-    "local/expired-todo": "error",
     "local/no-double-cast": "error",
+    "local/no-class-scoped-module-const": "error",
     "local/no-manual-date-format": "error",
     "local/no-entities-index": "error",
     "local/no-native-date-input": "error",
     "local/no-template-literal-classname": "error",
     "local/no-inline-font-size": "error",
     "local/no-raw-fetch": "error",
-
-    "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "error",
-
-    "tailwindcss/enforce-sort-order": "error",
-    "tailwindcss/enforce-consistent-line-wrapping": ["error", { "printWidth": 120 }],
-    "tailwindcss/no-deprecated-classes": "error",
-    "tailwindcss/no-duplicate-classes": "error",
-    "tailwindcss/no-unnecessary-whitespace": "error",
-    "tailwindcss/enforce-canonical": "error",
-    "tailwindcss/no-conflicting-classes": "error",
-    "tailwindcss/no-unknown-classes": "error",
+    "local/no-raw-text-input": "error",
+    "local/no-create-route-outside-route-file": "error",
 
     "no-restricted-imports": [
       "error",
@@ -71,6 +58,8 @@
       }
     },
     {
+      // Stays local rather than in a shared tier: `no-double-cast` is enabled by
+      // this config's own `rules`, so only an override in this file lands after it.
       "files": ["**/__tests__/**"],
       "rules": {
         "local/no-double-cast": "off"

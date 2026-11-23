@@ -7,7 +7,7 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run --no-isolate"
   },
   "devDependencies": {
     "vitest": "^3"

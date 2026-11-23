@@ -1,13 +1,14 @@
 import { cn } from "@ui/lib/utils";
 import { SectionTitle } from "./SectionTitle";
 
+const swatches = [
+  { name: "background", className: "bg-background", token: "var(--background)" },
+  { name: "surface-1", className: "bg-surface-1", token: "var(--surface-1)" },
+  { name: "surface-2", className: "bg-surface-2", token: "var(--surface-2)" },
+  { name: "surface-muted", className: "bg-surface-muted", token: "var(--surface-muted)" },
+];
+
 export function SurfacesDemo() {
-  const swatches = [
-    { name: "background", className: "bg-background", token: "var(--background)" },
-    { name: "surface-1", className: "bg-surface-1", token: "var(--surface-1)" },
-    { name: "surface-2", className: "bg-surface-2", token: "var(--surface-2)" },
-    { name: "surface-muted", className: "bg-surface-muted", token: "var(--surface-muted)" },
-  ];
   return (
     <>
       <div className="grid grid-cols-3 gap-3">

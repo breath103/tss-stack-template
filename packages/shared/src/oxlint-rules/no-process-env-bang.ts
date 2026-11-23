@@ -2,6 +2,8 @@
 // env var in `src/env.d.ts` with the right type instead of bang-asserting.
 // (Coding guideline: backend/declare-env-vars-in-env-d-ts-and.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   expression?: {
@@ -9,9 +11,6 @@ interface Node {
     object?: { type: string; object?: { type: string; name?: string }; property?: { name?: string } };
     property?: { name?: string };
   };
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

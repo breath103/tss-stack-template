@@ -3,12 +3,11 @@
 // types instead.
 // (Coding guideline: sharing-code/symlink-shared-pure-ts-between-frontend-and-backend.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   id?: { type: string; name?: string } | null;
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const EVENT_GUARD_RE = /^is[A-Za-z0-9]*Event$/;

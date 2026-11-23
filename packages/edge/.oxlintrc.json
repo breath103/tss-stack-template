@@ -1,14 +1,23 @@
 {
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
-  "extends": ["../../.oxlintrc.base.json"],
+  "extends": ["../../.oxlintrc.json"],
   "rules": {
+    // Lambda@Edge has no async handler contract to await into; the CloudFront
+    // callback shape means a returned promise is the normal case here.
     "typescript/no-floating-promises": "off"
   },
   "overrides": [
     {
+      // Lambda@Edge's Node runtime rejects `node:` specifiers, so the bare form is
+      // mandatory in shipped edge source (scripts/ are ordinary tooling and keep it).
+      //
+      // `no-extraneous-dependencies` assumes only `package.json` `dependencies` reach
+      // the runtime. Here `deploy.ts` runs esbuild with `bundle: true`, so `shared/*` is
+      // inlined into the artifact and never resolved from `node_modules`.
       "files": ["src/**/*.ts"],
       "rules": {
-        "unicorn/prefer-node-protocol": "off"
+        "unicorn/prefer-node-protocol": "off",
+        "local/no-extraneous-dependencies": "off"
       }
     }
   ]

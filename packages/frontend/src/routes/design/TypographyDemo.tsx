@@ -2,11 +2,12 @@ import { cn } from "@ui/lib/utils";
 import { Fragment } from "react";
 import { SectionTitle } from "./SectionTitle";
 
+const sizes = ["text-xl", "text-lg", "text-base", "text-sm", "text-xs"];
+// Each row shows the same sample at one size across the three text-color tokens,
+// so text-1/2/3 sit side by side for a direct contrast comparison.
+const colors = ["text-text-1", "text-text-2", "text-text-3"];
+
 export function TypographyDemo() {
-  const sizes = ["text-xl", "text-lg", "text-base", "text-sm", "text-xs"];
-  // Each row shows the same sample at one size across the three text-color tokens,
-  // so text-1/2/3 sit side by side for a direct contrast comparison.
-  const colors = ["text-text-1", "text-text-2", "text-text-3"];
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-[auto_repeat(3,minmax(0,1fr))] gap-x-4">

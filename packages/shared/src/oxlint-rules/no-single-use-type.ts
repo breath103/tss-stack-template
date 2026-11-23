@@ -15,22 +15,17 @@
 // excluded by counting only references that sit OUTSIDE the declaration's own
 // range, so a recursive type with one external use still counts as one.
 
+import type { ScopedContext, Variable } from "./plugin-api.ts";
+
 // oxlint's JS-plugin author types aren't exported from `oxlint/plugins-dev`, so
-// we model the minimal surface this rule touches.
+// we model the minimal surface this rule touches. `Node` is rule-specific; the
+// context/variable shapes are shared — see `plugin-api.ts`.
 interface Node {
   type: string;
   range: [number, number];
   parent?: { type: string } | null;
   declare?: boolean;
   id: { name: string };
-}
-interface Variable {
-  references: { identifier: { range?: [number, number] } }[];
-  defs: unknown[];
-}
-interface Context {
-  sourceCode: { getDeclaredVariables: (node: Node) => Variable[] };
-  report: (diagnostic: { node: Node; messageId: string; data?: Record<string, string> }) => void;
 }
 
 function isExported(node: Node): boolean {
@@ -45,10 +40,13 @@ function externalReferenceCount(variable: Variable, declRange: [number, number])
   }).length;
 }
 
-function check(context: Context, node: Node): void {
+function check(context: ScopedContext, node: Node): void {
   if (node.declare || isExported(node)) return;
 
-  const [variable] = context.sourceCode.getDeclaredVariables(node);
+  // `.at(0)`, not `[0]`: index access is typed as always-present, which makes the
+  // empty-array guard below read as dead code even though `getDeclaredVariables` can
+  // legitimately return `[]`. `.at()` is typed `Variable | undefined`.
+  const variable = context.sourceCode.getDeclaredVariables(node).at(0);
   // Declaration merging (multiple defs for one name) → don't touch.
   if (!variable || variable.defs.length > 1) return;
 
@@ -69,7 +67,7 @@ const rule = {
     },
     schema: [],
   },
-  create(context: Context) {
+  create(context: ScopedContext) {
     return {
       TSTypeAliasDeclaration: (node: Node) => check(context, node),
       TSInterfaceDeclaration: (node: Node) => check(context, node),

@@ -65,7 +65,8 @@ express. Don't restate what the next line does or justify a change to a reviewer
 
 ```bash
 npm run -w @modules/ui typecheck   # tsc --noEmit
-npm run -w @modules/ui lint        # oxlint (+ tailwind + local rules) then biome
+npm run -w @modules/ui lint        # alias for ./scripts/lint.ts ui
+./scripts/lint.ts ui --fix         # same thing, with autofix
 ```
 
 Lint uses the repo's local oxlint plugin (`packages/shared/src/oxlint-rules`,

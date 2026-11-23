@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { z } from "zod";
 
 // Subdomain mapping value: deployment name, null (blocked), or redirect
@@ -21,7 +21,10 @@ const configSchema = z
     ssm: z.object({ region: z.string() }),
     domain: z.string().optional(),
     hostedZoneId: z.string().optional(),
-    subdomainMap: z.record(z.string(), subdomainMapValue),
+    // `partialRecord`, not `record`: `record` infers `Record<string, V>`, claiming every
+    // lookup hits, so a caller's missing-subdomain branch reads as dead code to
+    // `no-unnecessary-condition`. The map is open, so the type has to say so.
+    subdomainMap: z.partialRecord(z.string(), subdomainMapValue),
   })
   .refine(cfg => !cfg.domain || !!cfg.hostedZoneId, {
     message: "hostedZoneId is required when domain is set",
