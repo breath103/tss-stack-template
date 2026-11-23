@@ -4,17 +4,35 @@
 
 For how to deploy, read `documents/deployment.md`.
 
-## Coding guidelines
+## Coding guides
 
-Coding standards live in `documents/coding-guidelines/`, **one rule per folder**:
-`<group>/<slug>/rule.md` (the rule) + optional `<group>/<slug>/check.sh`. Groups:
-`frontend`, `backend`, `sharing-code`. Rules tagged `requires: <add-on>`
-apply only when `tss.json` `uses` lists that add-on.
+The guides are the standards a person has to hold in mind while writing: one per folder,
+`documents/coding-guidelines/<group>/<slug>/rule.md`, groups `frontend`, `backend`,
+`sharing-code`. Each title says when the guide applies and what it requires, so you choose
+by title. Before writing code:
 
-Don't read every rule — find the ones that govern your diff:
-- `./documents/coding-guidelines/search.ts --group <g> --keywords "..."` — find rules by keyword
-- `./documents/coding-guidelines/check-all.ts [--group <g>]` — run every `check.sh`
-- The `check-guidelines` skill drives the full find → check procedure.
+1. `./scripts/list_guides.ts` — every guide as `<n>. <title>`. Read the titles.
+2. Decide which are relevant to what you are building.
+3. `./scripts/show_guides.ts <n>,<n>,…` — read those in full.
+4. Follow them while implementing.
+5. When the code is written: `./scripts/recheck_guides.ts` — your changed files and the titles
+   of the guides you have not been shown. Show the ones that match a line you added; fix.
+
+A guide's frontmatter has `topic:` (one of `Guides.TOPICS` in `scripts/lib/guides.ts`) and
+`order:` (its place in that topic); a guide tagged `requires: <add-on>` is listed only when
+`tss.json` `uses` has that add-on. `./documents/coding-guidelines/check-all.ts` runs only the
+`check.sh` files a few guides carry; it is not the re-check.
+
+The `guides` step of `./scripts/ci_local.ts` (so every `git push`) fails for an agent
+(`CLAUDECODE=1`) when a file under `packages/`, `modules/` or `scripts/` was changed by the
+session and `./scripts/recheck_guides.ts` has not run for that change. Committing, merging
+`main` in, or a `lint.ts --fix` reformat is not a change. A person pushing from a terminal
+always passes it.
+
+Before writing a row, card or label for an entity, run `./scripts/find_existing.ts
+<ComponentName | entity | "label text">`: it lists what `packages/frontend/src` and
+`modules/ui/src` already draw for it. `./scripts/lint.ts` fails when one entity-named component
+is declared in two files.
 
 ### Optional add-ons (`uses` in `tss.json`)
 

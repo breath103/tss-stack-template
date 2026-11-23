@@ -1,4 +1,9 @@
-# Never hand-roll hover/active/selected washes — use `button-bg-overlay`
+---
+topic: CSS and classNames
+order: 80
+---
+
+# When you style hover, active or selected states, use button-bg-overlay or ButtonLabel; don't hand-write background washes.
 
 The state washes are already one utility. `global.css`:
 

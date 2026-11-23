@@ -1,4 +1,9 @@
-# 100-line component limit — break it down
+---
+topic: Components
+order: 60
+---
+
+# When a component file passes about 100 lines, split it into smaller named components and hooks.
 
 If any component file is over ~100 lines, stop and ask: *why is this so complicated, and how can I break it into smaller, more obvious pieces?* A component that won't fit on a screen is a component nobody reads top-to-bottom — it's where inline duplication, tangled state, and hidden coupling accumulate.
 

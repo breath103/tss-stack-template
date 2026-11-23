@@ -6,6 +6,8 @@ import path from "node:path";
 import { resolveBin } from "shared/cli-utils";
 import { findUiGlyphInLabel } from "shared/ui-glyphs";
 
+import { ExistingCode } from "./lib/existing_code.js";
+
 /**
  * Every tree in the repo that gets linted, and how. **This is the single source of
  * truth** — CI runs this script over all of it, so a package is either listed here or
@@ -110,6 +112,16 @@ function dictGlyphs(name: LintTreeName): string[] {
     .flatMap(file => glyphsIn(JSON.parse(readFileSync(file, "utf8")), path.relative(REPO_ROOT, file)));
 }
 
+/** Cross-file, so not an oxlint rule: one entity-named component (`InvitationRow`) per name. */
+function duplicateComponents(): string[] {
+  return ExistingCode.forRepo()
+    .duplicateComponents()
+    .map(
+      ({ name, places }) =>
+        `${places.join(", ")}: error local(one-component-per-entity): \`${name}\` is declared in ${places.length} files. Two components with one name draw the same entity twice: reuse the existing one (a different layout is a variant or a slot on it), or name the new one after the different entity it draws.`
+    );
+}
+
 /**
  * Lint every named tree: oxlint per tree (all at once), biome once over all of them.
  *
@@ -125,8 +137,8 @@ async function lintTrees(names: LintTreeName[], fix: boolean): Promise<string[]>
   const oxlintResults = await Promise.all(
     oxlintNames.map(async name => {
       const { ok, output } = await oxlintTree(name, fix);
-      const glyphs = dictGlyphs(name);
-      return { name, ok: ok && glyphs.length === 0, output: [output.trim(), ...glyphs].join("\n") };
+      const extra = [...dictGlyphs(name), ...(name === "frontend" ? duplicateComponents() : [])];
+      return { name, ok: ok && extra.length === 0, output: [output.trim(), ...extra].join("\n") };
     })
   );
 

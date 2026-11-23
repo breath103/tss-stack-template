@@ -1,8 +1,10 @@
 ---
 requires: entity-repository
+topic: API routes
+order: 30
 ---
 
-# Aggregates over a child table go in a sidecar — never on the entity row
+# When a page needs a count or sum of child rows, serve it from a sidecar endpoint; don't add a field to the parent row.
 
 When a derived value is an **aggregate over a child collection** (event count per radar, message count per chat, fragment count per memory), it does NOT belong on the parent entity's row. The frontend's `useRepositoryListQuery` / `useRepositoryQuery` are typed against the DB row shape — adding `event_count: number` to the parent either pollutes the entity type with non-row fields (every consumer now sees them, including the realtime upsert path that has no way to compute them), or gets stripped at the repository boundary and silently lost.
 

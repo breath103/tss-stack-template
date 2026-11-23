@@ -1,4 +1,9 @@
-# Mutually exclusive `if` blocks must chain with `else if` — and end with an explicit `else`
+---
+topic: Code structure
+order: 40
+---
+
+# When only one of several if blocks can run, chain them with else if and end with else.
 
 A sequence of independent `if` blocks testing the **same discriminant** reads as if
 each test could fall through into the next — the reader has to verify every block
@@ -7,7 +12,7 @@ exclusivity structurally, and a terminal `else` makes the fallback a deliberate 
 instead of dead-looking code after the stack.
 
 If the discriminant is a string-literal union, this rule doesn't apply — use `switch`
-(see `frontend/always-use-switch-for-discriminated-unions`). This rule is for open
+(see `backend/always-use-switch-for-discriminated-unions`). This rule is for open
 discriminants (`event.key`, arbitrary strings) where exhaustiveness checking buys nothing.
 
 Guard clauses are NOT this pattern: early returns testing *different* conditions

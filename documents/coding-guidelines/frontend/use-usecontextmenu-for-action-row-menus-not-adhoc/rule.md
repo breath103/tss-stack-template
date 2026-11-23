@@ -1,15 +1,16 @@
-# Use `useContextMenu` for action-row menus — don't hand-roll another popover
+---
+topic: Components
+order: 50
+---
 
-If the thing you're about to build is **a trigger + a vertical list of clickable action rows** (icon + label, checkmark toggle, plain label), you must use `useContextMenu` from `@/components/ui/ContextMenu`. Do NOT stand up a fresh `<Popover><PopoverContent>{rows}</PopoverContent></Popover>` with its own `useState(open)`, its own row `<button>` styling, and its own close-on-click plumbing.
+# When you need a menu of actions, use useContextMenu; don't build a Popover of buttons.
 
-Every hand-rolled version drifts: different row padding, different hover color, different focus outline, different close semantics. The hook owns the whole popover: anchoring (button box, right-click point, caret rect), destructive/disabled/checked/keyboard-shortcut row shapes, any-depth submenus with keyboard navigation, `divider`/`group` decorations, close-on-action, and a matching visual across the whole app.
+If the thing you're about to build is **a trigger + a vertical list of clickable action rows** (icon + label, checkmark toggle, plain label), use `useContextMenu`. Do NOT stand up a fresh `<Popover><PopoverContent>{rows}</PopoverContent></Popover>` with its own `useState(open)`, its own row `<button>` styling, and its own close-on-click plumbing. Every hand-rolled version drifts: different row padding, hover color, focus outline, close semantics. The hook owns anchoring, destructive/disabled/checked/keyboard-shortcut row shapes, any-depth submenus with keyboard navigation, `divider`/`group` decorations and close-on-action.
 
-**Rule of thumb:** if your PopoverContent is a `flex flex-col` of `<button>`s that each call an action and close, it's an action-row menu — use the hook.
-
-## ✅ Do
+`<ContextMenu contextMenu={menu} trigger={…} />` renders the trigger and its own portal, which is why it is for a trigger that appears once (a page header, a toolbar), never for a row. Rows of a list share one menu owned by the list parent: `frontend/one-context-menu-per-list-not-per-row`.
 
 ```tsx
-// Small fixed menu — declarative helper:
+// ✅ One trigger, small fixed menu
 const menu = useContextMenu({
   align: "end",
   ...fromStaticItems(() => [
@@ -19,7 +20,7 @@ const menu = useContextMenu({
 });
 return <ContextMenu contextMenu={menu} trigger={<Button variant="ghost" content="icon" icon={MoreHorizontal} />} />;
 
-// Menu over domain values (lazy per level, one commit point) — raw triple:
+// ✅ Menu over domain values (lazy per level, one commit point) — the raw triple
 const menu = useContextMenu<TaskRow, RowAction<TaskRow>>({
   items: (row, parent) => (parent === null ? rowActionItems(actions, row) : null),
   renderItem: (row, action) => rowActionSpec(action, row),
@@ -27,11 +28,8 @@ const menu = useContextMenu<TaskRow, RowAction<TaskRow>>({
 });
 ```
 
-For right-click / per-row triggers, call `menu.open(target, e)` and mount one `<ContextMenuPortal contextMenu={menu} />`.
-
-## ❌ Don't
-
 ```tsx
+// ❌ Wrong — a Popover of buttons
 const [open, setOpen] = useState(false);
 return (
   <Popover open={open} onOpenChange={setOpen}>
@@ -42,13 +40,12 @@ return (
       <button className="button-bg-overlay flex items-center gap-2 px-3 py-1.5" onClick={() => { onDownloadExcel(); setOpen(false); }}>
         <Download className="size-3.5" /> {i18n.excel}
       </button>
-      <button className="button-bg-overlay flex items-center gap-2 px-3 py-1.5" onClick={() => { onDownloadMarkdown(); setOpen(false); }}>
-        <FileText className="size-3.5" /> {i18n.markdown}
-      </button>
     </PopoverContent>
   </Popover>
 );
 ```
+
+**Rule of thumb:** if your PopoverContent is a `flex flex-col` of `<button>`s that each call an action and close, it's an action-row menu — use the hook.
 
 ## Carve-outs — Popover is correct when the body is NOT an action-row list
 

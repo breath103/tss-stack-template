@@ -1,4 +1,9 @@
-# Prefer discriminated unions over optional fields
+---
+topic: Types and schemas
+order: 30
+---
+
+# When states are mutually exclusive, model them as a discriminated union, not optional fields plus a boolean.
 
 Use discriminated unions (tagged unions) instead of optional fields when values are mutually exclusive. This gives exhaustive type checking and avoids impossible states.
 

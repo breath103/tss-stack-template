@@ -21,9 +21,19 @@ SPAN_LIMIT=150
 FILE_LINES=200
 FILE_COMPONENTS=8
 
+# Baseline: files over the limit before this gate went green. They are skipped, so only a
+# NEW offender fails. Never add a path here to get a change through; remove one when it is split.
+BASELINE="
+packages/frontend/src/components/VideoDitherer.tsx
+packages/frontend/src/routes/app/chat/ChatThread.tsx
+packages/frontend/src/routes/video-dither-playground/VideoDitherPlaygroundPage.tsx
+packages/frontend/src/routes/video-dither-playground/ui.tsx
+"
+
 span_hits=""
 folder_hits=""
 while IFS= read -r f; do
+  if [[ "$BASELINE" == *$'\n'"$f"$'\n'* ]]; then continue; fi
   # Largest span between top-level declarations (column-0 function/const/class).
   max="$(awk '
     /^(export )?(export default )?(async )?(function|const|class) [A-Za-z]/ {

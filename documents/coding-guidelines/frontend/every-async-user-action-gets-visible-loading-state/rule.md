@@ -1,4 +1,11 @@
-# Every async user action gets visible loading state — including icon buttons
+---
+topic: Buttons and async actions
+order: 10
+---
+
+# When a control starts async work, run it through useMutation, and show a spinner and disable the control while it runs.
+
+Use the `useMutation` hook (`@/hooks/useMutation`) for async actions (API calls on button click, form submissions, etc.). Never use manual `useState` for loading/error state.
 
 An icon-only button (trash, star, share) that fires an API call is *also* an async action. If it has no loading feedback, a laggy network renders the same icon for two seconds after the click while the request round-trips — the user re-clicks, fires a second call, data gets duplicated / double-deleted.
 
@@ -14,8 +21,32 @@ const remove = useMutation(async () => api.fetch("/api/memories/:id", "DELETE", 
 ```
 
 ```tsx
+// ✅ Correct - useMutation handles loading/error state
+import { useMutation } from "@/hooks/useMutation";
+
+const share = useMutation(async (folder: Folder) => {
+  await api.fetch("/api/onedrive/memories/:id/share", "POST", { ... });
+}, []);
+
+<Button onClick={() => { void share.call(folder); }} disabled={share.status === "loading"}>
+  Share
+</Button>
+```
+
+```tsx
 // ❌ Wrong — bare async handler, no loading, double-click duplicates the call
 <button onClick={() => void deleteMemory(id)}>
   <Trash2 className="size-4" />
 </button>
+```
+
+```tsx
+// ❌ Wrong - manual loading/error state
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+const handleClick = async () => {
+  setLoading(true);
+  try { await api.fetch(...); } catch (e) { setError(e.message); } finally { setLoading(false); }
+};
 ```

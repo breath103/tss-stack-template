@@ -1,4 +1,9 @@
-# Never accommodate `prefers-reduced-motion`
+---
+topic: Animation
+order: 30
+---
+
+# When you write an animation, don't add a prefers-reduced-motion branch.
 
 We do not support reduced motion. Do not detect it, do not branch on it, do not
 disable or swap animations for it. No `@media (prefers-reduced-motion: ...)` in

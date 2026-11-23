@@ -1,8 +1,10 @@
 ---
 requires: entity-repository
+topic: Hooks and state
+order: 20
 ---
 
-# Stateful controllers: a class via a single `useMemo`, not reducer + memoized object
+# When a hook owns state plus several actions, return one controller class instance created in useMemo.
 
 Same rule as "Context mutations" above, generalized: any time a hook owns
 **state + several methods + derived getters** that consumers will call on

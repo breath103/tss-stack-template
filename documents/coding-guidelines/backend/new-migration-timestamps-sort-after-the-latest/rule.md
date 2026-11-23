@@ -1,8 +1,9 @@
 ---
-requires: supabase
+topic: Migrations and tables
+order: 10
 ---
 
-# Name a new migration to sort after the latest existing file
+# When you name a migration file, give it a timestamp later than the newest existing migration.
 
 This repo's migration timeline runs **ahead of the calendar** — the newest files
 in `supabase/migrations/` are dated further in the future than today. So naming a

@@ -1,4 +1,9 @@
-# Use superjson for localStorage with non-JSON types
+---
+topic: Types and schemas
+order: 110
+---
+
+# When you store a Date, Map or Set in localStorage, serialize it with superjson inside a typed cache class, not JSON.stringify.
 
 When storing objects that contain `Date`, `Map`, `Set`, or other non-JSON-native types in localStorage, use `superjson` instead of `JSON.stringify` / `JSON.parse`. Encapsulate the cache in a typed class with `get` / `set` / `clear` methods.
 

@@ -1,4 +1,9 @@
-# Don't wrap `api.fetch` with thin "rename" helpers
+---
+topic: Data loading
+order: 60
+---
+
+# When you call the API, call api.fetch directly; don't add a helper that only renames the call.
 
 `api.fetch` is already typed and ergonomic. Wrapping it in a same-shape helper just to give it a nicer name buys nothing and costs a layer of indirection. Readers chase the wrapper, maintainers re-duplicate type annotations, and the actual endpoint gets hidden from the callsite.
 

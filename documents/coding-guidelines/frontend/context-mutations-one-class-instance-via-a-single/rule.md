@@ -1,8 +1,10 @@
 ---
 requires: entity-repository
+topic: Buttons and async actions
+order: 50
 ---
 
-# Context mutations: one class instance via a single `useMemo`
+# When a feature has several mutations, put them in one class created once with useMemo, not one useCallback per action.
 
 When a feature provider exposes mutation methods (createX, updateX, deleteX,
 …) through context, do NOT define each as its own `useCallback`. Define

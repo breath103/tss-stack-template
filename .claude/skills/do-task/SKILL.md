@@ -185,15 +185,17 @@ After writing a doc for substantive work, the **gate depends on mode**:
 
 - **`auto` mode** — post a 1-line "design doc at <path>, implementing" note, then proceed to Step 4 immediately. The doc exists as a record; the user can read it and interrupt if they disagree.
 
-## Step 4: Read the coding guidelines that apply to this change
+## Step 4: Read the guides that apply to this change
 
-**MANDATORY between Step 3 and writing code** — regardless of whether Step 3 wrote a doc, gated on approval, or skipped both. **You write no code, you create no file, you do not even sketch a function signature, until this step has completed in full.** Guidelines live one-per-folder under `documents/coding-guidelines/<group>/<slug>/rule.md`. Groups: `frontend`, `backend`, `sharing-code`. How to do e2e is not a coding guideline: it is Step 6 below.
+**Between Step 3 and writing code, every time** — whether Step 3 wrote a doc, gated on approval, or skipped both. No code and no new file until this step is done. How to do e2e is not a guide: it is Step 6 below.
 
-Some rules are gated on project capabilities: a rule with `requires: <add-on>` frontmatter applies only when `tss.json` `uses` lists that add-on. The `check-guidelines` skill and `documents/coding-guidelines/search.ts` already filter by `uses` for you — a supabase rule won't surface in a non-supabase project.
+1. Run `./scripts/list_guides.ts` and read the titles, grouped by topic. Each title is one sentence: "When X, do Y." A guide gated on an add-on (`requires:`) is listed only when `tss.json` `uses` has it.
+2. Decide which are relevant: the feature you are building AND the code you will type to build it (a form, a skeleton, an empty state, a text size, a repo method).
+3. Run `./scripts/show_guides.ts <n>,<n>,…` and read those in full. A title is not the guide; the body has rules the title leaves out.
+4. Follow them while implementing (Step 5). Code copied from a neighbour file is not exempt: the neighbour may be what a guide exists to fix.
+5. When the code is written, run `./scripts/recheck_guides.ts`. It prints your changed files and the titles of every guide you have not been shown; show the ones that match a line you added and fix the code. `./scripts/ci_local.ts` (any `--only`, and so every push) fails until it has run for the current diff.
 
-The walk, in short: `find documents/coding-guidelines -name rule.md | sort`, then print a `apply:`/`skip:` verdict line **for every slug** in chat, read every `apply` rule front-to-back (+ run its `check.sh` if present), and carry them into Step 5. One verdict line per slug in the chat log IS the gate. Every Polish finding (Step 8) that fires on a rule you marked `skip` is a Step 4 failure.
-
-**The tempting shortcuts (neighbour-file mimicry, slug-name recall, keyword grep, "Polish will catch it") are all violations — and the full procedure + self-check are in `references/reading-guidelines.md`. Read it the first time each session you hit Step 4.** The `check-guidelines` skill can drive the whole walk for you; either way the verdict lines must land in the chat.
+Why each shortcut fails: `references/reading-guidelines.md`.
 
 ## Step 5: Implement
 

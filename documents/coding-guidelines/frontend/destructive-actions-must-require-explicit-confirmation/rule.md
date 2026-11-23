@@ -1,34 +1,39 @@
-# Destructive actions must require explicit confirmation
+---
+topic: Buttons and async actions
+order: 40
+---
 
-Any UI affordance that **deletes, archives, removes, discards, resets, or otherwise destroys user data** must route through `useModal().confirm({ variant: "destructive" })` before firing the mutation — no exceptions for "small" objects (a single comment, a single tag, a single attachment). One stray click on a trash icon should never silently nuke data. Soft-deletes that are recoverable from the UI are an exception only if the recovery is in the same screen and obvious (e.g. an undo toast you can click before it disappears).
+# When an action deletes, clears or detaches user data, await useConfirm() with variant "destructive" before running it.
 
-This rule complements the "no native `window.confirm`" rule above: that rule says *how* to confirm, this rule says *when* you must.
+Any control that deletes, removes, discards, resets or detaches user data awaits `useConfirm()`
+(`@/contexts/ModalContext`) with `variant: "destructive"` before the mutation fires. There is no
+exception for small objects (one message, one tag, one attachment): a stray click on a trash
+icon must never destroy data. A soft delete is exempt only when the undo is on the same screen
+and obvious.
 
 ```tsx
-// ✅ Correct — comment delete with destructive confirm
-async function handleDelete() {
+// ✅ Correct
+const confirm = useConfirm();
+const remove = async () => {
   const ok = await confirm({
-    title: i18n.confirmDeleteTitle,
-    description: i18n.confirmDeleteDescription,
-    confirmText: i18n.delete,
+    title: i18n.removeTitle.replace("{name}", name),
+    description: i18n.removeBody,
+    confirmText: i18n.remove,
     variant: "destructive",
   });
-  if (!ok) return;
-  await mutations.deleteComment(comment.id);
-}
+  if (ok) mutations.removeMember(membership);
+};
 ```
 
 ```tsx
 // ❌ Wrong — single-click destruction
-<button onClick={() => mutations.deleteComment(comment.id)}>
-  <Trash2 />
-</button>
+<Button icon={Trash} onClick={() => mutations.removeMember(membership)} />
 ```
 
 What counts as destructive:
-- DELETE endpoints (`/api/comments/:id`, `/api/files/:id`, `/api/tasks/:id`, etc.)
-- Bulk removes ("Clear all", "Remove selected")
-- Setting a value back to empty when the prior value was non-trivial (a paragraph of description → ""; "Are you sure you want to clear this?")
-- Force-unlink / detach actions that orphan dependent rows
+- Anything that ends in a DELETE endpoint.
+- Bulk removes ("Clear all", "Remove selected").
+- Emptying a non-trivial value (a paragraph of description set back to nothing).
+- Unlink / detach actions that orphan dependent rows.
 
-Reviewers should reject any new delete/remove handler without a `confirm()` gate. The confirm copy lives in the component's `.i18n.json` — never inline English in the dialog.
+The confirm copy lives in the component's `.i18n.json`, never inline in the call.

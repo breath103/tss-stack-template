@@ -1,4 +1,9 @@
-# Inline single-use schemas and variables
+---
+topic: Code structure
+order: 30
+---
+
+# When a schema or variable is used once, inline it where it is used.
 
 Don't extract a variable for something used only once. Inline it.
 

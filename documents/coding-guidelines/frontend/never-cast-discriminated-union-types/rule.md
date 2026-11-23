@@ -1,4 +1,9 @@
-# Never cast discriminated union types
+---
+topic: Types and schemas
+order: 70
+---
+
+# When you read a field that only some union members have, narrow on the discriminant; never cast.
 
 When a type is already a discriminated union, never cast it to `Record<string, unknown>` or any other type. Use the discriminant to narrow and let TypeScript infer the config shape.
 

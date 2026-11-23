@@ -1,4 +1,9 @@
-# Use `ModalForm` for a form in a modal — don't hand-roll the shell
+---
+topic: Forms
+order: 20
+---
+
+# When a form lives in a modal, use ModalForm; don't build a modal shell around a <form>.
 
 If a modal's body is a **form** — a few fields plus a cancel/submit footer —
 render `@/components/ui/ModalForm` and open it through

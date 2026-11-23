@@ -1,4 +1,9 @@
-# Use loadConfig() for configuration (scripts only)
+---
+topic: Scripts and tests
+order: 30
+---
+
+# When a script needs a value from tss.json, call loadConfig(); don't read the file yourself.
 
 In scripts (e.g., `scripts/dev.ts`, `scripts/deploy.ts`, `scripts/build.ts`), use `loadConfig()` to read `tss.json`:
 

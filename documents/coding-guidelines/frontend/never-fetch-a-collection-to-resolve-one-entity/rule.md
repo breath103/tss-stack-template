@@ -1,8 +1,10 @@
 ---
 requires: entity-repository
+topic: Data loading
+order: 40
 ---
 
-# Never fetch a collection to resolve one entity — read by id, batch the misses
+# When you show one entity by id, use useEntity with a batched createEntityLoader; don't fetch the list and .find() it.
 
 A component that renders one entity resolves it in exactly two steps:
 
@@ -91,8 +93,7 @@ warm, and the answer never involves a collection fetch.
 
 The fix for an N+1 is the loader, **not** a parent that bulk-fetches its
 children's entities before the list commits and hands them down. That reintroduces
-prop-threaded records (→ `load-and-render-persisted-data-through-the-repository`
-§3), couples every row to an ancestor, and breaks the moment a row is rendered
+prop-threaded records (→ `read-persisted-rows-from-the-repository-by-id`), couples every row to an ancestor, and breaks the moment a row is rendered
 from anywhere else. Let each row ask for its own id and let the loader batch.
 
 ## Don't hand-roll the loader
@@ -114,8 +115,7 @@ error, and an `unhandledRejection`). Import it; don't reimplement it per app.
 
 ## Related rules
 
-- `frontend/load-and-render-persisted-data-through-the-repository` — the
-  canonical end-to-end data-flow rule; this one is its by-id resolution step.
-- `frontend/choose-the-right-list-subscription-primitive` — which hook for lists.
+- `frontend/read-persisted-rows-from-the-repository-by-id` — components read
+  rows by id; this one is how a by-id read gets fetched.
 - `frontend/don-t-wrap-api-fetch-with-thin-rename` — the loader's `batchFetch` is
   a real wrapper (it seeds the cache), not a rename.

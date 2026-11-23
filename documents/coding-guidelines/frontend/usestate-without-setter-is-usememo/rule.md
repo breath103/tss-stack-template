@@ -1,4 +1,9 @@
-# `useState` without a setter is `useMemo`
+---
+topic: Hooks and state
+order: 60
+---
+
+# When you hold an object created once per mount, use useMemo, not useRef(new …) or useState without a setter.
 
 If you destructure `useState` and never use the setter, you don't have state — you have a stable value. Use `useMemo`.
 

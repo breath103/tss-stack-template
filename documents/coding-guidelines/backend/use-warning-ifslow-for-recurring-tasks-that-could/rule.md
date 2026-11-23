@@ -1,4 +1,9 @@
-# Use `warning.ifSlow` for recurring tasks that could stall
+---
+topic: Errors and fallbacks
+order: 90
+---
+
+# When work runs on a recurring tick, wrap it in warning.ifSlow.
 
 When a task runs on a recurring interval (e.g. a cron tick every 1 minute), wrap potentially slow operations with `warning.ifSlow` to detect when they exceed expected duration. If a recurring task takes longer than its interval, it can pile up and cause cascading failures.
 

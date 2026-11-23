@@ -1,4 +1,9 @@
-# Never add redundant type annotations
+---
+topic: Types and schemas
+order: 80
+---
+
+# When TypeScript already infers a variable's type, leave the annotation off.
 
 Never annotate a type that TypeScript already infers. Explicit annotations on variables, return types, and parameters are noise when the compiler knows the type.
 

@@ -1,4 +1,9 @@
-# Reuse the DOM tree across variants — don't branch into separate subtrees
+---
+topic: Components
+order: 70
+---
+
+# When a component has two display modes, render one JSX tree with conditional parts, not two separate returns.
 
 When a component has two display modes (collapsed/expanded, compact/detailed, loading/loaded), don't return two entirely different JSX trees from the same component. Keep one layout, conditionally render the *parts* that actually differ, and let React reuse the DOM nodes.
 

@@ -1,4 +1,9 @@
-# Only export React components from `.tsx` files
+---
+topic: Code structure
+order: 50
+---
+
+# When a .tsx file needs a constant, helper or hook, put it in a .ts file; a .tsx file exports only components.
 
 Every export from a `.tsx` file must be a React component (or a type). Exporting non-component values (cva variants, constants, utility functions) breaks Vite's React Fast Refresh — the entire file is invalidated on every change, cascading to all importers.
 
