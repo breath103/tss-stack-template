@@ -19,7 +19,8 @@ const ALLOWED = [
   "# what this does\ngit status",
   "git status;",
   "\n\ngit status\n",
-  "cd /Users/someone/Work/tss-stack-template",
+  "cd /Users/someone/Work/other-checkout",
+  `cd ${fileURLToPath(new URL("../../..", import.meta.url))}`,
 
   'git commit -m "a && b; c || d"',
   'git commit -m "Title\n\nBody line one; still the body.\n- cd into nothing\n- 2>&1 is text here"',

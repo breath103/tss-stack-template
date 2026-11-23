@@ -486,9 +486,9 @@ export class BashCommandPolicy {
     {
       id: "cd",
       message:
-        "No `cd` inside this repo. Every command runs from the repo root: pass the path as an argument, and use `npm <command> -w <package>` for a workspace. `cd` to an absolute path outside the repo (another checkout, e.g. the template) is allowed.",
+        "No `cd` inside this repo. Every command runs from the repo root: pass the path as an argument, and use `npm <command> -w <package>` for a workspace. `cd` to an absolute path outside the repo (another checkout), or back to the repo root, is allowed.",
       broken: line =>
-        line.named("cd", "pushd", "popd").some(({ args }) => !BashCommandPolicy.leavesRepo(args.at(0)?.text ?? "")),
+        line.named("cd", "pushd", "popd").some(({ args }) => !BashCommandPolicy.allowsCdTo(args.at(0)?.text ?? "")),
     },
     {
       id: "substitution",
@@ -576,9 +576,11 @@ export class BashCommandPolicy {
 
   private static readonly REPO_ROOT = new URL("../../..", import.meta.url).pathname;
 
-  private static leavesRepo(target: string) {
+  /** An absolute path outside the repo (another checkout), or the repo root itself (coming back). */
+  private static allowsCdTo(target: string) {
     if (!target.startsWith("/") || target.split("/").includes("..")) return false;
-    return !`${target.replace(/\/+$/, "")}/`.startsWith(BashCommandPolicy.REPO_ROOT);
+    const dir = `${target.replace(/\/+$/, "")}/`;
+    return dir === BashCommandPolicy.REPO_ROOT || !dir.startsWith(BashCommandPolicy.REPO_ROOT);
   }
 
   /** Null when the command may run. `reason` is written for the agent and names every broken rule. */
