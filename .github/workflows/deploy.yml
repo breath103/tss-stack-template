@@ -48,6 +48,8 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - run: ./scripts/ci_local.ts --only test
+      # The stack test synthesizes the Lambda asset from `packages/backend/dist`.
+      - run: ./packages/backend/scripts/build-types.ts
       - name: Verify stack cleanup policies
         run: node --import tsx --test .github/scripts/backend-stack.test.mjs
       # Needs no AWS access, so PR CI catches a stale package-lock.deploy.json even where the deploy job is main-only.
