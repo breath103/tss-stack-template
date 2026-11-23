@@ -8,7 +8,7 @@ RuleTester.it = it;
 
 new RuleTester().run("no-http-exception-message", noHttpExceptionMessage, {
   valid: [
-    { code: 'throw new ApiError(400, { type: "invalid_request_body" });', filename: "t.ts" },
+    { code: 'throw new ApiError(404, { type: "workspace_not_found" });', filename: "t.ts" },
     { code: "throw new HTTPException(401);", filename: "t.ts" },
     { code: "throw new HTTPException(401, { res });", filename: "t.ts" },
     { code: "class E extends HTTPException { constructor() { super(400, { message: code }); } }", filename: "t.ts" },

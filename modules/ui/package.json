@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "oxlint && biome check .",
-    "lint:fix": "oxlint --fix && biome check --write ."
+    "lint": "../../scripts/lint.ts ui",
+    "lint:fix": "../../scripts/lint.ts ui --fix"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

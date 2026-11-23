@@ -115,7 +115,10 @@ export function Selector<T extends string | null>({
   const [open, setOpen] = useState(false);
 
   const nullIsOption = options.includes(null as T);
-  const toRadix = (v: T): string => (v === null ? (nullIsOption ? NULL_SENTINEL : "") : v);
+  const toRadix = (v: T): string => {
+    if (v !== null) return v;
+    else return nullIsOption ? NULL_SENTINEL : "";
+  };
 
   // A closed Content still mounts every child — into a detached fragment, which
   // is where the trigger's Value mirrors the selected ItemText from. So a closed

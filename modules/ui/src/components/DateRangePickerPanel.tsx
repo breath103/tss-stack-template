@@ -372,10 +372,14 @@ export function DateRangePickerPanel({
 
   const drag = useRangeDrag({ onChange: emit, setActive });
 
+  function timeCarrier(endpoint: DateRangeEndpoint): Date | undefined {
+    if (!withTime) return undefined;
+    return endpoint === "start" ? value?.from : value?.to;
+  }
+
   function pickDay(day: Date) {
     if (drag.shouldSuppressClick()) return;
-    const carrier = withTime ? (active === "start" ? value?.from : value?.to) : undefined;
-    const picked = mergeTimeOfDay(carrier, day);
+    const picked = mergeTimeOfDay(timeCarrier(active), day);
     emit(writeEndpoint(value, active, picked));
     // Calendar-pick auto-advance: when the user just picked a start, they're
     // most likely about to pick the end next. Typed commits do NOT do this.
@@ -395,8 +399,7 @@ export function DateRangePickerPanel({
       clear(endpoint);
       return;
     }
-    const carrier = withTime ? (endpoint === "start" ? value?.from : value?.to) : undefined;
-    const picked = mergeTimeOfDay(carrier, date);
+    const picked = mergeTimeOfDay(timeCarrier(endpoint), date);
     emit(writeEndpoint(value, endpoint, picked));
     // Intentionally NO setActive here. See the "Rules of `active`" comment
     // at the top — typed commits must not flip active.

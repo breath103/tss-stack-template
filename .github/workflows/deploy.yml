@@ -11,30 +11,66 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check:
+  # Typecheck and test run `ci_local.ts`, which is the step list for both groups, so a
+  # step added there runs here with no second edit. Lint is sharded below.
+  typecheck:
+    name: Typecheck
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Build & Lint & Test backend
-            command: ./packages/backend/scripts/build-types.ts && ./packages/backend/scripts/lint.ts && ./packages/backend/scripts/knip.ts && cd packages/backend && npx tsx --test src/**/__tests__/**/*.test.ts
-          - name: Build & Lint & Test frontend
-            command: ./packages/backend/scripts/build-types.ts && ./packages/frontend/scripts/build-types.ts && ./packages/frontend/scripts/lint.ts && ./scripts/knip.ts && cd packages/frontend && ../../scripts/with-env.sh --env=test npx vitest run
-          - name: Build & Lint e2e & scripts & repo-wide biome
-            command: ./scripts/e2e_build_types.ts && ./scripts/e2e_lint.ts && ./scripts/build_types.ts && ./scripts/scripts_lint.ts && ./scripts/biome_lint.ts
-    name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - run: ${{ matrix.command }}
+      - run: ./scripts/ci_local.ts --only typecheck
+
+  lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    # `--shard=k/n` splits the LINT_TREES table by measured cost inside the script, so this
+    # matrix lists SHARD NUMBERS, never tree names: adding a tree lands it in a shard
+    # automatically.
+    name: Lint ${{ matrix.shard }}/2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      # oxlint is type-aware and frontend source references backend types across the
+      # package boundary; without the emitted declarations the `no-unsafe-*` family misfires.
+      - run: ./packages/backend/scripts/build-types.ts
+      - run: ./scripts/lint.ts --shard=${{ matrix.shard }}/2
+      - if: matrix.shard == 1
+        run: ./scripts/knip.ts
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - run: ./scripts/ci_local.ts --only test
+      # The stack test synthesizes the Lambda asset from `packages/backend/dist`.
+      - run: ./packages/backend/scripts/build-types.ts
       - name: Verify stack cleanup policies
-        if: matrix.name == 'Build & Lint & Test backend'
         run: node --import tsx --test .github/scripts/backend-stack.test.mjs
       # Needs no AWS access, so PR CI catches a stale package-lock.deploy.json even where the deploy job is main-only.
       - name: Verify packaged dependencies
-        if: matrix.name == 'Build & Lint & Test backend'
         run: ./packages/backend/scripts/pack-build.ts && ./packages/backend/scripts/pack-install.ts && ./packages/backend/scripts/pack-verify.ts
+
+  check:
+    name: All checks
+    needs: [typecheck, lint, test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every check group to pass
+        env:
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          test "$TYPECHECK_RESULT" = success
+          test "$LINT_RESULT" = success
+          test "$TEST_RESULT" = success
 
   deploy:
     needs: check

@@ -2,15 +2,10 @@ import * as cdk from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 
-interface GitHubActionsIamProps {
-  project: string;
-  repo: string;
-}
-
 export class GitHubActionsIam extends Construct {
   public readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: GitHubActionsIamProps) {
+  constructor(scope: Construct, id: string, props: { project: string; repo: string }) {
     super(scope, id);
 
     const provider = new iam.OpenIdConnectProvider(this, "GitHubOIDC", {

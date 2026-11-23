@@ -2,13 +2,12 @@
 // case, or `.select("col1, col2")` for a real projection.
 // (Coding guideline: backend/use-select-not-select-for-the-all-columns.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   callee?: { type: string; property?: { name?: string } };
   arguments?: { type: string; value?: unknown }[];
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

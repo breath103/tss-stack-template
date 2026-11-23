@@ -2,9 +2,9 @@ import type { ApiRoutes } from "@backend/api";
 import { createRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { ApiClient } from "../lib/api-client";
-import { useApiErrorMessage } from "../lib/api-error-message";
-import { rootRoute } from "./__root";
+import { ApiClient } from "../../lib/api-client";
+import { useApiErrorMessage } from "../../lib/api-error-message";
+import { rootRoute } from "../__root";
 
 const api = new ApiClient<ApiRoutes>();
 

@@ -1,16 +1,57 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc"],
+  // The ONE declaration of the local plugin. A `specifier` resolves relative to the
+  // config file that declares it — not the config that inherits it — and it carries
+  // through `extends`, including two levels down. That is what lets every tree get
+  // the `local/*` rules without repeating this path, so do not move it into a
+  // per-package config "to be explicit".
+  "jsPlugins": [{ "name": "local", "specifier": "./packages/shared/src/oxlint-rules/plugin.ts" }],
   "categories": {
     "correctness": "error"
   },
   "options": {
     "typeAware": true
   },
+  // Every rule here applies to every tree in the repo. Node-only rules live in
+  // `.oxlintrc.json`; React/Tailwind rules live in `.oxlintrc.react.json`.
+  // Nothing is ever "warn": a rule is either an error worth fixing or off.
   "rules": {
-    "typescript/no-explicit-any": "warn",
+    "typescript/no-explicit-any": "error",
     "typescript/no-inferrable-types": "error",
     "typescript/require-await": "error",
-    "unicorn/prefer-node-protocol": "error"
-  }
+    "unicorn/prefer-node-protocol": "error",
+    "typescript/no-unnecessary-condition": ["error", { "allowConstantLoopConditions": true }],
+    "typescript/no-floating-promises": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-unsafe-enum-comparison": "error",
+    "no-nested-ternary": "error",
+    "no-alert": "error",
+    "local/no-single-use-type": "error",
+    "local/no-module-level-mutable-state": "error",
+    "local/expired-todo": "error"
+  },
+  // Overrides are order-sensitive and an inherited config's overrides are applied
+  // BEFORE the extending config's. So a carve-out here cannot switch off a rule that a
+  // downstream tier's override switches back on — the test-file carve-outs live at the
+  // END of each tier for that reason. Nothing here is re-enabled later.
+  "overrides": [
+    {
+      "files": ["**/scripts/**"],
+      "rules": {
+        "local/no-top-level-await": "error"
+      }
+    },
+    {
+      // A `.d.ts` names types for consumers; single use inside the file is the point.
+      "files": ["**/*.d.ts"],
+      "rules": {
+        "local/no-single-use-type": "off"
+      }
+    }
+  ]
 }

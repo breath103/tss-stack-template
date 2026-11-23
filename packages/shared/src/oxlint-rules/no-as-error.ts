@@ -3,12 +3,11 @@
 // caught value's type, which the compiler cannot verify.
 // (Coding guideline: backend/extract-error-messages-with-instanceof-error-not-as.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   typeAnnotation?: { type: string; typeName?: { type: string; name?: string } };
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

@@ -1,13 +1,12 @@
 // Flags raw `fetch("/...")` calls to our own API. Use api.fetch instead.
 // (Coding guideline: frontend/use-apiclient-for-api-calls.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   callee?: { type: string; name?: string };
   arguments?: Array<{ type: string; value?: unknown }>;
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

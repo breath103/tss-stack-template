@@ -191,9 +191,7 @@ Placeholders used throughout:
       `{"ok":true}`. If Google credentials are set, also sign in through the
       browser. Then run `./scripts/dev.ts stop`.
 - [ ] Run the checks that CI runs:
-      - [ ] `./scripts/lint`.
-      - [ ] `npm run -w @modules/ui lint` and `npm run -w @modules/ui typecheck`.
-            `./scripts/lint` skips `modules/ui`.
+      - [ ] `./scripts/ci_local.ts` (typecheck + lint + test, every tree).
       - [ ] `node --import tsx --test .github/scripts/backend-stack.test.mjs`.
             This catches an invalid project name before CI does.
 - [ ] Commit (`chore: rename project to <project>`) and

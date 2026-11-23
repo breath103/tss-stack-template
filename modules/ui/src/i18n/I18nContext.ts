@@ -1,4 +1,4 @@
-import { createContext, createElement, type ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, createElement, type ReactNode, useContext, useMemo } from "react";
 
 import { DateFormatter } from "../lib/date-formatter";
 
@@ -10,7 +10,7 @@ export type { Locale };
 const I18nContext = createContext<Locale | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale] = useState<Locale>(detectLocale);
+  const locale = useMemo<Locale>(detectLocale, []);
   return createElement(I18nContext.Provider, { value: locale }, children);
 }
 

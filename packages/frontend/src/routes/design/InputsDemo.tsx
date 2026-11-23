@@ -4,11 +4,6 @@ import { Input } from "@ui/components/Input";
 import { useState } from "react";
 import { SectionTitle } from "./SectionTitle";
 
-// Raw <input type="number"> styling for the playground controls. Input
-// primitive is text-only; if a NumberInput primitive lands, swap to that.
-const NUMBER_INPUT_CLASS =
-  "h-9 w-20 rounded-md border bg-input px-3 text-base text-text-1 transition-colors focus-input disabled:cursor-not-allowed disabled:opacity-50";
-
 export function InputsDemo() {
   const [callsign, setCallsign] = useState("");
   const [notes, setNotes] = useState("");
@@ -68,34 +63,24 @@ function AutoresizePlayground() {
         </label>
         <div className="space-y-1">
           <SectionTitle className="block">minLine</SectionTitle>
-          <input
+          <Input
             id="minLine"
             type="number"
-            min={1}
-            max={maxLine}
-            value={minLine}
-            onChange={e => {
-              const next = Math.max(1, Math.min(e.currentTarget.valueAsNumber || 1, maxLine));
-              setMinLine(next);
-            }}
+            value={String(minLine)}
+            onChange={value => setMinLine(Math.max(1, Math.min(Number(value) || 1, maxLine)))}
             disabled={!autoresize}
-            className={NUMBER_INPUT_CLASS}
+            className="h-9 w-20 px-3"
           />
         </div>
         <div className="space-y-1">
           <SectionTitle className="block">maxLine</SectionTitle>
-          <input
+          <Input
             id="maxLine"
             type="number"
-            min={minLine}
-            max={20}
-            value={maxLine}
-            onChange={e => {
-              const next = Math.max(minLine, Math.min(e.currentTarget.valueAsNumber || minLine, 20));
-              setMaxLine(next);
-            }}
+            value={String(maxLine)}
+            onChange={value => setMaxLine(Math.max(minLine, Math.min(Number(value) || minLine, 20)))}
             disabled={!autoresize}
-            className={NUMBER_INPUT_CLASS}
+            className="h-9 w-20 px-3"
           />
         </div>
         <div className="ml-auto text-sm text-text-3">

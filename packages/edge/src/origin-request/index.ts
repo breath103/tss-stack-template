@@ -3,9 +3,9 @@ import type { CloudFrontRequest, CloudFrontRequestEvent, CloudFrontRequestResult
 import { sanitizeBranchName } from "shared/branch";
 import * as SSMParameters from "shared/ssm-parameters";
 
-// Injected at build time by esbuild
-const PROJECT = process.env.PROJECT!;
-const SSM_REGION = process.env.SSM_REGION!;
+// Injected at build time by esbuild; typed in `src/env.d.ts`.
+const PROJECT = process.env.PROJECT;
+const SSM_REGION = process.env.SSM_REGION;
 
 const ssm = new SSMClient({ region: SSM_REGION });
 

@@ -23,9 +23,11 @@ const watch$ = (p: string, opts?: WatchOptions) =>
     else watch(p, listener);
   });
 
+// singleton: this script IS the process — one dev server, one restart flag
 let server: ChildProcess | null = null;
 // Set right before we SIGTERM the server for a file-change restart, so its
 // `exit` is recognized as intentional and not treated as a crash.
+// singleton: paired with `server` above — one process, one restart flag
 let restarting = false;
 
 const startServer = (tsx: string) => {

@@ -2,7 +2,7 @@
 // arrives, so code written to support a retiring format (legacy URL params, an
 // old payload shape) gets deleted instead of living forever. A `TODO: [` whose
 // date isn't `yyyy/mm/dd` is flagged too, or it would silently never expire.
-// (Coding guideline: frontend/ and backend/date-every-legacy-format-shim-with-an-expiring-todo.)
+// (Coding guideline: frontend/date-every-legacy-format-shim-with-an-expiring-todo.)
 
 interface Comment {
   value: string;

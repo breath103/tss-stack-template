@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+// singleton: one refcount for the one #modal-container in the document
 let inertRefCount = 0;
 
 export function useInertBackground() {

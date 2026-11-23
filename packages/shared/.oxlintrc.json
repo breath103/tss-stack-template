@@ -1,0 +1,41 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../.oxlintrc.json"],
+  "overrides": [
+    {
+      // Must be an override, not a top-level `rules` entry: the `**/src/**` override in
+      // `.oxlintrc.json` turns this on, and overrides apply after an extending config's
+      // plain rules.
+      //
+      // This package is build-time tooling only — scripts, CDK helpers, and the oxlint
+      // plugin. Nothing here is a Lambda runtime dependency, so the rule's premise
+      // ("only package.json `dependencies` ship") does not hold; `no-single-use-type.ts`
+      // says as much in its own header ("dev-only lint tooling, never bundled").
+      "files": ["src/**"],
+      "rules": {
+        "local/no-extraneous-dependencies": "off"
+      }
+    },
+    {
+      // Both are cases where the rule's premise inverts for a file whose job is to model
+      // or detect the very thing the rule bans.
+      //
+      // `no-single-use-type`: every rule file hand-models the AST shape it visits as a
+      // local `Node` interface, referenced once in the visitor signature. The rule's
+      // premise — "a name used once is an abstraction that never came" — inverts here:
+      // the name IS the documentation for an API oxlint publishes no types for, and
+      // inlining a nested node shape into a visitor parameter is strictly less readable.
+      // The shapes that genuinely WERE duplicated (`Context`, `Variable`) are shared
+      // from `plugin-api.ts` instead.
+      //
+      // `no-manual-calendar-date`: for the same reason a spellchecker skips a
+      // dictionary — a rule that DETECTS manual date handling has to name the getters
+      // it bans.
+      "files": ["src/oxlint-rules/**"],
+      "rules": {
+        "local/no-single-use-type": "off",
+        "local/no-manual-calendar-date": "off"
+      }
+    }
+  ]
+}

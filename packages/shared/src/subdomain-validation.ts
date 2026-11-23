@@ -1,10 +1,5 @@
 import type { SubdomainMapValue, TssConfig } from "./config.js";
 
-interface ValidationResult {
-  valid: boolean;
-  errors: string[];
-}
-
 /** Type guard for redirect entries */
 export function isRedirect(value: SubdomainMapValue): value is { redirect: string } {
   return typeof value === "object" && value !== null && "redirect" in value;
@@ -16,7 +11,7 @@ export function isRedirect(value: SubdomainMapValue): value is { redirect: strin
  * - Cycle detected (e.g., a -> b -> a)
  * - Redirect chain ends in blocked (null) subdomain
  */
-export function validateSubdomainMap(subdomainMap: TssConfig["subdomainMap"]): ValidationResult {
+export function validateSubdomainMap(subdomainMap: TssConfig["subdomainMap"]): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   /**

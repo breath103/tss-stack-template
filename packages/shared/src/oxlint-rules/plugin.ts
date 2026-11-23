@@ -10,6 +10,8 @@
 import { isEnabled, projectUses } from "../uses.ts";
 import expiredTodo from "./expired-todo.ts";
 import noAsError from "./no-as-error.ts";
+import noClassScopedModuleConst from "./no-class-scoped-module-const.ts";
+import noCreateRouteOutsideRouteFile from "./no-create-route-outside-route-file.ts";
 import noDoubleCast from "./no-double-cast.ts";
 import noEntitiesIndex from "./no-entities-index.ts";
 import noExtraneousDependencies from "./no-extraneous-dependencies.ts";
@@ -18,14 +20,21 @@ import noHttpExceptionMessage from "./no-http-exception-message.ts";
 import noI18nProp from "./no-i18n-prop.ts";
 import noInlineDatabaseRowType from "./no-inline-database-row-type.ts";
 import noInlineFontSize from "./no-inline-font-size.ts";
+import noLodashEs from "./no-lodash-es.ts";
 import noManualCalendarDate from "./no-manual-calendar-date.ts";
 import noManualDateFormat from "./no-manual-date-format.ts";
+import noModuleLevelMutableState from "./no-module-level-mutable-state.ts";
 import noNativeDateInput from "./no-native-date-input.ts";
 import noProcessEnvBang from "./no-process-env-bang.ts";
 import noRawFetch from "./no-raw-fetch.ts";
+import noRawTextInput from "./no-raw-text-input.ts";
 import noSelectStar from "./no-select-star.ts";
+import noSetterlessUsestate from "./no-setterless-usestate.ts";
 import noSingleUseType from "./no-single-use-type.ts";
+import noStaticLiteralInComponent from "./no-static-literal-in-component.ts";
 import noTemplateLiteralClassname from "./no-template-literal-classname.ts";
+import noTopLevelAwait from "./no-top-level-await.ts";
+import noUiGlyphInText from "./no-ui-glyph-in-text.ts";
 
 const uses = projectUses();
 const gate = (rule: { meta?: { requires?: string | string[] } }) =>
@@ -38,6 +47,8 @@ export default {
     "no-single-use-type": gate(noSingleUseType),
     "no-extraneous-dependencies": gate(noExtraneousDependencies),
     "no-as-error": gate(noAsError),
+    "no-class-scoped-module-const": gate(noClassScopedModuleConst),
+    "no-create-route-outside-route-file": gate(noCreateRouteOutsideRouteFile),
     "no-double-cast": gate(noDoubleCast),
     "no-entities-index": gate(noEntitiesIndex),
     "no-hand-written-event-guard": gate(noHandWrittenEventGuard),
@@ -45,12 +56,19 @@ export default {
     "no-i18n-prop": gate(noI18nProp),
     "no-inline-database-row-type": gate(noInlineDatabaseRowType),
     "no-inline-font-size": gate(noInlineFontSize),
+    "no-lodash-es": gate(noLodashEs),
     "no-manual-calendar-date": gate(noManualCalendarDate),
     "no-manual-date-format": gate(noManualDateFormat),
+    "no-module-level-mutable-state": gate(noModuleLevelMutableState),
     "no-native-date-input": gate(noNativeDateInput),
     "no-process-env-bang": gate(noProcessEnvBang),
     "no-raw-fetch": gate(noRawFetch),
+    "no-raw-text-input": gate(noRawTextInput),
     "no-select-star": gate(noSelectStar),
+    "no-setterless-usestate": gate(noSetterlessUsestate),
+    "no-static-literal-in-component": gate(noStaticLiteralInComponent),
     "no-template-literal-classname": gate(noTemplateLiteralClassname),
+    "no-top-level-await": gate(noTopLevelAwait),
+    "no-ui-glyph-in-text": gate(noUiGlyphInText),
   },
 };

@@ -3,32 +3,49 @@ set -e
 
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
+# `--staged` derives which trees to lint from the staged paths, using the same
+# LINT_TREES table the CI job uses — not a case-statement here, which would be a
+# second hand-maintained copy of the path→tree mapping.
+./scripts/lint.ts --staged --fix
+# Re-stage whatever --fix rewrote.
+if [ -n "$STAGED_FILES" ]; then
+  echo "$STAGED_FILES" | xargs git add
+fi
+
+# knip's targets are the two packages that have a knip config.
+KNIP_TARGETS=""
+for target in backend frontend; do
+  if echo "$STAGED_FILES" | grep -qE "^packages/$target/"; then KNIP_TARGETS="$KNIP_TARGETS $target"; fi
+done
+if [ -n "$KNIP_TARGETS" ]; then
+  echo "Staged changes in:$KNIP_TARGETS — running knip..."
+  ./scripts/knip.ts $KNIP_TARGETS
+fi
+
 BACKEND_STAGED=$(echo "$STAGED_FILES" | grep -E "^packages/backend/" || true)
 if [ -n "$BACKEND_STAGED" ]; then
-  echo "Backend files changed, running lint --fix..."
-  ./packages/backend/scripts/lint.ts --fix
-  echo "$BACKEND_STAGED" | xargs git add
+  echo "Backend files changed, running type check..."
+  ./packages/backend/scripts/build-types.ts
+fi
 
-  echo "Backend files changed, running knip..."
-  ./packages/backend/scripts/knip.ts
+SCRIPTS_STAGED=$(echo "$STAGED_FILES" | grep -E "^scripts/" || true)
+if [ -n "$SCRIPTS_STAGED" ]; then
+  echo "Root scripts changed, running type check..."
+  ./scripts/build_types.ts
 fi
 
 E2E_STAGED=$(echo "$STAGED_FILES" | grep -E "^e2e/" || true)
 if [ -n "$E2E_STAGED" ]; then
-  echo "E2E files changed, running lint --fix..."
-  ./scripts/e2e_lint.ts --fix
-  echo "$E2E_STAGED" | xargs git add
-
   echo "E2E files changed, running type check..."
   ./scripts/e2e_build_types.ts
 fi
 
 FRONTEND_STAGED=$(echo "$STAGED_FILES" | grep -E "^packages/frontend/" || true)
 if [ -n "$FRONTEND_STAGED" ]; then
-  echo "Frontend files changed, running lint --fix..."
-  ./packages/frontend/scripts/lint.ts --fix
-  echo "$FRONTEND_STAGED" | xargs git add
-
-  echo "Frontend files changed, running knip..."
-  ./scripts/knip.ts
+  # Frontend type check depends on backend declarations
+  if [ -z "$BACKEND_STAGED" ]; then
+    ./packages/backend/scripts/build-types.ts
+  fi
+  echo "Frontend files changed, running type check..."
+  ./packages/frontend/scripts/build-types.ts
 fi

@@ -3,13 +3,12 @@
 // (Coding guidelines: backend/use-date-fns-for-calendar-date-formatting and
 // sharing-code/use-date-fns-for-calendar-date-formatting.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   value?: unknown;
   property?: { name?: string };
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const DATE_GETTERS = new Set(["getUTCFullYear", "getUTCMonth", "getUTCDate", "getFullYear", "getMonth", "getDate"]);

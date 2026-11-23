@@ -2,13 +2,12 @@
 // strings, or give the component its own colocated *.i18n.json.
 // (Coding guideline: frontend/shared-components-localize-internally-never-take-an-i18n-object.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   name?: { name?: string };
   value?: { type: string };
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

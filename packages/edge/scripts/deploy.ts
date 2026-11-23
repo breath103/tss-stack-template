@@ -98,14 +98,12 @@ Examples:
   process.exit(0);
 }
 
-interface BuildOptions {
+async function buildEdgeFunctions(opts: {
   subdomainMap: TssConfig["subdomainMap"];
   domain: string | undefined;
   project: string;
   ssmRegion: string;
-}
-
-async function buildEdgeFunctions(opts: BuildOptions) {
+}) {
   console.log("Building edge functions...");
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });

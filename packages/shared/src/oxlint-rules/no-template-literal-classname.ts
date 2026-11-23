@@ -1,13 +1,12 @@
 // Flags a template-literal `className={`...`}`. Use cn() to compose classes.
 // (Coding guideline: frontend/use-cn-never-template-literals-for-any-composed.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   name?: { name?: string };
   value?: { type: string; expression?: { type: string } };
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

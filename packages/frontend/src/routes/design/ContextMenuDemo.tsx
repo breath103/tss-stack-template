@@ -37,7 +37,7 @@ export function ContextMenuDemo() {
 
   // Right-click menu — planets tree, arbitrary depth, group/divider rows.
   const planetToItem = (planet: Planet, path: string): StaticMenuItem => {
-    const label = path === "" ? planet.label : `${path} · ${planet.label}`;
+    const label = path === "" ? planet.label : `${path} / ${planet.label}`;
     return {
       label: planet.label,
       ...(planet.children === undefined ? {} : { icon: Folder }),

@@ -25,10 +25,6 @@ export interface EdgeStackConfig {
   githubActionsIamRole?: { repo: string };
 }
 
-interface EdgeStackProps extends cdk.StackProps {
-  config: EdgeStackConfig;
-}
-
 export class EdgeStack extends cdk.Stack {
   static readonly region = "us-east-1";
 
@@ -44,7 +40,7 @@ export class EdgeStack extends cdk.Stack {
     return `${project}-edge-viewer-request`;
   }
 
-  constructor(scope: Construct, props: EdgeStackProps) {
+  constructor(scope: Construct, props: cdk.StackProps & { config: EdgeStackConfig }) {
     const id = EdgeStack.id({ project: props.config.project });
     super(scope, id, {
       ...props,

@@ -10,17 +10,7 @@ import { loadConfig } from "shared/config";
 
 import { EdgeStack } from "./lib/edge-stack.js";
 
-const FETCH_LIMIT = 100;
-const MAX_EVENTS_BEFORE_CONFIRMATION = 100;
-
 type FunctionType = "origin-request" | "viewer-request";
-
-interface CliArgs {
-  function: FunctionType;
-  startTime: number;
-  tail: boolean;
-  region: string;
-}
 
 async function main() {
   const args = parseCliArgs();
@@ -45,7 +35,7 @@ function getLogConfig(fn: FunctionType, project: string, argRegion: string): { l
   }
 }
 
-function parseCliArgs(): CliArgs {
+function parseCliArgs(): { function: FunctionType; startTime: number; tail: boolean; region: string } {
   const { values } = parseArgs({
     options: {
       function: { type: "string", short: "f" },
@@ -113,9 +103,7 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
 
   while (true) {
     try {
-      const response = await logs.send(
-        new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: FETCH_LIMIT })
-      );
+      const response = await logs.send(new FilterLogEventsCommand({ logGroupName, startTime, nextToken, limit: 100 }));
 
       const events = response.events ?? [];
 
@@ -129,8 +117,7 @@ async function fetchLogs(logGroupName: string, region: string, startTime: number
       totalEvents += events.length;
       nextToken = response.nextToken;
 
-      // If we've hit the threshold and there's more, ask for confirmation
-      if (totalEvents >= MAX_EVENTS_BEFORE_CONFIRMATION && nextToken && !askedConfirmation) {
+      if (totalEvents >= 100 && nextToken && !askedConfirmation) {
         const lastTs = events.at(-1)?.timestamp;
         const lastTime = lastTs ? new Date(lastTs).toISOString() : "N/A";
         const confirmed = await askConfirmation(

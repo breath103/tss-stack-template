@@ -5,12 +5,11 @@
 // (Coding guidelines: backend/never-force-cast-with-as-use-satisfies-or,
 // frontend/avoid-unknown-and-as-casts-use-generics-and.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   expression?: { type: string; typeAnnotation?: { type: string } };
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {

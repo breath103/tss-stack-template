@@ -2,12 +2,11 @@
 // the row-type alias once in `src/types/database.ts` and import it by name.
 // (Coding guideline: backend/use-database-row-types-no-manual-interfaces.)
 
+import type { Context } from "./plugin-api.ts";
+
 interface Node {
   type: string;
   objectType?: { type: string; objectType?: { type: string; typeName?: { name?: string } } };
-}
-interface Context {
-  report: (diagnostic: { node: Node; messageId: string }) => void;
 }
 
 const rule = {
