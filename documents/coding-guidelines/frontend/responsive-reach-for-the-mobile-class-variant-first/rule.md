@@ -1,4 +1,9 @@
-# Responsive: reach for the `mobile:` class variant first — JS viewport branching is a last resort
+---
+topic: CSS and classNames
+order: 100
+---
+
+# When a layout must change on mobile, use the mobile: class variant; use useIsMobile() only when behaviour changes too.
 
 We're **desktop-first**: unprefixed classes are the desktop default, and the custom `mobile:` Tailwind variant (`@media (max-width: 767px)`, registered in `global.css`) overrides on phones. `flex-row mobile:flex-col` reads as "row on desktop, column on phone."
 

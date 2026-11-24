@@ -1,4 +1,9 @@
-# Put repeated cell/layout styles on the parent or primitive
+---
+topic: CSS and classNames
+order: 60
+---
+
+# When mapped children share a width, border or alignment, set it once on the parent or the cell primitive, not on each child.
 
 When rendering repeated structural UI (table cells, grid cells, timeline cells, headers), avoid copying the same `className` or `style` onto every child. Put shared behavior in the reusable primitive, and put repeated sizing/layout math on the parent container when CSS can express it once.
 

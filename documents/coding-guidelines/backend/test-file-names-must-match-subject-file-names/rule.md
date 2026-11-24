@@ -1,4 +1,9 @@
-# Test file names must match subject file names
+---
+topic: Scripts and tests
+order: 40
+---
+
+# When you add a unit test, name the file after the source it tests (foo.ts → __tests__/foo.test.ts).
 
 Unit test files must be named after the source file they test: `foo.ts` → `__tests__/foo.test.ts`. Don't split tests for a single source file across multiple test files.
 

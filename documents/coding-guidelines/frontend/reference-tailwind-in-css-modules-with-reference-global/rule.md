@@ -1,4 +1,9 @@
-# Reference Tailwind in CSS modules with `@reference "../../global.css"` — never `@import`
+---
+topic: CSS and classNames
+order: 40
+---
+
+# When you use Tailwind inside a .module.css, start the file with @reference to global.css; never @import "tailwindcss".
 
 CSS modules must NOT `@import "tailwindcss"`. `@import` actually re-emits Tailwind's full CSS into every importing file and creates an HMR cascade — change any utility anywhere and every CSS module that imports Tailwind invalidates, taking every component that imports those modules with it.
 

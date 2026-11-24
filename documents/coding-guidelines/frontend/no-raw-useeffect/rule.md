@@ -1,4 +1,9 @@
-# No raw `useEffect`
+---
+topic: Hooks and state
+order: 50
+---
+
+# When something must run because a value changed, use useOnChange; use raw useEffect only when it returns a cleanup.
 
 Never use `useEffect` directly for fire-and-forget effects that should run once per unique dependency values — use `useOnChange` (`src/hooks/useOnChange.ts`) instead. It prevents React 18 Strict Mode double-firing.
 

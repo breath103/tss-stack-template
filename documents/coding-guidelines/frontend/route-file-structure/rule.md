@@ -1,4 +1,9 @@
-# Route file structure
+---
+topic: Components
+order: 90
+---
+
+# When you add a route, create one directory per URL segment, define the route in its _route.tsx, and import the parent route relatively.
 
 Routes use TanStack Router with manual route definitions (not file-based auto-generation). Each route lives in a `_route.tsx` file inside a directory that mirrors the URL path.
 

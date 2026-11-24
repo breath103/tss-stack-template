@@ -1,4 +1,9 @@
-# Lazy-loaded components need a shaped Suspense fallback — never `null`, never a blank box
+---
+topic: Loading and empty states
+order: 60
+---
+
+# When you lazy-load a component, give Suspense a fallback shaped like the content; never null or a spinner.
 
 Any component behind `lazy(() => import(...))` renders its `<Suspense fallback>` for the
 entire time the chunk is in flight — a cold cache on a slow connection makes that hundreds of

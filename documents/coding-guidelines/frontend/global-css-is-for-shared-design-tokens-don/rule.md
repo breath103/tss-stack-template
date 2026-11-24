@@ -1,18 +1,25 @@
-# `global.css` is for *shared* design tokens — don't add single-use palettes
+---
+topic: CSS and classNames
+order: 50
+---
 
-A chart, badge family, or component that needs N visually distinct colors is not a reason to register `--chart-1`…`--chart-N` in `global.css`. Tokens in the global stylesheet are a shared contract — once they exist, any component can depend on them, and removing one breaks callers you don't know about.
+# When you want to add a token, keyframe or utility to global.css, do it only if 3+ unrelated components use it; otherwise keep it in the component.
 
-Derive the palette *locally* by rotating hue off an existing accent token. One-off, scoped to the component's own file, no global fallout.
+Everything in the global stylesheets (`packages/frontend/src/global.css`,
+`modules/ui/src/theme/theme.css`) is a shared contract: once it exists any component can depend
+on it, and removing it breaks callers you don't know about. A token, `@keyframes` or `@utility`
+belongs there once **three unrelated components** need the same value. Until then it lives with
+the one component that uses it.
+
+**A palette.** A chart or badge family that needs N distinct colors derives them locally from
+an existing token instead of registering `--chart-1`…`--chart-N`:
 
 ```ts
-// ✅ Correct — colors derived from --primary at the callsite, no globals
+// ✅ Correct — colors derived at the call site, no globals
 const TYPE_KEYS = Object.keys(TYPE_LABELS) as TypeKey[];
 const HUE_STEP = 360 / TYPE_KEYS.length;
 export const TYPE_COLOR = Object.fromEntries(
-  TYPE_KEYS.map((key, i) => [
-    key,
-    `oklch(from var(--primary) l c calc(h + ${i * HUE_STEP}))`,
-  ]),
+  TYPE_KEYS.map((key, i) => [key, `oklch(from var(--accent-1) l c calc(h + ${i * HUE_STEP}))`])
 ) as Record<TypeKey, string>;
 ```
 
@@ -25,4 +32,5 @@ export const TYPE_COLOR = Object.fromEntries(
 }
 ```
 
-Threshold: a token belongs in `global.css` once **three unrelated components** need the same value. Until then, derive it where you use it.
+**An animation.** A `@keyframes` block and the class that plays it go in the component's
+colocated `.module.css`, not in `global.css`.

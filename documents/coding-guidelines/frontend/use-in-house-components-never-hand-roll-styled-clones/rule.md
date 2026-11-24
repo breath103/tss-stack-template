@@ -1,4 +1,9 @@
-# Use the in-house component — never hand-roll a styled clone
+---
+topic: Components
+order: 30
+---
+
+# When you need a button, select, checkbox, chip, popover or modal, use the @ui component; don't hand-style a clone.
 
 If `packages/frontend/src/components/ui/` (or another shared module) already
 ships a primitive for what you're rendering, USE IT. Don't write a raw

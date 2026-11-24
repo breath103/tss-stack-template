@@ -1,4 +1,9 @@
-# Don't invent per-field side-endpoints; decorate the parent resource
+---
+topic: API routes
+order: 20
+---
+
+# When a page needs one derived value about an entity, add it to that entity's GET response; don't create an endpoint for it.
 
 When a resource needs a derived value (a presigned URL, a joined name, a computed status), return it on the parent resource's GET response, not from a dedicated sidecar endpoint. The sidecar adds an endpoint to maintain, a second round trip, and a second permission check for the same entity.
 

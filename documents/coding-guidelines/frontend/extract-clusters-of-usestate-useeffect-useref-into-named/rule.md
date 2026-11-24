@@ -1,4 +1,9 @@
-# Extract clusters of useState / useEffect / useRef into named hooks
+---
+topic: Hooks and state
+order: 10
+---
+
+# When one feature needs several useState, useEffect or useRef calls in a component, move them into a named hook.
 
 When a component grows a group of hooks that together implement one feature (resize, drag, keyboard focus trap, file upload, infinite scroll, …), move that group into a named custom hook. The component body should read top-to-bottom as: call hooks → compute a few values → return JSX. Anything more than trivial side-effect wiring belongs behind a hook name.
 

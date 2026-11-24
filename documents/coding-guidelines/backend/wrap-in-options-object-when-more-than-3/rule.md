@@ -1,4 +1,9 @@
-# Wrap in options object when more than 3 parameters
+---
+topic: Code structure
+order: 20
+---
+
+# When a function needs more than three parameters, take one options object.
 
 Functions with more than 3 parameters must use an options object.
 

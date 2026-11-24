@@ -1,10 +1,15 @@
-# Skeleton bars: use the `<Skeleton>` primitive — never hand-roll `animate-pulse` divs
+---
+topic: Loading and empty states
+order: 50
+---
 
-Every skeleton placeholder bar (text stand-in, chip, avatar, date pill) must use the shared `<Skeleton>` component from `@/components/ui/Skeleton`. Do not hand-roll `<div className="animate-pulse ... bg-..." />` even once — not even "just this one tiny inline bar." Override sizing/shape via `className` (e.g. `rounded-full`, `rounded-sm`, `size-4`) and let the primitive own animation + color.
+# When you draw a placeholder bar, use the <Skeleton> primitive, not a div with animate-pulse.
+
+Every skeleton placeholder bar (text stand-in, chip, avatar, date pill) must use the shared `<Skeleton>` component from `@ui/components/Skeleton`. Do not hand-roll `<div className="animate-pulse ... bg-..." />` even once — not even "just this one tiny inline bar." Override sizing/shape via `className` (e.g. `rounded-full`, `rounded-sm`, `size-4`) and let the primitive own animation + color.
 
 ```tsx
 // ✅ Correct — primitive owns animation + color; caller sizes/shapes
-import { Skeleton } from "@/components/ui/Skeleton";
+import { Skeleton } from "@ui/components/Skeleton";
 <Skeleton className="h-4 w-32" />
 <Skeleton className="h-5 w-16 rounded-full" />        // pill — overrides rounded-md
 <Skeleton className="size-8 rounded-full" />          // avatar

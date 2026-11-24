@@ -1,4 +1,9 @@
-# Coordinate concurrency with RxJS, not hand-kept flags
+---
+topic: Buttons and async actions
+order: 60
+---
+
+# When async work can overlap (double submit, stale response), use an RxJS operator such as exhaustMap or switchMap, not flags or request ids.
 
 When async work can overlap — the same request fired again before the last one
 finished, events arriving while a reload is in flight, a newer value superseding
@@ -59,6 +64,3 @@ result can't be superseded (a mount-time load guarded by `useOnChange`), or a
 single `if (busy) return` on a button that also shows its loading state. The
 moment a second flag, a timestamp, an id comparison, or a "was this started
 before that finished?" question appears, it is no longer trivial — use RxJS.
-
-See also `guard-async-results-that-depend-on-changing-values` for the
-`switchMap` (latest-wins) case.

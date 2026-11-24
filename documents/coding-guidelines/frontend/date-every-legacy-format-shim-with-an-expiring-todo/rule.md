@@ -1,8 +1,14 @@
-# Date every legacy-format shim with an expiring TODO
+---
+topic: Code structure
+order: 60
+---
+
+# When you add code that accepts a legacy format, put a dated TODO on it saying when it can be removed.
 
 Code that keeps an **old, non-persistent format** working always says when it
-stops. Examples are an old URL param shape, a retired request/response payload,
-a stale localStorage/cache layout, or a redirect from a renamed route. Mark every
+stops, in the frontend and the backend alike. Examples are an old URL or query
+param shape, a retired request/response payload, a renamed MCP tool argument, a
+stale localStorage/cache layout, or a redirect from a renamed route. Mark every
 such block with:
 
 ```ts

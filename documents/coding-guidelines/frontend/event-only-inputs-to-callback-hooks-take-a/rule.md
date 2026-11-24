@@ -1,10 +1,15 @@
-# Event-only inputs to callback hooks: take a `getX` snapshot, not a value
+---
+topic: Hooks and state
+order: 30
+---
+
+# When a hook reads a value only inside an event handler, take a stable getX() wrapped in useEvent, not the value.
 
 When a hook is a pure window-listener / callback owner (renders nothing, just attaches a handler and acts on event), and it only needs some derived state **at event time**, take it as a `getX: () => T` **lazy snapshot** — not as a `x: T` value.
 
 Passing a value forces the caller to subscribe to whatever drives it (state, observable, props derived from many sources) and re-render every time it changes, just to keep the handler's closure fresh via the `useEffect` dep. The hook doesn't render anything — there is no UI reason for the parent to re-render. The handler reads on demand.
 
-With `getX`, the caller wraps a derivation closure in `useEvent` (`@/lib/use-event`) so the identity is stable. The hook's `useEffect` attaches the listener once on mount, and the handler calls `getX()` to read the latest value at fire time — no subscription, no churn.
+With `getX`, the caller wraps a derivation closure in `useEvent` (`@ui/lib/use-event`) so the identity is stable. The hook's `useEffect` attaches the listener once on mount, and the handler calls `getX()` to read the latest value at fire time — no subscription, no churn.
 
 **When to apply:**
 - The hook returns `void` and its work happens inside an event/effect callback.
@@ -61,5 +66,3 @@ useRowNavigation({ rows, selection$ });
 ```
 
 The wrong shape ripples upward: the parent reaches for `useSubscribedState`, builds a `useMemo` for the value, and now re-renders on every state change — and any memo'd children that consume context from this parent re-render too if context value identity flickers. All of that is fixed by inverting one argument.
-
-Existing examples in this codebase: `useRowNavigation` / `useRowShortcuts` in `routes/tasks/useRowShortcuts.ts` (take `getRows`); the `useEvent` helper itself lives at `lib/use-event.ts`.

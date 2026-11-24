@@ -1,4 +1,9 @@
-# Never `z.string()` for a value that comes from a known, closed set
+---
+topic: API routes
+order: 40
+---
+
+# When a request field only accepts a known set of values, validate it with z.enum or z.literal, not z.string().
 
 When a user-supplied field is a category (a file kind, a MIME type, a status, an enum…), the zod schema should pin it to the valid values. A free `z.string()` lets anything through and forces every handler to repeat the same membership check.
 

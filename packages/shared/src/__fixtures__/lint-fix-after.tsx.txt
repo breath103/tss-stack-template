@@ -1,0 +1,38 @@
+import { Button } from "@ui/components/Button";
+import { useI18n } from "@ui/i18n/I18nContext";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import dict from "./Skeletons.i18n.json";
+
+type Props = { label: string; count: number; onPick: (value: string) => void; className?: string };
+
+export function ThrowawayFormat({ label, count, onPick, className }: Props) {
+  const [open, setOpen] = useState(false);
+  const i18n = useI18n(dict);
+  const title =
+    count > 10 ? label.toUpperCase().trim().replaceAll("-", " ").slice(0, 40) : count > 5 ? label.toLowerCase() : label;
+  const handler = value => {
+    onPick(value);
+  };
+  const options = { first: 1, second: 2, third: 3 };
+  const chained = Object.entries(options)
+    .filter(([key]) => key !== "first")
+    .map(([key, value]) => `${key}:${value}`)
+    .join(", ");
+  if (!open)
+    return (
+      <div
+        className={cn("flex items-center gap-2 rounded-md p-4 text-text-1", className)}
+        onClick={() => setOpen(true)}
+      >
+        {title} and some long text that will need to be wrapped by the formatter because it is long {chained}{" "}
+        {String(i18n)}
+      </div>
+    );
+  return (
+    <div className={cn("flex p-4", className)}>
+      <Button text={title} onClick={() => handler("a")}></Button>
+      <span>{open ? "yes" : "no"}</span>
+    </div>
+  );
+}

@@ -1,4 +1,9 @@
-# Use react-hook-form for form state — never hand-roll `useState` per field
+---
+topic: Forms
+order: 10
+---
+
+# When a form has two or more fields, validation or submit state, use useForm, not a useState per field.
 
 Forms with multiple inputs go through `react-hook-form`. Don't chain `useState` per field, then a separate `useState` for submission/error state. `useForm` consolidates: typed values, dirty tracking, validation, async submission status, and field-level + form-level errors — all out of the box.
 

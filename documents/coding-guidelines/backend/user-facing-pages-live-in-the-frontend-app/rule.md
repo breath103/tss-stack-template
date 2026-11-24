@@ -1,4 +1,9 @@
-# User-facing pages live in the frontend app — the backend never renders HTML
+---
+topic: API routes
+order: 50
+---
+
+# When a person will see the page, build it in the frontend app; the backend never returns HTML.
 
 If a route's response is meant for a human in a browser (consent screens, confirmation pages, error pages), it belongs in `packages/frontend` as a real route: the backend redirects there with the needed data in the querystring. The frontend app already has the session, the router, the design system, and i18n — a backend-rendered HTML string has none of them and duplicates all of them badly.
 

@@ -1,4 +1,9 @@
-# Closed vocabularies: one `as const` object — derive everything else
+---
+topic: Types and schemas
+order: 20
+---
+
+# When you define a closed set of ids with per-member data, write one `as const` object and derive the union and lookups from it.
 
 When a closed set of identifiers has any per-member data (a label, a
 description, a config value), declare ONE `as const` object keyed by the

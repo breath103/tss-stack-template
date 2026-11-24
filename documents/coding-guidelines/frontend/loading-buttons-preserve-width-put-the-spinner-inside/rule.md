@@ -1,4 +1,9 @@
-# Loading buttons: preserve width, put the spinner *inside*
+---
+topic: Buttons and async actions
+order: 20
+---
+
+# When a button is loading, use its loading prop; don't swap the label text.
 
 When an action button is submitting, do not swap the label text (`"Create"` → `"Creating..."`) — the button resizes, the layout jumps, and the eye loses where it was. Keep the label mounted (just invisible), and overlay a spinner in the same centered position. Width is preserved because the label still takes space.
 

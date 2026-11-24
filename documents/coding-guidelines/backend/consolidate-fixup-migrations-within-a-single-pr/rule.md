@@ -1,20 +1,15 @@
 ---
-requires: supabase
+topic: Migrations and tables
+order: 20
 ---
 
-# Consolidate fix-up migrations within a single PR before opening it
+# When a PR has a migration that fixes another migration in the same PR, fold it into the one it fixes.
 
-During development you'll often write a migration, run `db:reset`, notice a
-mistake (forgot a constraint, wrong default, column should be NOT NULL), and
-add a *second* migration to patch the first. That's fine while iterating —
-but **before opening the PR, fold the patches into the original migration**.
-Two migrations that exist only because the first was incomplete should ship
-as one.
-
-Production doesn't benefit from running your dev iteration history step by
-step; it just needs the final shape. The fix-up file is also pure noise in
-review — reviewers have to mentally re-merge it to see what's actually being
-added.
+While developing you write a migration, run `./packages/backend/scripts/db_reset.ts`, notice a
+mistake (a missing constraint, a column that should be NOT NULL), and add a second migration to
+patch the first. That is fine while iterating. **Before opening the PR, fold the patch into the
+original migration.** Production needs the final shape, not the iteration history, and a
+reviewer has to re-merge the two files in their head to see what is being added.
 
 ```text
 ✅ Correct — one migration, the table as it should land
@@ -27,7 +22,7 @@ added.
 ```
 
 ```text
-❌ Wrong — two migrations from the same PR, second one fixing the first
+❌ Wrong — two migrations from the same PR, the second fixing the first
 20260712120000_budgets.sql
   CREATE TABLE budgets ( ..., schedule_start timestamp, schedule_end timestamp );
 
@@ -36,7 +31,9 @@ added.
   ALTER TABLE budgets ALTER COLUMN schedule_end   SET NOT NULL;
 ```
 
-**Carve-outs (keep them split):**
-- Two migrations genuinely belong to different features that happen to ship in the same PR.
-- A migration that needs to run as a multi-step deployment (e.g. add nullable column → backfill → set NOT NULL on a hot table) — splitting is the safe-deploy pattern, not iteration noise.
-- The earlier migration has *already* been pushed to the remote DB (`db:push`). Migrations are immutable once applied; the fix has to be a follow-up. (If unsure, `npm run -w backend db:push --dry-run` to see what's already there.)
+Keep them split when:
+- The two migrations belong to different features that ship in the same PR.
+- The change is a multi-step deployment (add a nullable column → backfill → set NOT NULL on a
+  hot table).
+- The earlier migration has already been applied to production
+  (`db_migrate.ts --env=production`). An applied migration is immutable; the fix is a follow-up.

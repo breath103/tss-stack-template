@@ -1,4 +1,9 @@
-# Always parse timestamps with `new Date()` — never slice raw strings
+---
+topic: Types and schemas
+order: 100
+---
+
+# When you need a date part from a timestamp, parse it with new Date(); don't slice the string.
 
 Never extract date parts by slicing a timestamp string. Always parse into a `Date` object first, then format.
 

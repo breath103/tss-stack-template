@@ -3,6 +3,8 @@
 //
 //   ./scripts/ci_local.ts                  # typecheck + lint + test
 //   ./scripts/ci_local.ts --only test      # one job: typecheck | lint | test
+//
+// Every run also has the local-only `guides` step (GUIDES_STEP).
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -33,6 +35,10 @@ const JOBS = {
     ],
   },
 } satisfies Record<string, { needsBackendTypes: boolean; steps: string[][] }>;
+
+// Local only, absent from deploy.yml, and run whatever `--only` says: fails for an agent whose
+// source diff has had no `./scripts/recheck_guides.ts`. Passes at once for a person.
+const GUIDES_STEP = ["./scripts/recheck_guides.ts", "--check"];
 
 const JOB_NAMES = Object.keys(JOBS) as (keyof typeof JOBS)[];
 
@@ -87,7 +93,10 @@ async function main(): Promise<void> {
     if (!prerequisite.ok) report([prerequisite], startedAt);
   }
 
-  const results = await Promise.all(names.flatMap(name => JOBS[name].steps.map(command => runStep(name, command))));
+  const results = await Promise.all([
+    runStep("guides", GUIDES_STEP),
+    ...names.flatMap(name => JOBS[name].steps.map(command => runStep(name, command))),
+  ]);
   report(results, startedAt);
 }
 
