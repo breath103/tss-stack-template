@@ -1,8 +1,5 @@
 // Flags manual Date getters and hardcoded day-boundary time strings — use
 // date-fns for calendar date formatting, date-part math, and day boundaries.
-// (Coding guidelines: backend/use-date-fns-for-calendar-date-formatting and
-// sharing-code/use-date-fns-for-calendar-date-formatting.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

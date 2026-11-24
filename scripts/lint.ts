@@ -26,6 +26,7 @@ const LINT_TREES = {
   ui: { dir: "modules/ui", targets: ["src"], checks: "all", seconds: 1.5 },
   e2e: { dir: "e2e", targets: ["."], checks: "all", seconds: 0.4 },
   scripts: { dir: ".", targets: ["scripts"], checks: "all", seconds: 0.4 },
+  skills: { dir: ".", targets: [".claude/skills"], checks: "all", seconds: 0.4 },
   // Format-only: untyped `.mjs` that CI runs directly. It sits in no TS program, so
   // oxlint's type-aware pass would read every expression in it as `error`-typed.
   "github-scripts": { dir: ".", targets: [".github/scripts"], checks: "format", seconds: 0.1 },

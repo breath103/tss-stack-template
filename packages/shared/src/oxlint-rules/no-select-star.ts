@@ -1,7 +1,5 @@
 // Flags supabase `.select("*")`. Use `.select()` (no arg) for the all-columns
 // case, or `.select("col1, col2")` for a real projection.
-// (Coding guideline: backend/use-select-not-select-for-the-all-columns.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

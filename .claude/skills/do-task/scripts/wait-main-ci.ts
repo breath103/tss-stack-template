@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { ghJson } from "./lib.ts";
 
 // Wait for the post-merge CI run on main to finish — pinned to the merge
 // commit SHA. The deploy job lives in this run, so a green result here means
@@ -18,11 +19,13 @@ export function waitMainCi(mergeSha: string): void {
   const runId = findRunForSha(mergeSha);
 
   while (true) {
-    const viewJson = execFileSync("gh", ["run", "view", String(runId), "--json", "status,conclusion"], {
-      encoding: "utf-8",
-    });
-
-    const { status, conclusion } = JSON.parse(viewJson);
+    const { status, conclusion } = ghJson<{ status: string; conclusion: string }>([
+      "run",
+      "view",
+      String(runId),
+      "--json",
+      "status,conclusion",
+    ]);
 
     if (status === "completed") {
       if (conclusion === "success") {
@@ -42,13 +45,18 @@ export function waitMainCi(mergeSha: string): void {
 function findRunForSha(mergeSha: string): number {
   const MAX_ATTEMPTS = 24; // ~2 min at 5s each
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const runsJson = execFileSync(
-      "gh",
-      ["run", "list", "--branch", "main", "--event", "push", "--limit", "20", "--json", "databaseId,headSha"],
-      { encoding: "utf-8" }
-    );
-
-    const run = JSON.parse(runsJson).find((r: { databaseId: number; headSha: string }) => r.headSha === mergeSha);
+    const run = ghJson<{ databaseId: number; headSha: string }[]>([
+      "run",
+      "list",
+      "--branch",
+      "main",
+      "--event",
+      "push",
+      "--limit",
+      "20",
+      "--json",
+      "databaseId,headSha",
+    ]).find(r => r.headSha === mergeSha);
     if (run) return run.databaseId;
 
     execFileSync("sleep", ["5"]);

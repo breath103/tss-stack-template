@@ -1,8 +1,6 @@
 // Flags `x as Error` casts. Extract the message with a runtime check —
 // `err instanceof Error ? err.message : String(err)` — instead of asserting the
 // caught value's type, which the compiler cannot verify.
-// (Coding guideline: backend/extract-error-messages-with-instanceof-error-not-as.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

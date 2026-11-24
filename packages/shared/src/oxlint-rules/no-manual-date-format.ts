@@ -1,8 +1,6 @@
 // Flags UI date formatting done manually — format UI dates through the shared
 // DateFormatter (`@ui/lib/date-formatter`), constructed with the current locale:
 // `new DateFormatter(locale).format(date, type)`.
-// (Coding guideline: frontend/format-ui-dates-through-dateformatter.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

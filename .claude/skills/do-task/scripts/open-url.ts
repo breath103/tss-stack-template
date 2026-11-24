@@ -43,7 +43,7 @@ function openInOrca(url: string): boolean {
 
 function parsePageId(stdout: string): string | undefined {
   try {
-    const pageId: unknown = JSON.parse(stdout).result?.browserPageId;
+    const pageId = (JSON.parse(stdout) as { result?: { browserPageId?: unknown } }).result?.browserPageId;
     return typeof pageId === "string" ? pageId : undefined;
   } catch {
     return undefined;

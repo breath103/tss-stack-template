@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
-import { loadConfig } from "./lib.ts";
+import { ghJson, loadConfig } from "./lib.ts";
 
 export function commentPr(args: string[]): void {
   const { values } = parseArgs({
@@ -22,10 +22,7 @@ export function commentPr(args: string[]): void {
   // If no --pr given, detect from current branch
   let prNumber = values.pr;
   if (!prNumber) {
-    const prJson = execFileSync("gh", ["pr", "view", "--repo", config.repo, "--json", "number"], {
-      encoding: "utf-8",
-    }).trim();
-    prNumber = String(JSON.parse(prJson).number);
+    prNumber = String(ghJson<{ number: number }>(["pr", "view", "--repo", config.repo, "--json", "number"]).number);
   }
 
   const commentUrl = execFileSync("gh", ["pr", "comment", prNumber, "--repo", config.repo, "--body", values.body], {

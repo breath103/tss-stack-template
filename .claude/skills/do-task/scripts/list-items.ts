@@ -55,16 +55,30 @@ export function listItems(args: string[]): void {
     variables.q = `status:"${values.column}"`;
   }
 
-  const data = ghGraphql(query, variables);
-  const items = data.data.node.items.nodes;
+  const { data } = ghGraphql<{
+    node: {
+      items: {
+        nodes: {
+          id: string;
+          fieldValueByName: { name?: string } | null;
+          content: {
+            title?: string;
+            number?: number;
+            url?: string;
+            labels?: { nodes: { name: string }[] };
+          } | null;
+        }[];
+      };
+    };
+  }>(query, variables);
 
-  const result = items.map((item: any) => ({
+  const result = data.node.items.nodes.map(item => ({
     id: item.id,
     status: item.fieldValueByName?.name ?? null,
     title: item.content?.title ?? null,
     number: item.content?.number ?? null,
     url: item.content?.url ?? null,
-    labels: item.content?.labels?.nodes?.map((l: any) => l.name) ?? [],
+    labels: item.content?.labels?.nodes.map(l => l.name) ?? [],
   }));
 
   console.log(JSON.stringify(result, null, 2));

@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { parseArgs } from "node:util";
 import { readFileSync } from "node:fs";
+import { parseArgs } from "node:util";
 import { loadConfig, requireGuidesRechecked, requireUpToDateWithMain } from "./lib.ts";
 
 export const CREATE_PR_USAGE =

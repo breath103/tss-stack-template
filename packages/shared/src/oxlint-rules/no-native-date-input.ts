@@ -1,7 +1,5 @@
 // Flags `<input type="date">` and `<input type="datetime-local">`. Use
 // @/components/ui/Calendar in a Popover/Dialog instead of native date inputs.
-// (Coding guideline: frontend/never-input-type-date-time-datetime-local-use.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

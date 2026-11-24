@@ -16,7 +16,7 @@ import { updateIssue } from "./update-issue.ts";
 import { viewIssue } from "./view-issue.ts";
 import { waitForReview } from "./wait-for-review.ts";
 
-const commands: Record<string, { run: (args: string[]) => void; usage: string }> = {
+const commands: Partial<Record<string, { run: (args: string[]) => void; usage: string }>> = {
   setup: { run: setup, usage: "setup --project <project-url> --repo <owner/repo>" },
   refresh: { run: refresh, usage: "refresh" },
   "list-items": { run: listItems, usage: "list-items [--column <status>] [--limit <n>]" },
@@ -43,7 +43,7 @@ const commands: Record<string, { run: (args: string[]) => void; usage: string }>
 
 function main() {
   const [subcommand, ...rest] = process.argv.slice(2);
-  const command = subcommand === undefined ? undefined : commands[subcommand];
+  const command = commands[subcommand];
 
   if (!command) {
     console.error(`Usage: cli.ts <command> [options]\n\nCommands: ${Object.keys(commands).join(", ")}`);

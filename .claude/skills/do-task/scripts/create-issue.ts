@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { loadConfig, resolveColumnId } from "./lib.ts";
+import { ghJson, loadConfig, resolveColumnId } from "./lib.ts";
 
 export const CREATE_ISSUE_USAGE =
   "create-issue --title <title> (--body <body> | --body-file <path>) [--column <status>] [--label <label>]...";
@@ -35,12 +35,17 @@ export function createIssue(args: string[]): void {
 
   const issueUrl = execFileSync("gh", createArgs, { encoding: "utf-8" }).trim();
 
-  const addResult = execFileSync(
-    "gh",
-    ["project", "item-add", String(config.number), "--owner", config.owner, "--url", issueUrl, "--format", "json"],
-    { encoding: "utf-8" }
-  );
-  const itemId = JSON.parse(addResult).id;
+  const itemId = ghJson<{ id: string }>([
+    "project",
+    "item-add",
+    String(config.number),
+    "--owner",
+    config.owner,
+    "--url",
+    issueUrl,
+    "--format",
+    "json",
+  ]).id;
 
   if (values.column) {
     const optionId = resolveColumnId(config, values.column);

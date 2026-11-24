@@ -2,9 +2,6 @@
 // or narrow at runtime / use `satisfies` — don't launder one type into another
 // through `unknown`. Suppress a justified framework-boundary cast with an inline
 // `// oxlint-disable-next-line local/no-double-cast`.
-// (Coding guidelines: backend/never-force-cast-with-as-use-satisfies-or,
-// frontend/avoid-unknown-and-as-casts-use-generics-and.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

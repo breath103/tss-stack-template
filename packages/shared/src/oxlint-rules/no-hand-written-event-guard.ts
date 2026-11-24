@@ -1,8 +1,6 @@
 // Flags hand-written `function is<Something>Event(...)` type-guard declarations for
 // event payloads — validate shared event payloads with zod schemas and z.infer-derived
 // types instead.
-// (Coding guideline: sharing-code/symlink-shared-pure-ts-between-frontend-and-backend.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

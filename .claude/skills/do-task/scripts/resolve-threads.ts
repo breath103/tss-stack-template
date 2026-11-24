@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
-import { loadConfig } from "./lib.ts";
+import { ghGraphql, ghJson, loadConfig } from "./lib.ts";
 
 export function resolveThreads(args: string[]): void {
   const { values } = parseArgs({
@@ -16,10 +16,7 @@ export function resolveThreads(args: string[]): void {
   // If no --pr given, detect from current branch
   let prNumber = values.pr;
   if (!prNumber) {
-    const prJson = execFileSync("gh", ["pr", "view", "--repo", config.repo, "--json", "number"], {
-      encoding: "utf-8",
-    }).trim();
-    prNumber = String(JSON.parse(prJson).number);
+    prNumber = String(ghJson<{ number: number }>(["pr", "view", "--repo", config.repo, "--json", "number"]).number);
   }
 
   // Fetch all unresolved review threads
@@ -39,13 +36,9 @@ export function resolveThreads(args: string[]): void {
     }
   }`;
 
-  const result = execFileSync("gh", ["api", "graphql", "-f", `query=${query}`], { encoding: "utf-8" }).trim();
-
-  const threads = JSON.parse(result).data.repository.pullRequest.reviewThreads.nodes as {
-    id: string;
-    isResolved: boolean;
-    comments: { nodes: { body: string }[] };
-  }[];
+  const threads = ghGraphql<{
+    repository: { pullRequest: { reviewThreads: { nodes: { id: string; isResolved: boolean }[] } } };
+  }>(query).data.repository.pullRequest.reviewThreads.nodes;
 
   const unresolved = threads.filter(t => !t.isResolved);
 

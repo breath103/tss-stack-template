@@ -48,7 +48,7 @@ export function configPath(): string {
 
 export function loadConfig(): Config {
   try {
-    return JSON.parse(readFileSync(configPath(), "utf-8"));
+    return JSON.parse(readFileSync(configPath(), "utf-8")) as Config;
   } catch {
     console.error("github-project.json not found. Run `setup` first.");
     process.exit(1);
@@ -59,14 +59,30 @@ export function saveConfig(config: Config): void {
   writeFileSync(configPath(), JSON.stringify(config, null, 2) + "\n");
 }
 
-export function ghGraphql(query: string, variables: Record<string, string | number> = {}): any {
+// `gh` output is trusted to match the fields the caller asked for (`--json a,b`, a GraphQL
+// selection); `T` states that shape, it is not validated.
+export function ghJson<T>(args: string[]): T {
+  return JSON.parse(execFileSync("gh", args, { encoding: "utf-8" })) as T;
+}
+
+export function ghGraphql<T>(query: string, variables: Record<string, string | number> = {}): { data: T } {
   const args = ["api", "graphql", "-f", `query=${query}`];
   for (const [key, value] of Object.entries(variables)) {
     const flag = typeof value === "number" ? "-F" : "-f";
     args.push(flag, `${key}=${value}`);
   }
-  const result = execFileSync("gh", args, { encoding: "utf-8" });
-  return JSON.parse(result);
+  return ghJson<{ data: T }>(args);
+}
+
+interface ProjectSummary {
+  id: string;
+  title: string;
+  field: { id: string; options?: { id: string; name: string }[] } | null;
+}
+
+interface ProjectLookup {
+  user?: { projectV2: ProjectSummary | null } | null;
+  organization?: { projectV2: ProjectSummary | null } | null;
 }
 
 export function fetchProjectConfig(projectUrl: string, repo: string): Config {
@@ -102,18 +118,9 @@ export function fetchProjectConfig(projectUrl: string, repo: string): Config {
   const userQuery = query;
   const orgQuery = query.replace("user(login:", "organization(login:");
 
-  let project: any;
-  if (isOrg) {
-    project = ghGraphql(orgQuery, { owner, number }).data.organization?.projectV2;
-    if (!project) {
-      project = ghGraphql(userQuery, { owner, number }).data.user?.projectV2;
-    }
-  } else {
-    project = ghGraphql(userQuery, { owner, number }).data.user?.projectV2;
-    if (!project) {
-      project = ghGraphql(orgQuery, { owner, number }).data.organization?.projectV2;
-    }
-  }
+  const asOrg = () => ghGraphql<ProjectLookup>(orgQuery, { owner, number }).data.organization?.projectV2;
+  const asUser = () => ghGraphql<ProjectLookup>(userQuery, { owner, number }).data.user?.projectV2;
+  const project = isOrg ? (asOrg() ?? asUser()) : (asUser() ?? asOrg());
 
   if (!project) {
     console.error("Project not found. Check the URL and your gh auth scopes.");
@@ -132,10 +139,9 @@ export function fetchProjectConfig(projectUrl: string, repo: string): Config {
     columns[opt.name] = opt.id;
   }
 
-  const labelsJson = execFileSync("gh", ["label", "list", "--repo", repo, "--json", "name", "--limit", "100"], {
-    encoding: "utf-8",
-  });
-  const labels = JSON.parse(labelsJson).map((l: { name: string }) => l.name);
+  const labels = ghJson<{ name: string }[]>(["label", "list", "--repo", repo, "--json", "name", "--limit", "100"]).map(
+    l => l.name
+  );
 
   return {
     project: projectUrl,

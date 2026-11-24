@@ -1,6 +1,4 @@
 // Flags inline `fontSize:` style properties. Use text-* scale tokens instead.
-// (Coding guideline: frontend/never-use-hardcoded-font-sizes-always-use-the.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

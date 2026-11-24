@@ -1,6 +1,4 @@
 // Flags re-deriving backend types via `Entities["..."]` string-literal index.
-// (Coding guideline: frontend/import-backend-types-directly.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

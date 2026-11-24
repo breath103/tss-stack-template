@@ -1,7 +1,5 @@
 // Flags passing an `i18n={...}` object prop into a component. Pass resolved
 // strings, or give the component its own colocated *.i18n.json.
-// (Coding guideline: frontend/shared-components-localize-internally-never-take-an-i18n-object.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {
