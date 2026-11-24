@@ -18,9 +18,9 @@ named unit you can grep for, mock, or extend.
 
 ```ts
 // ✅ Correct — one class, one useMemo, single stable identity
-class AstraMutations {
+class TaskBoardMutations {
   async createGoal(p: { title: string; parent_id?: string | null }) {
-    const { data } = await api.fetch("/api/astra/goals", "POST", { body: { ... } });
+    const { data } = await api.fetch("/api/task-board/goals", "POST", { body: { ... } });
     return data.goal;
   }
   async updateGoal(id: string, updates: { title?: string; parent_id?: string | null }) { ... }
@@ -28,10 +28,10 @@ class AstraMutations {
   // ...
 }
 
-const MutationsContext = createContext<AstraMutations | null>(null);
+const MutationsContext = createContext<TaskBoardMutations | null>(null);
 
-export function AstraRepositoryProvider({ children }) {
-  const mutations = useMemo(() => new AstraMutations(), []);
+export function TaskBoardRepositoryProvider({ children }) {
+  const mutations = useMemo(() => new TaskBoardMutations(), []);
   return <MutationsContext.Provider value={mutations}>{children}</MutationsContext.Provider>;
 }
 ```

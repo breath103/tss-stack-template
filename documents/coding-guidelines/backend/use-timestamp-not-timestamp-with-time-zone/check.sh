@@ -14,7 +14,7 @@ hits=""
 while IFS= read -r file; do
   found="$(sed -E "s/--.*$//; s/'[^']*'//g" "$file" | grep -niE 'timestamp with time zone|timestamptz' || true)"
   [[ -n "$found" ]] && hits+="$(sed "s|^|$file:|" <<<"$found")"$'\n'
-done < <(find packages/backend/supabase/migrations -name '*.sql')
+done < <(find packages/backend/migrations -name '*.sql')
 
 if [[ -n "${hits// /}" ]]; then
   printf '%s' "$hits"

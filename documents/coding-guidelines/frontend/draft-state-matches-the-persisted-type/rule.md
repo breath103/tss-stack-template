@@ -29,13 +29,13 @@ The same holds for `useForm`. A nullable column stays nullable in `defaultValues
 
 ```tsx
 // ❌ Wrong — "" stands in for null in the draft, so submit has to map it back
-const form = useForm({ defaultValues: { description: keychain.description ?? "" } });
+const form = useForm({ defaultValues: { description: task.description ?? "" } });
 const onSubmit = (values) => save({ description: values.description === "" ? null : values.description });
 ```
 
 ```tsx
 // ✅ Correct — the draft is string | null like the row; the input converts both ways
-const form = useForm({ defaultValues: { description: keychain.description } });
+const form = useForm({ defaultValues: { description: task.description } });
 <Controller
   name="description"
   control={form.control}

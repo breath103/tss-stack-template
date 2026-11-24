@@ -16,7 +16,7 @@ Postgres row  ──►  backend returns the TABLE shape (Selectable<Database[ta
 ```
 
 Break one of the first two links and you get what this rule exists to stop: a flattened
-`{ chat_title, workspace_name, rank, snippet }` shape invented on the backend or rebuilt on the
+`{ thread_title, project_name, rank, snippet }` shape invented on the backend or rebuilt on the
 frontend, or one hook fanning every fetch across the page. The last two links are
 `frontend/read-persisted-rows-from-the-repository-by-id` and
 `frontend/write-persisted-rows-through-repositorywriter`.
@@ -24,13 +24,13 @@ frontend, or one hook fanning every fetch across the page. The last two links ar
 ## 1. The wire shape is the table shape
 
 An endpoint that returns rows which ARE records returns those records. No denormalization, no
-flattening, no `rank` / `snippet` / `workspace_name` columns welded on.
+flattening, no `rank` / `snippet` / `project_name` columns welded on.
 
 - Backend: return what the repository returned. No hand-written `interface`, no mapper.
 - Frontend: import the row type from `@backend/types/database` and render from it. Do not
   define a parallel `SearchHit` / `RowVM` that copies fields off the record.
 - A table whose raw row must not reach the browser (ciphertext, OAuth tokens) ships a named
-  projection registered in `Entities` in `RepositoryContext.tsx` (`keychain_items`,
+  projection registered in `Entities` in `RepositoryContext.tsx` (`integration_credentials`,
   `user_accounts`). That is the only reason to diverge from the row.
 
 The UI derives its view (a crumb, a label, a snippet) from the real record at render time.

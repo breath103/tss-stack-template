@@ -12,10 +12,10 @@ The dev fallback exists to make local iteration cheap, not to make prod resilien
 ```typescript
 // ✅ Correct — fallback gated on dev; prod throws if env is missing
 export async function invokeAsyncLambda(payload: WorkerPayload): Promise<void> {
-  const functionName = process.env.AGENT_WORKER_FUNCTION_NAME;
+  const functionName = process.env.WORKER_FUNCTION_NAME;
   if (!functionName) {
     if (process.env.NODE_ENV !== "development") {
-      throw new Error("AGENT_WORKER_FUNCTION_NAME is not set — worker invokes will not run");
+      throw new Error("WORKER_FUNCTION_NAME is not set — worker invokes will not run");
     }
     void handleWorkerPayload(payload).catch((err) => console.error(err));
     return;
@@ -27,7 +27,7 @@ export async function invokeAsyncLambda(payload: WorkerPayload): Promise<void> {
 ```typescript
 // ❌ Wrong — prod with a missing env silently runs the dev codepath
 export async function invokeAsyncLambda(payload: WorkerPayload): Promise<void> {
-  const functionName = process.env.AGENT_WORKER_FUNCTION_NAME;
+  const functionName = process.env.WORKER_FUNCTION_NAME;
   if (!functionName) {
     void handleWorkerPayload(payload).catch((err) => console.error(err));
     return;

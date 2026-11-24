@@ -9,7 +9,7 @@ order: 70
 
 When a join table has a composite primary key and no surrogate `id` (e.g. `team_members (team_id, user_id)`), the wrong fix is to invent a synthetic id on the frontend — `` `${teamId}:${userId}` `` — and store a join-shaped read-model. That reintroduces exactly the bespoke response model that `load-and-render-persisted-data-through-the-repository` forbids: the row is no longer a table row, can't dedupe against the cache, and every consumer speaks a made-up vocabulary.
 
-**The fix is in the database, not the frontend:** give the table a real `id uuid primary key default gen_random_uuid()` and demote the composite key to a `unique(a, b)` constraint (mirroring `organization_members`). Then the frontend keys the entity on the real `id` like every other table. If the migration is already merged/deployed, stack a new migration; if it's unmerged (same reboot chunk), edit it in place.
+**The fix is in the database, not the frontend:** give the table a real `id uuid primary key default gen_random_uuid()` and demote the composite key to a `unique(a, b)` constraint (mirroring `organization_members`). Then the frontend keys the entity on the real `id` like every other table. If the migration is already merged/deployed, stack a new migration; if it's unmerged, edit it in place.
 
 ```ts
 // ✅ team_members has a real `id` column (added in its migration); key on it.

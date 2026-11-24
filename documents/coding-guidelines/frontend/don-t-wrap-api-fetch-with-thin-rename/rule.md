@@ -18,8 +18,8 @@ If it doesn't, inline `api.fetch` at the callsite.
 
 ```typescript
 // ❌ Wrong — pure rename, no value added
-export async function listMemories(params?: { limit?: number; before?: string }): Promise<Memory[]> {
-  return api.fetch("/api/memories", "GET", {
+export async function listTasks(params?: { limit?: number; before?: string }): Promise<Task[]> {
+  return api.fetch("/api/tasks", "GET", {
     query: { limit: params?.limit, before: params?.before },
   });
 }
@@ -27,7 +27,7 @@ export async function listMemories(params?: { limit?: number; before?: string })
 
 ```typescript
 // ✅ Correct — callsite reads the URL and method directly
-const data = await api.fetch("/api/memories", "GET", {
+const data = await api.fetch("/api/tasks", "GET", {
   query: { limit: 50, before: cursor },
 });
 ```

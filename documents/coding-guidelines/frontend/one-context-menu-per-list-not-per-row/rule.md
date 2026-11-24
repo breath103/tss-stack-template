@@ -12,7 +12,7 @@ When every row of a list has a ⋯ button (or a right-click menu), call `useCont
 ```tsx
 // ❌ Wrong — a hook call, a popover root and a portal per row. 200 rows mount 200 menus,
 // and each row re-declares the same items.
-function MemberRow({ member }: { member: WorkspaceMembershipRow }) {
+function MemberRow({ member }: { member: ProjectMembershipRow }) {
   const menu = useContextMenu({
     align: "end",
     ...fromStaticItems(() => [{ label: i18n.remove, icon: UserMinusIcon, onClick: () => remove(member) }]),
@@ -27,14 +27,14 @@ function MemberRow({ member }: { member: WorkspaceMembershipRow }) {
 ```
 
 ```tsx
-// ✅ Correct — routes/app/settings/workspace/MembersSection.tsx + useMembersMenu.ts
+// ✅ Correct — routes/app/settings/project/MembersSection.tsx + useMembersMenu.ts
 import { ContextMenuPortal, fromStaticItems, useContextMenu } from "@ui/components/ContextMenu";
 
 function MembersSection() {
   // The items are built from the target passed to open(), so one menu serves every row.
   const menu = useContextMenu({
     align: "end",
-    ...fromStaticItems((member: WorkspaceMembershipRow) => [
+    ...fromStaticItems((member: ProjectMembershipRow) => [
       { label: i18n.remove, icon: UserMinusIcon, variant: "destructive", onClick: () => void askRemove(member) },
     ]),
   });
@@ -49,7 +49,7 @@ function MembersSection() {
 }
 
 // The row: a button that hands its own element back as the anchor. No menu imports.
-function MemberRow({ member, onOpenMenu }: { member: WorkspaceMembershipRow; onOpenMenu: (anchor: Element) => void }) {
+function MemberRow({ member, onOpenMenu }: { member: ProjectMembershipRow; onOpenMenu: (anchor: Element) => void }) {
   return <Button variant="ghost" content="icon" icon={DotsThreeIcon} onClick={e => onOpenMenu(e.currentTarget)} />;
 }
 ```

@@ -13,40 +13,40 @@ This is where code goes wrong: `null` cannot mean both "missing" and "taken".
 ```ts
 // ❌ Wrong — `null` means "slug taken", so a missing row has to throw (a 500), or the
 // route adds a pre-read just to produce the 404.
-async updateWorkspace(workspaceId: string, input: WorkspaceInput): Promise<WorkspaceRow | null> {
+async updateProject(projectId: string, input: ProjectInput): Promise<ProjectRow | null> {
   try {
-    return await db.get().updateTable("workspaces").set(input).where("id", "=", workspaceId)
+    return await db.get().updateTable("projects").set(input).where("id", "=", projectId)
       .returningAll().executeTakeFirstOrThrow();
   } catch (error) {
-    if (isUniqueViolation(error, "workspaces_slug_key")) return null;
+    if (isUniqueViolation(error, "projects_slug_key")) return null;
     throw error;
   }
 }
 ```
 
 ```ts
-// ✅ Correct — workspaces-repository.ts: one statement, both failures named
-async updateWorkspace(
-  workspaceId: string,
-  input: WorkspaceInput
-): Promise<Result<WorkspaceRow, { code: "workspace_not_found" } | { code: "workspace_slug_taken" }>> {
+// ✅ Correct — projects-repository.ts: one statement, both failures named
+async updateProject(
+  projectId: string,
+  input: ProjectInput
+): Promise<Result<ProjectRow, { code: "project_not_found" } | { code: "project_slug_taken" }>> {
   try {
-    const row = await db.get().updateTable("workspaces").set(input).where("id", "=", workspaceId)
+    const row = await db.get().updateTable("projects").set(input).where("id", "=", projectId)
       .returningAll().executeTakeFirst();
-    return row === undefined ? Result.failure({ code: "workspace_not_found" }) : Result.success(row);
+    return row === undefined ? Result.failure({ code: "project_not_found" }) : Result.success(row);
   } catch (error) {
-    if (isUniqueViolation(error, "workspaces_slug_key")) return Result.failure({ code: "workspace_slug_taken" });
+    if (isUniqueViolation(error, "projects_slug_key")) return Result.failure({ code: "project_slug_taken" });
     throw error;
   }
 }
 
-// ✅ routes/workspace.ts — the switch is exhaustive, so a new failure code is a type error here
-const workspace = (await workspacesRepo.updateWorkspace(workspaceId, body)).throwOr(failure => {
+// ✅ routes/project.ts — the switch is exhaustive, so a new failure code is a type error here
+const project = (await projectsRepo.updateProject(projectId, body)).throwOr(failure => {
   switch (failure.code) {
-    case "workspace_not_found":
-      return new ApiError(404, { type: "workspace_not_found" });
-    case "workspace_slug_taken":
-      return new ApiError(409, { type: "workspace_slug_taken" });
+    case "project_not_found":
+      return new ApiError(404, { type: "project_not_found" });
+    case "project_slug_taken":
+      return new ApiError(409, { type: "project_slug_taken" });
   }
 });
 ```

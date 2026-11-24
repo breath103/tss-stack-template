@@ -19,28 +19,28 @@ The error factory passed to `requireOrThrow` is lazy — the `new HTTPException`
 
 ```ts
 // ✅ Correct — repo returns nullable, route narrows
-// memories-repository.ts
-async getById(userId: string, id: string): Promise<Memory | null> {
+// tasks-repository.ts
+async getById(userId: string, id: string): Promise<Task | null> {
   const { data } = await serviceClient.get()...maybeSingle().throwOnError();
   return data;
 }
 
-// routes/memory.ts
-const notFound = () => new HTTPException(404, { message: "Memory not found" });
+// routes/task.ts
+const notFound = () => new HTTPException(404, { message: "Task not found" });
 
-route("/api/memories/:id", "GET", {
+route("/api/tasks/:id", "GET", {
   handler: async ({ params, c }) => {
     const user = c.get("requireUser")();
-    return requireOrThrow(await memoriesRepo.getById(user.id, params.id), notFound);
+    return requireOrThrow(await tasksRepo.getById(user.id, params.id), notFound);
   },
 });
 ```
 
 ```ts
 // ❌ Wrong — repo throws HTTPException, couples data layer to HTTP
-async getById(userId: string, id: string): Promise<Memory> {
+async getById(userId: string, id: string): Promise<Task> {
   const { data } = await serviceClient.get()...maybeSingle().throwOnError();
-  if (!data) throw new HTTPException(404, { message: "Memory not found" });
+  if (!data) throw new HTTPException(404, { message: "Task not found" });
   return data;
 }
 ```

@@ -21,5 +21,5 @@ wording change should never be a backend deploy. A code is also what a caller br
 
 Lint rejects a message on the exception and the typecheck rejects a code with no catalog entry.
 
-A domain error that an agent also reads over JSON-RPC (`ToolNotConnectedError`) keeps its English
+A domain error that a non-browser client also reads over JSON-RPC (`ToolNotConnectedError`) keeps its English
 `message` for that channel and carries a typed `reason` for the REST response.

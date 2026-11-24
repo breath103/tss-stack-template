@@ -26,9 +26,9 @@ emits a real `dist/**/foo.d.ts` the frontend can import. This is the convention
 // ✅ src/tools/rows.ts — a .ts of pure types → emits dist/tools/rows.d.ts
 export type OrganizationTool = { /* … */ };
 
-// ✅ src/tools/astra.ts — schema is the source of truth, type is inferred
-export const astraGlobalConfigSchema = z.object({ baseUrl: z.string() });
-export type AstraToolGlobalConfig = z.infer<typeof astraGlobalConfigSchema>;
+// ✅ src/tools/calendar.ts — schema is the source of truth, type is inferred
+export const calendarGlobalConfigSchema = z.object({ baseUrl: z.string() });
+export type CalendarToolGlobalConfig = z.infer<typeof calendarGlobalConfigSchema>;
 ```
 
 ```ts

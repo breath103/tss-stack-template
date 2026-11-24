@@ -7,7 +7,7 @@ order: 60
 
 Code that keeps an **old, non-persistent format** working always says when it
 stops, in the frontend and the backend alike. Examples are an old URL or query
-param shape, a retired request/response payload, a renamed MCP tool argument, a
+param shape, a retired request/response payload, a renamed webhook field, a
 stale localStorage/cache layout, or a redirect from a renamed route. Mark every
 such block with:
 
@@ -23,8 +23,8 @@ nobody remembers why it's there or whether anything still sends the old shape.
   bookmarks, in-flight clients and caches. Data persisted in the DB is migrated
   instead (a migration or `migrate-*.ts` script), not shimmed.
 - **Picking the date:** long enough for the old format to stop arriving.
-  Weeks for URLs and caches. Longer if external callers (another service, an
-  agent) have to switch first. Tell those callers the date.
+  Weeks for URLs and caches. Longer if external callers (another service, a
+  mobile client) have to switch first. Tell those callers the date.
 - **Placement:** put the TODO on every block that exists only for the old
   format, so deleting the marked code removes the whole shim. The rule only
   checks dates; it can't see unmarked shims.

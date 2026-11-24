@@ -18,16 +18,16 @@ a pile of helpers and the sequencing leaked into everyone who used it.
 ```ts
 // ❌ Wrong — six exports for one job, and the caller has to know the choreography.
 export function messagesUpToCutoff(history, trigger) { … }
-export function invokedSkillIds(rows) { … }
-export function buildContext(rows, skills) { … }
+export function invokedLabelIds(rows) { … }
+export function buildContext(rows, labels) { … }
 export const MAX_TOOL_HISTORY_TURNS = 3;
-export type SkillDefinition = { … };
+export type LabelDefinition = { … };
 export type Context = LlmMessage[];
 
 // …and at every call site, the module's own sequencing, re-assembled by hand:
 const rows = messagesUpToCutoff(await repo.listMessages(id), trigger);
-const skills = await skillsRepo.byIds(orgId, invokedSkillIds(rows));
-const messages = buildContext(rows, new Map(skills.map(s => [s.id, s])));
+const labels = await labelsRepo.byIds(projectId, invokedLabelIds(rows));
+const messages = buildContext(rows, new Map(labels.map(l => [l.id, l])));
 ```
 
 ```ts
@@ -35,20 +35,20 @@ const messages = buildContext(rows, new Map(skills.map(s => [s.id, s])));
 // caller's problem, and cannot be got wrong.
 export class Context {
   constructor(private readonly reads: {
-    loadMessages: () => Promise<Pick<AgentSessionMessageRow, "data">[]>;
-    loadSkills: (ids: string[]) => Promise<{ id: string; name: string; prompt: string }[]>;
+    loadMessages: () => Promise<Pick<CommentRow, "data">[]>;
+    loadLabels: (ids: string[]) => Promise<{ id: string; name: string; color: string }[]>;
   }) {}
 
   async build(): Promise<LlmMessage[]> { … }
 
   private proseToText(prose): string { … }
-  private skillIdsIn(content): string[] { … }
+  private labelIdsIn(content): string[] { … }
 }
 
 // The call site is the whole contract:
 const messages = await new Context({
-  loadMessages: () => agentSessionsRepo.listMessages(session.id),
-  loadSkills: ids => skillsRepo.byIds(session.org_id, ids),
+  loadMessages: () => threadsRepo.listMessages(thread.id),
+  loadLabels: ids => labelsRepo.byIds(thread.project_id, ids),
 }).build();
 ```
 
@@ -72,7 +72,7 @@ no server, and no module mocking, which tests the real contract rather than the 
 // The whole crossing, driven exactly the way production drives it.
 const messages = await new Context({
   loadMessages: () => Promise.resolve(rows),
-  loadSkills: ids => Promise.resolve(SKILLS.filter(s => ids.includes(s.id))),
+  loadLabels: ids => Promise.resolve(LABELS.filter(l => ids.includes(l.id))),
 }).build();
 ```
 
@@ -90,7 +90,7 @@ method exported "just for the test" describes nothing.
 - A module that really is one function (`markdown-to-text.ts`). One job, one step, no
   internal procedure — a class would be ceremony.
 - A module of genuinely independent utilities with no shared job between them.
-- A pure vocabulary/schema module whose exports ARE the product (`sandbox.ts`).
+- A pure vocabulary/schema module whose exports ARE the product (`roles.ts`).
 
 Related: `backend/extract-pure-logic-into-its-own-module-and-unit-test` (WHAT to pull out
 of a handler — this rule is HOW to shape it once pulled) and

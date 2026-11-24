@@ -11,14 +11,14 @@ When a task runs on a recurring interval (e.g. a cron tick every 1 minute), wrap
 // ✅ Correct — detects when a recurring operation takes too long
 import { warning } from "../lib/developer-warning.js";
 
-await warning.ifSlow("refreshUserSkills", { ms: 1000, log: () => ({ skillId }) }, async () => {
-  const { data: rows } = await supabase.from("user_skills").select();
+await warning.ifSlow("refreshTaskReminders", { ms: 1000, log: () => ({ projectId }) }, async () => {
+  const rows = await db.get().selectFrom("tasks").selectAll().execute();
   // ... process rows
 });
 ```
 
 ```typescript
 // ❌ Wrong — no visibility into slow operations that run every minute
-const { data: rows } = await supabase.from("user_skills").select();
+const rows = await db.get().selectFrom("tasks").selectAll().execute();
 // ... process rows
 ```

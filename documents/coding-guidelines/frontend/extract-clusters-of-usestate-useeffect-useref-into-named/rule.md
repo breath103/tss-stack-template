@@ -16,7 +16,7 @@ Signals that a cluster is ready to extract:
 ```tsx
 // ✅ Correct — the feature is named; DialogShell just composes it.
 function DialogShell() {
-  const { ref, onResizeStart } = useResizableWidth({ storageKey: "memory-detail-width", defaultWidth: 560 });
+  const { ref, onResizeStart } = useResizableWidth({ storageKey: "task-detail-width", defaultWidth: 560 });
   return <div ref={ref}><ResizeHandle onMouseDown={onResizeStart} /></div>;
 }
 ```

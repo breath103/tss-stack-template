@@ -5,7 +5,7 @@ order: 20
 
 # When a list can be empty, show the empty state only after the first load has finished.
 
-The failure mode this rule eliminates is the **empty-state collision**: `if (records.length === 0) return <EmptyState />` shows "No items yet" *during the initial fetch*. The user sees "No memories yet" while the request is in flight, then the list pops in. Looks like a bug, looks like data was deleted.
+The failure mode this rule eliminates is the **empty-state collision**: `if (records.length === 0) return <EmptyState />` shows "No items yet" *during the initial fetch*. The user sees "No tasks yet" while the request is in flight, then the list pops in. Looks like a bug, looks like data was deleted.
 
 | Condition | Render |
 |---|---|

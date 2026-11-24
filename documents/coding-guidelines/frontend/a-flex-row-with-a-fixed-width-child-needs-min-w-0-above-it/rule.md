@@ -19,7 +19,7 @@ simply been pushed off the right edge of the screen.
 ```tsx
 // ✅ Correct — the column can shrink, so the row shares the width it really has
 <div className="min-h-0 min-w-0 flex-1">
-  <WorkspaceView />        {/* contains a fixed-width panel + a shrink-0 sidebar */}
+  <ProjectView />          {/* contains a fixed-width panel + a shrink-0 sidebar */}
 </div>
 ```
 
@@ -27,14 +27,14 @@ simply been pushed off the right edge of the screen.
 // ❌ Wrong — min-width:auto, so this column grows to its content's intrinsic width
 //    and the sidebar inside it lands outside the viewport
 <div className="min-h-0 flex-1">
-  <WorkspaceView />
+  <ProjectView />
 </div>
 ```
 
 ## The companion half: give every flexible column a floor
 
 Once ancestors *can* shrink, flex will happily take the unconstrained column to zero.
-Whichever column has no `min-w-*` is the one that collapses — in a chat + file-viewer
+Whichever column has no `min-w-*` is the one that collapses — in a thread + file-viewer
 split, an unbounded thread rendered one character per line while the viewer sat at its
 floor. Decide which surface is primary and give it the larger floor; give the
 secondary one a floor too, so neither can vanish:

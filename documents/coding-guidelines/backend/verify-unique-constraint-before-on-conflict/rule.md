@@ -11,7 +11,7 @@ Postgres throws at runtime if `ON CONFLICT (col)` doesn't match an existing `UNI
 no unique or exclusion constraint matching the ON CONFLICT specification
 ```
 
-Before adding `.onConflict((oc) => oc.column("X").doUpdateSet(...))`, open the migration file and confirm `X` is in a `PRIMARY KEY` or `UNIQUE` clause. The Supabase `.upsert()` API hid this footgun by defaulting to `ON CONFLICT (id)` — auto-generated ids never collide, so the upsert silently degraded to a plain insert. Kysely makes you state the column explicitly, which means you have to verify it.
+Before adding `.onConflict((oc) => oc.column("X").doUpdateSet(...))`, open the migration file and confirm `X` is in a `PRIMARY KEY` or `UNIQUE` clause. An ORM-style `.upsert()` API hides this footgun by defaulting to `ON CONFLICT (id)` — auto-generated ids never collide, so the upsert silently degrades to a plain insert. Kysely makes you state the column explicitly, which means you have to verify it.
 
 ```ts
 // ✅ Correct — profiles PK is user_id
@@ -23,16 +23,16 @@ await db.get()
 ```
 
 ```ts
-// ❌ Wrong — user_skills PK is `id`; no unique on user_id; Postgres errors at runtime
+// ❌ Wrong — comments PK is `id`; no unique on user_id; Postgres errors at runtime
 await db.get()
-  .insertInto("user_skills")
+  .insertInto("comments")
   .values({ user_id, data })
   .onConflict((oc) => oc.column("user_id").doUpdateSet({ data }))  // crashes
   .execute();
 
 // ✅ Correct for that case — just insert (the original `.upsert(.)` was a misnamed insert all along)
 await db.get()
-  .insertInto("user_skills")
+  .insertInto("comments")
   .values({ user_id, data })
   .returningAll()
   .executeTakeFirstOrThrow();

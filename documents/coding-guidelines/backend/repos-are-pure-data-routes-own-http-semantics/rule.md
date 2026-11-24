@@ -7,21 +7,21 @@ order: 40
 
 Repo methods never throw `HTTPException`. This keeps repos reusable from non-HTTP contexts (CLI, worker, gRPC) without importing `hono` or translating exceptions at every call. What a repo returns for a missing row is `backend/repo-miss-returns-null-route-throws-404`.
 
-Ownership / authorization checks that *aren't* "row missing" (e.g. "fromId belongs to the caller") also live at the route layer. The repo exposes the predicate (`entitiesRepo.ownsAll`, `chatSessionsRepo.existsForUser`) and the route decides whether that's a 422 or a 404.
+Ownership / authorization checks that *aren't* "row missing" (e.g. "fromId belongs to the caller") also live at the route layer. The repo exposes the predicate (`tasksRepo.ownsAll`, `threadsRepo.existsForUser`) and the route decides whether that's a 422 or a 404.
 
 ```ts
-// ✅ Correct — routes/ontology.ts: ownership check at the route, not in createRelationship
-const owned = await entitiesRepo.ownsAll(user.id, [body.fromId, body.toId]);
+// ✅ Correct — routes/tasks.ts: ownership check at the route, not in createDependency
+const owned = await tasksRepo.ownsAll(user.id, [body.fromId, body.toId]);
 if (!owned) throw new HTTPException(422, { message: "fromId or toId does not belong to the user" });
-const row = await entitiesRepo.createRelationship(user.id, body);
+const row = await tasksRepo.createDependency(user.id, body);
 ```
 
 ```ts
 // ❌ Wrong — repo throws HTTPException, couples data layer to HTTP
-async getById(userId: string, id: string): Promise<Memory> {
-  const { data } = await serviceClient.get()...maybeSingle().throwOnError();
-  if (!data) throw new HTTPException(404, { message: "Memory not found" });
-  return data;
+async getById(userId: string, id: string): Promise<TaskRow> {
+  const row = await db.get().selectFrom("tasks")...executeTakeFirst();
+  if (!row) throw new HTTPException(404, { message: "Task not found" });
+  return row;
 }
 ```
 
@@ -37,27 +37,27 @@ means a shared repo cannot import the route's schema, which makes "just declare 
 the **row**, which is the only thing that layer knows about:
 
 ```ts
-// ✅ Correct — modules/db/src/skills-repository.ts
-type SkillWrite = Pick<SkillRow, "name" | "description" | "prompt">;
+// ✅ Correct — modules/db/src/labels-repository.ts
+type LabelWrite = Pick<LabelRow, "name" | "description" | "color">;
 
-// ✅ Correct — packages/backend/src/lambda-api/routes/skills.ts
-const skillWriteSchema = z.object({
-  // Invoked as `/<name>`, so no whitespace and no slash.
-  name: z.string().min(1).regex(/^[^\s/]+$/),
+// ✅ Correct — packages/backend/src/lambda-api/routes/labels.ts
+const labelWriteSchema = z.object({
+  // Referenced as `#<name>`, so no whitespace and no `#`.
+  name: z.string().min(1).regex(/^[^\s#]+$/),
   description: z.string(),
-  prompt: z.string().min(1),
+  color: z.string().min(1),
 });
-export type SkillWriteBody = z.infer<typeof skillWriteSchema>;
+export type LabelWriteBody = z.infer<typeof labelWriteSchema>;
 ```
 
 ```ts
-// ❌ Wrong — modules/db/src/skill.ts. The `/name` invocation syntax is a fact about
-// the composer and the HTTP surface; the data layer has no business asserting it,
+// ❌ Wrong — modules/db/src/label.ts. The `#name` reference syntax is a fact about
+// the comment editor and the HTTP surface; the data layer has no business asserting it,
 // and every consumer of @modules/db now carries the route's validation rules.
-export const skillWriteSchema = z.object({
-  name: z.string().min(1).regex(/^[^\s/]+$/),
+export const labelWriteSchema = z.object({
+  name: z.string().min(1).regex(/^[^\s#]+$/),
   description: z.string(),
-  prompt: z.string().min(1),
+  color: z.string().min(1),
 });
 ```
 

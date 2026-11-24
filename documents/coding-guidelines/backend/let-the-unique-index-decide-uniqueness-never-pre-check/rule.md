@@ -16,15 +16,15 @@ the loser of that race. Once the write path handles it, the pre-check is pure wa
 ```ts
 // ❌ Wrong — an extra round trip AND a race. Two simultaneous creates of the same
 // name both see no clash, both proceed, and one dies with an unmapped 500.
-async function assertNameFree(orgId: string, name: string, selfId: string | null) {
-  const clash = (await skillsRepo.list(orgId)).find(s => s.name === name && s.id !== selfId);
+async function assertNameFree(projectId: string, name: string, selfId: string | null) {
+  const clash = (await labelsRepo.list(projectId)).find(l => l.name === name && l.id !== selfId);
   if (clash) throw new HTTPException(409, { message: `'${name}' already exists` });
 }
 
-route("/api/organizations/:orgId/skills", "POST", {
+route("/api/projects/:projectId/labels", "POST", {
   handler: async ({ params, body, c }) => {
-    await assertNameFree(orgId, body.name, null);
-    return { skills: [await skillsRepo.create(orgId, body)] };
+    await assertNameFree(projectId, body.name, null);
+    return { labels: [await labelsRepo.create(projectId, body)] };
   },
 });
 ```
@@ -41,25 +41,25 @@ pre-check is.
 // "23505" means has hard-coded Postgres into the HTTP layer, and it is a lint
 // error: `local/no-db-internals-outside-repository`.
 
-// skills-repository.ts
-/** `null` = that name is taken in this org; `skills_org_id_name_key` decides. */
-async create(orgId: string, input: SkillInput): Promise<SkillRow | null> {
+// labels-repository.ts
+/** `null` = that name is taken in this project; `labels_project_id_name_key` decides. */
+async create(projectId: string, input: LabelInput): Promise<LabelRow | null> {
   try {
-    return await db.get().insertInto("skills").values(...).returningAll().executeTakeFirstOrThrow();
+    return await db.get().insertInto("labels").values(...).returningAll().executeTakeFirstOrThrow();
   } catch (error) {
-    if (isUniqueViolation(error, "skills_org_id_name_key")) return null;
+    if (isUniqueViolation(error, "labels_project_id_name_key")) return null;
     throw error;
   }
 }
 
-// routes/skills.ts
-route("/api/organizations/:orgId/skills", "POST", {
+// routes/labels.ts
+route("/api/projects/:projectId/labels", "POST", {
   handler: async ({ params, body, c }) => {
-    const skill = requireOrThrow(
-      await skillsRepo.create(orgId, body),
-      () => new HTTPException(409, { message: `A skill named '${body.name}' already exists` })
+    const label = requireOrThrow(
+      await labelsRepo.create(projectId, body),
+      () => new HTTPException(409, { message: `A label named '${body.name}' already exists` })
     );
-    return { skills: [skill] };
+    return { labels: [label] };
   },
 });
 ```
@@ -108,7 +108,7 @@ return type goes with which method.
 
 ## Requirements
 
-- **The index must exist.** A migration with `create unique index … on t (org_id, name)`
+- **The index must exist.** A migration with `create unique index … on t (project_id, name)`
   is what makes this correct; without it there is no invariant to lean on. See
   `verify-unique-constraint-before-on-conflict`.
 - **Scope the catch, and put it in the repo.** Use `isUniqueViolation(error, constraint)`

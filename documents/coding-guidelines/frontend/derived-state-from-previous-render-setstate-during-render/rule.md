@@ -9,18 +9,18 @@ When you need a state that mirrors a prop's last non-empty value (route-derived 
 
 ```tsx
 // ✅ Correct — derived state set during render
-const [cachedId, setCachedId] = useState(memoryId);
-if (memoryId !== undefined && memoryId !== cachedId) {
-  setCachedId(memoryId);
+const [cachedId, setCachedId] = useState(taskId);
+if (taskId !== undefined && taskId !== cachedId) {
+  setCachedId(taskId);
 }
 ```
 
 ```tsx
 // ❌ Wrong — useEffect for derived state (lint error: react-hooks/set-state-in-effect)
-const [cachedId, setCachedId] = useState(memoryId);
+const [cachedId, setCachedId] = useState(taskId);
 useEffect(() => {
-  if (memoryId !== undefined) setCachedId(memoryId);
-}, [memoryId]);
+  if (taskId !== undefined) setCachedId(taskId);
+}, [taskId]);
 ```
 
 React handles the during-render `setState` correctly: it discards the current render and immediately re-renders with the new state, so callers see consistent values without the extra effect-driven render.

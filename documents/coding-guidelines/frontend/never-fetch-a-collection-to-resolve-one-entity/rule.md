@@ -18,11 +18,11 @@ The failure this rule exists to stop is step 2 done as *"fetch the whole
 collection and pick the row out of it"*:
 
 ```ts
-// ❌ The anti-pattern. One missing agent → every agent in the org, per reader.
+// ❌ The anti-pattern. One missing task → every task in the project, per reader.
 useRepositoryQuery(
-  "agents",
-  { id: agentId },
-  async () => (await fetchAvailableAgents(orgId)).find(a => a.id === agentId) ?? null,
+  "tasks",
+  { id: taskId },
+  async () => (await fetchAvailableTasks(projectId)).find(t => t.id === taskId) ?? null,
 );
 ```
 
@@ -37,11 +37,11 @@ is a collection *per row*.
 **Backend:** every entity that gets resolved by id needs a batch read.
 
 ```ts
-route("/api/orgs/:orgId/agents/by-ids", "POST", {
+route("/api/projects/:projectId/tasks/by-ids", "POST", {
   body: { ids: z.array(z.uuid()) },
   handler: async ({ params, body, c }) => {
-    const { orgId } = await requireOrg(c, params.orgId);
-    return { agents: await agentsRepo.byIds(orgId, body.ids) };
+    const { projectId } = await requireProject(c, params.projectId);
+    return { tasks: await tasksRepo.byIds(projectId, body.ids) };
   },
 }),
 ```
@@ -52,24 +52,24 @@ stays absent from the cache and the reader renders its not-found state.
 **Frontend:** one loader per table at module scope, then read through `useEntity`.
 
 ```ts
-// ✅ agent-query.ts
-const agentsLoader = createEntityLoader(
-  "agents",
-  ids => api.fetch("/api/orgs/:orgId/agents/by-ids", "POST", { params: { orgId }, body: { ids } })
-           .then(r => r.agents),
+// ✅ task-query.ts
+const tasksLoader = createEntityLoader(
+  "tasks",
+  ids => api.fetch("/api/projects/:projectId/tasks/by-ids", "POST", { params: { projectId }, body: { ids } })
+           .then(r => r.tasks),
   { debounceMs: 10 },   // also merges loads that land on separate ticks
 );
 
-export function useAgent(agentId: string) {
-  return useEntity("agents", { id: agentId }, agentsLoader);
+export function useTask(taskId: string) {
+  return useEntity("tasks", { id: taskId }, tasksLoader);
 }
 ```
 
 ```tsx
 // ✅ Each row declares the id it renders and resolves it itself.
-function SessionRow({ session }: { session: SessionRow }) {
-  const { entity: agent } = useAgent(session.agent_id);
-  return <span>{agent?.name ?? "…"}</span>;
+function ThreadRow({ thread }: { thread: ThreadRow }) {
+  const { entity: task } = useTask(thread.task_id);
+  return <span>{task?.name ?? "…"}</span>;
 }
 ```
 

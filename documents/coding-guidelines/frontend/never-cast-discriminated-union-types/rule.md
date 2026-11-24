@@ -9,13 +9,13 @@ When a type is already a discriminated union, never cast it to `Record<string, u
 
 ```typescript
 // ✅ Correct - narrow via discriminant, TypeScript infers config type
-if (memory.metadata.type === "call") {
-  memory.metadata.counterpart; // string[]
+if (task.metadata.type === "call") {
+  task.metadata.counterpart; // string[]
 }
 ```
 
 ```typescript
 // ❌ Wrong - casting away the union type
-const metadata = memory.metadata as Record<string, unknown>;
+const metadata = task.metadata as Record<string, unknown>;
 metadata.counterpart as string[];
 ```

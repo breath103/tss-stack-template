@@ -24,9 +24,9 @@ if (state.tasks.length === 0) return <EmptyMessage />;
 return <RealContent />;
 
 // ✅ Correct — detail panel
-if (memory === null && status === "fetching") return <MemoryDetailSkeleton />;
-if (memory === null) return <NotFound />;
-return <MemoryDetail memory={memory} />;
+if (task === null && status === "fetching") return <TaskDetailSkeleton />;
+if (task === null) return <NotFound />;
+return <TaskDetail task={task} />;
 ```
 
 ```tsx
