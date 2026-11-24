@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
-import { loadConfig } from "./lib.ts";
+import { ghJson, loadConfig } from "./lib.ts";
 
 export function linkPr(args: string[]): void {
   const { values } = parseArgs({
@@ -20,13 +20,10 @@ export function linkPr(args: string[]): void {
   const config = loadConfig();
 
   // Get current PR body
-  const prJson = execFileSync("gh", ["pr", "view", values.pr, "--repo", config.repo, "--json", "body"], {
-    encoding: "utf-8",
-  });
-  const { body } = JSON.parse(prJson);
+  const { body } = ghJson<{ body: string }>(["pr", "view", values.pr, "--repo", config.repo, "--json", "body"]);
 
   const closeRef = `Closes #${values.issue}`;
-  if (body && body.includes(closeRef)) {
+  if (body.includes(closeRef)) {
     console.log(JSON.stringify({ pr: values.pr, issue: values.issue, alreadyLinked: true }));
     return;
   }

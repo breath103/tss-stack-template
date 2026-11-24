@@ -1,6 +1,5 @@
-import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
-import { type Config, ghGraphql, loadConfig } from "./lib.ts";
+import { type Config, ghGraphql, ghJson, loadConfig } from "./lib.ts";
 
 export function viewIssue(args: string[]): void {
   const { values } = parseArgs({
@@ -18,13 +17,15 @@ export function viewIssue(args: string[]): void {
 
   const config = loadConfig();
 
-  const json = execFileSync(
-    "gh",
-    ["issue", "view", values.issue, "--repo", config.repo, "--json", "number,title,state,body,labels,assignees,url"],
-    { encoding: "utf-8" }
-  );
-
-  const issue = JSON.parse(json);
+  const issue = ghJson<{
+    number: number;
+    title: string;
+    state: string;
+    body: string;
+    url: string;
+    labels: { name: string }[];
+    assignees: { login: string }[];
+  }>(["issue", "view", values.issue, "--repo", config.repo, "--json", "number,title,state,body,labels,assignees,url"]);
 
   // Look up the project item ID and status for this issue
   const projectItem = findProjectItem(config, issue.number);
@@ -34,8 +35,8 @@ export function viewIssue(args: string[]): void {
     title: issue.title,
     state: issue.state,
     url: issue.url,
-    labels: issue.labels.map((l: { name: string }) => l.name),
-    assignees: issue.assignees.map((a: { login: string }) => a.login),
+    labels: issue.labels.map(l => l.name),
+    assignees: issue.assignees.map(a => a.login),
     body: issue.body,
     projectItemId: projectItem?.id ?? null,
     projectStatus: projectItem?.status ?? null,
@@ -64,9 +65,17 @@ function findProjectItem(config: Config, issueNumber: number): { id: string; sta
     }
   `;
 
-  const data = ghGraphql(query, { owner, repo, issueNumber });
-  const items = data.data.repository.issue?.projectItems?.nodes ?? [];
-  const match = items.find((item: any) => item.project.id === config.projectId);
+  const { data } = ghGraphql<{
+    repository: {
+      issue: {
+        projectItems: {
+          nodes: { id: string; project: { id: string }; fieldValueByName: { name?: string } | null }[];
+        };
+      } | null;
+    };
+  }>(query, { owner, repo, issueNumber });
+  const items = data.repository.issue?.projectItems.nodes ?? [];
+  const match = items.find(item => item.project.id === config.projectId);
   if (!match) return null;
   return {
     id: match.id,

@@ -1,0 +1,10 @@
+{
+  // Skill scripts import siblings as `./lib.ts` (run by tsx through their shebang), so this
+  // program allows `.ts` extensions; otherwise it is the root `scripts/` program.
+  "extends": "../../scripts/tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "rootDir": "../.."
+  },
+  "include": ["."]
+}

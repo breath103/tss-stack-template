@@ -1,7 +1,5 @@
 // Flags `process.env.FOO!` — a non-null-asserted `process.env` read. Declare the
 // env var in `src/env.d.ts` with the right type instead of bang-asserting.
-// (Coding guideline: backend/declare-env-vars-in-env-d-ts-and.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

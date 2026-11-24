@@ -3,8 +3,7 @@
 // the start of an abstraction that never comes — inline it at the one callsite.
 // Lives in `shared` (dev-only lint tooling, never bundled); loaded as an oxlint
 // JS plugin (`local`) by the backend and frontend `.oxlintrc.json`.
-// (Coding guideline: frontend/don-t-name-a-type-you-use-once, and its backend
-// sibling backend/inline-single-use-schemas-and-variables.)
+// (Coding guideline: backend/inline-single-use-schemas-and-variables.)
 //
 // Scope is deliberately limited to non-exported declarations: an exported type
 // can be referenced in other files, which a per-file lint rule can't see, so we

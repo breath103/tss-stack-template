@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { requireUpToDateWithMain } from "./lib.ts";
+import { ghJson, requireUpToDateWithMain } from "./lib.ts";
 import { syncLocal } from "./sync-local.ts";
 import { waitMainCi } from "./wait-main-ci.ts";
 
@@ -7,20 +7,16 @@ export function landPr(): void {
   requireUpToDateWithMain();
 
   // 1. Identify the PR
-  const prJson = execFileSync(
-    "gh",
-    ["pr", "view", "--json", "number,title,url,headRefName,statusCheckRollup,closingIssuesReferences"],
-    { encoding: "utf-8" }
-  );
-
-  const pr = JSON.parse(prJson);
-  const linkedIssues = (pr.closingIssuesReferences ?? []).map(
-    (issue: { number: number; title: string; url: string }) => ({
-      number: issue.number,
-      title: issue.title,
-      url: issue.url,
-    })
-  );
+  const pr = ghJson<{
+    number: number;
+    title: string;
+    closingIssuesReferences: { number: number; title: string; url: string }[] | null;
+  }>(["pr", "view", "--json", "number,title,closingIssuesReferences"]);
+  const linkedIssues = (pr.closingIssuesReferences ?? []).map(issue => ({
+    number: issue.number,
+    title: issue.title,
+    url: issue.url,
+  }));
   console.error(`Landing PR #${pr.number}: ${pr.title}`);
 
   // 2. Wait for PR CI
@@ -33,10 +29,13 @@ export function landPr(): void {
 
   // 3b. Resolve the actual merge commit SHA so step 4 watches THIS PR's run,
   // not whatever happens to be the latest run on main (concurrent merges race).
-  const mergeJson = execFileSync("gh", ["pr", "view", String(pr.number), "--json", "mergeCommit"], {
-    encoding: "utf-8",
-  });
-  const mergeSha: string | undefined = JSON.parse(mergeJson).mergeCommit?.oid;
+  const mergeSha = ghJson<{ mergeCommit: { oid: string } | null }>([
+    "pr",
+    "view",
+    String(pr.number),
+    "--json",
+    "mergeCommit",
+  ]).mergeCommit?.oid;
   if (!mergeSha) {
     console.error("Could not resolve merge commit SHA after merge");
     process.exit(1);

@@ -1,6 +1,4 @@
 // Flags raw `fetch("/...")` calls to our own API. Use api.fetch instead.
-// (Coding guideline: frontend/use-apiclient-for-api-calls.)
-
 import type { Context } from "./plugin-api.ts";
 
 interface Node {

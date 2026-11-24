@@ -49,48 +49,28 @@ export function waitForReview(args: string[]): void {
       process.exit(0);
     }
 
-    const issueComments = JSON.parse(
-      execFileSync(
-        "gh",
-        [
-          "api",
-          `repos/${repo}/issues/${prNumber}/comments`,
-          "--jq",
-          `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, type: "comment"}]`,
-        ],
-        { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-      ).trim() || "[]"
-    );
+    const fetchComments = (endpoint: string, jq: string) =>
+      JSON.parse(
+        execFileSync("gh", ["api", `repos/${repo}/${endpoint}`, "--jq", jq], {
+          encoding: "utf-8",
+          stdio: ["pipe", "pipe", "pipe"],
+        }).trim() || "[]"
+      ) as { created_at: string }[];
 
-    const reviewComments = JSON.parse(
-      execFileSync(
-        "gh",
-        [
-          "api",
-          `repos/${repo}/pulls/${prNumber}/comments`,
-          "--jq",
-          `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, path, type: "review_comment"}]`,
-        ],
-        { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-      ).trim() || "[]"
-    );
-
-    const reviews = JSON.parse(
-      execFileSync(
-        "gh",
-        [
-          "api",
-          `repos/${repo}/pulls/${prNumber}/reviews`,
-          "--jq",
-          `[.[] | select(.submitted_at > "${since}" and .body != "") | {author: .user.login, body, created_at: .submitted_at, state, type: "review"}]`,
-        ],
-        { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-      ).trim() || "[]"
-    );
-
-    const all = [...issueComments, ...reviewComments, ...reviews].sort((a: any, b: any) =>
-      a.created_at.localeCompare(b.created_at)
-    );
+    const all = [
+      ...fetchComments(
+        `issues/${prNumber}/comments`,
+        `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, type: "comment"}]`
+      ),
+      ...fetchComments(
+        `pulls/${prNumber}/comments`,
+        `[.[] | select(.created_at > "${since}") | {author: .user.login, body, created_at, path, type: "review_comment"}]`
+      ),
+      ...fetchComments(
+        `pulls/${prNumber}/reviews`,
+        `[.[] | select(.submitted_at > "${since}" and .body != "") | {author: .user.login, body, created_at: .submitted_at, state, type: "review"}]`
+      ),
+    ].sort((a, b) => a.created_at.localeCompare(b.created_at));
 
     if (all.length > 0) {
       process.stderr.write(`Found ${all.length} new comment(s):\n`);
