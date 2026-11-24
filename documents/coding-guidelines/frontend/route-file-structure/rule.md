@@ -10,7 +10,7 @@ Routes use TanStack Router with manual route definitions (not file-based auto-ge
 **Convention:**
 - Each URL segment gets its own directory under `src/routes/`
 - The route definition goes in `_route.tsx` inside that directory
-- Dynamic segments use `$param` directories (e.g. `$memoryId/`, `$chatId/`)
+- Dynamic segments use `$param` directories (e.g. `$taskId/`, `$threadId/`)
 - Sibling components are colocated in the same directory as `_route.tsx`
 - Parent route is imported via relative path (e.g. `../_route`) — not absolute `@/routes/...`
 - The `path` in `createRoute` declares the segment(s) from the parent — it does NOT repeat the full URL

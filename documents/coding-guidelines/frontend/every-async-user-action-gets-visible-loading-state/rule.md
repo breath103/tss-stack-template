@@ -13,7 +13,7 @@ Wire the handler through `useMutation`, swap the icon for a Spinner while `statu
 
 ```tsx
 // ✅ Correct — icon swaps, button disables, click is idempotent
-const remove = useMutation(async () => api.fetch("/api/memories/:id", "DELETE", { params: { id } }), [id]);
+const remove = useMutation(async () => api.fetch("/api/tasks/:id", "DELETE", { params: { id } }), [id]);
 
 <button onClick={() => void remove.call()} disabled={remove.status === "loading"}>
   {remove.status === "loading" ? <Spinner className="size-3.5" /> : <Trash2 className="size-4" />}
@@ -25,7 +25,7 @@ const remove = useMutation(async () => api.fetch("/api/memories/:id", "DELETE", 
 import { useMutation } from "@/hooks/useMutation";
 
 const share = useMutation(async (folder: Folder) => {
-  await api.fetch("/api/onedrive/memories/:id/share", "POST", { ... });
+  await api.fetch("/api/tasks/:id/share", "POST", { ... });
 }, []);
 
 <Button onClick={() => { void share.call(folder); }} disabled={share.status === "loading"}>
@@ -35,7 +35,7 @@ const share = useMutation(async (folder: Folder) => {
 
 ```tsx
 // ❌ Wrong — bare async handler, no loading, double-click duplicates the call
-<button onClick={() => void deleteMemory(id)}>
+<button onClick={() => void deleteTask(id)}>
   <Trash2 className="size-4" />
 </button>
 ```

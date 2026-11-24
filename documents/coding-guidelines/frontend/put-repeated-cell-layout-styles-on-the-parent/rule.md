@@ -15,14 +15,14 @@ function DayRow({ days }: { days: DayGroup[] }) {
   return (
     <div className="flex h-1/2 items-stretch">
       {days.map((day, i) => (
-        <AstraTableHeadCell
+        <TaskBoardHeadCell
           key={day.key}
           border={i === 0 ? "none" : "left"}
           className="relative shrink-0 justify-between px-1.5"
           style={{ width: PX_PER_DAY }}
         >
           {day.label}
-        </AstraTableHeadCell>
+        </TaskBoardHeadCell>
       ))}
     </div>
   );
@@ -35,9 +35,9 @@ function DayRow({ days }: { days: DayGroup[] }) {
   return (
     <div className="grid h-1/2" style={{ gridTemplateColumns: `repeat(${days.length}, ${PX_PER_DAY}px)` }}>
       {days.map((day) => (
-        <AstraTableHeadCell key={day.key} className="relative justify-between px-1.5">
+        <TaskBoardHeadCell key={day.key} className="relative justify-between px-1.5">
           {day.label}
-        </AstraTableHeadCell>
+        </TaskBoardHeadCell>
       ))}
     </div>
   );

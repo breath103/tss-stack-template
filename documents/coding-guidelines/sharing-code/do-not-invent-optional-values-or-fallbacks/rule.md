@@ -19,13 +19,13 @@ follow the same rule: pass required dependencies explicitly and throw on impossi
 states rather than continuing with dummy values.
 
 ```tsx
-// ❌ Wrong — the page only renders once the workspace is loaded, so no caller takes the
+// ❌ Wrong — the page only renders once the project is loaded, so no caller takes the
 // absent branch. `""` is an invented stand-in that hides a bug if one ever does.
-<Heading text={workspace?.name ?? ""} />
-const form = useForm({ defaultValues: { description: keychain.description ?? "" } });
+<Heading text={project?.name ?? ""} />
+const form = useForm({ defaultValues: { description: task.description ?? "" } });
 
 // ✅ Correct — require it where it enters, then use it
-<Heading text={workspace.name} />
+<Heading text={project.name} />
 ```
 
 **Not a fallback: converting a real `null` at an input.** A nullable column is `null` in

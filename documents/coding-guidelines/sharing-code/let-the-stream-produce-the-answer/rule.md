@@ -27,19 +27,19 @@ step to the next.
 
 ```typescript
 // ✅ One subscription; any emission means stop
-const stopping = new ChatControlMqttTopic({ workspaceId, chatId })
-  .observe(messages => merge(messages, defer(() => chatsRepo.stopRequested(chatId)).pipe(filter(requested => requested))))
+const stopping = new ThreadControlChannel({ projectId, threadId })
+  .observe(messages => merge(messages, defer(() => threadsRepo.stopRequested(threadId)).pipe(filter(requested => requested))))
   .subscribe({
     next: () => stop.abort(),
-    error: error => warning.send("chat-stop-subscribe-failed", () => ({ chatId, error: String(error) })),
+    error: error => warning.send("thread-stop-subscribe-failed", () => ({ threadId, error: String(error) })),
   });
 // finally: stopping.unsubscribe();
 ```
 
 ```typescript
 // ❌ A class around one subscription: pending/disposed flags, an interval, a dispose()
-class ChatStopWatch {
-  private subscription: MqttSubscription | "pending" | "disposed" = "pending";
+class ThreadStopWatch {
+  private subscription: ChannelSubscription | "pending" | "disposed" = "pending";
   private timer = setInterval(() => void this.tick(), 1_000);
   // … listen(), tick(), read(), dispose() …
 }
@@ -51,14 +51,14 @@ return await firstValueFrom(
   topic
     .observe(reports =>
       merge(
-        defer(() => this.sendResume(microvmId)).pipe(filter(sent => !sent)),
+        defer(() => this.sendResume(workerId)).pipe(filter(sent => !sent)),
         reports.pipe(
           first(({ state }) => state === "RUNNING" || state === "TERMINATING"),
           map(({ state }) => state === "RUNNING")
         )
       )
     )
-    .pipe(timeout({ first: RESUME_TIMEOUT_MS, with: () => this.terminateUnreported(microvmId) }))
+    .pipe(timeout({ first: RESUME_TIMEOUT_MS, with: () => this.terminateUnreported(workerId) }))
 );
 ```
 
@@ -76,7 +76,7 @@ try {
   const { state } = await firstValueFrom(topic.observe(() => this.sendResume(id)).pipe(filter(…), timeout(ms)));
   return state === "RUNNING";
 } catch (error) {
-  if (error instanceof VmCannotServe) return false;
+  if (error instanceof WorkerCannotServe) return false;
   if (error instanceof TimeoutError) { … return false; }
   throw error;
 }

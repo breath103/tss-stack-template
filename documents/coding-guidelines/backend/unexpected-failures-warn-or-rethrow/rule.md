@@ -24,8 +24,8 @@ runtime notify, an optional cache write) — swallow it, but make the swallow
 `packages/backend/src/lib/developer-warning.ts` (it logs *and* fires a
 `developer_warning` PostHog event). A swallowed error that only prints is
 invisible in production — no alert, no metric — so a *permanent* failure looks
-identical to success (exactly how the prod agent chat returned 200 with no reply
-while every VM boot was being IAM-denied and `.catch(console.error)`'d).
+identical to success (exactly how a prod job submit can return 200 with no result
+while every worker invoke is being IAM-denied and `.catch(console.error)`'d).
 
 Use a `try`/`catch` block, **not** a promise `.catch()` callback — the handling
 is scoped and explicit, and it reads identically for sync and async code.
@@ -35,10 +35,10 @@ is scoped and explicit, and it reads identically for sync and async code.
 import { warning } from "../../lib/developer-warning.js";
 
 try {
-  await agentRuntimeDriver.notify({ sessionId });
+  await jobRunner.notify({ jobId });
 } catch (err) {
-  warning.send("agent-session-notify-failed", () => ({
-    sessionId,
+  warning.send("job-notify-failed", () => ({
+    jobId,
     error: err instanceof Error ? err.message : String(err),
   }));
 }
@@ -52,7 +52,7 @@ a unit instead of limping on with a hole in its state. The global
 
 ```ts
 // ✅ can't continue without it → let it throw; onError logs + 500s
-const creds = await assumeMqttRole(userId); // throws on sts:AssumeRole denial
+const creds = await assumeWorkerRole(userId); // throws on sts:AssumeRole denial
 await post(handle);                            // never reached with a bad handle
 ```
 
@@ -66,8 +66,8 @@ line). Lint enforces this.
 ```ts
 // ❌ the failure vanishes: no metric fires, a permanent failure reads as success
 try {
-  await agentRuntimeDriver.notify({ sessionId });
+  await jobRunner.notify({ jobId });
 } catch (err) {
-  console.error("[agent-sessions] notify failed:", err);
+  console.error("[jobs] notify failed:", err);
 }
 ```

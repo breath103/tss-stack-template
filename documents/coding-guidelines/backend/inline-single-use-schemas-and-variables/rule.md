@@ -9,7 +9,7 @@ Don't extract a variable for something used only once. Inline it.
 
 ```typescript
 // ✅ Correct - inline the schema
-route("/api/memories/search", "POST", {
+route("/api/tasks/search", "POST", {
   body: {
     q: z.string(),
     limit: z.number().optional(),
@@ -25,7 +25,7 @@ const searchBody = {
   limit: z.number().optional(),
 };
 
-route("/api/memories/search", "POST", {
+route("/api/tasks/search", "POST", {
   body: searchBody,
   handler: ...,
 });

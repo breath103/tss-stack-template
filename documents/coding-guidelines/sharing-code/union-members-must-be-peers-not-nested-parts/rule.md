@@ -17,12 +17,12 @@ fixing the type. One such branch is a smell; the same branch appearing in every
 consumer is proof.
 
 ```ts
-// ❌ Wrong — `skillCall` is a span INSIDE text, not a peer of a tool step.
-// A message is [text, skillCall, text] for a member and [toolCallRequest,
-// toolCallResponse, text] for an agent: two different layers, one union.
+// ❌ Wrong — `mention` is a span INSIDE text, not a peer of a tool step.
+// A message is [text, mention, text] for a member and [toolCallRequest,
+// toolCallResponse, text] for an assistant: two different layers, one union.
 const contentBlockSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("text"), text: z.string() }),
-  z.object({ type: z.literal("skillCall"), skillId: z.uuid() }),
+  z.object({ type: z.literal("mention"), userId: z.uuid() }),
   toolCallRequestSchema,
   toolCallResponseSchema,
 ]);
@@ -30,7 +30,7 @@ const contentBlockSchema = z.discriminatedUnion("type", [
 // …and then, in EVERY consumer, the branch that proves it:
 switch (block.type) {
   case "toolCallRequest": return <ToolStep …/>;
-  case "skillCall": return null;        // "member-authored; rendered elsewhere, never here"
+  case "mention":   return null;        // "member-authored; rendered elsewhere, never here"
   case "text":      return <p>{block.text}</p>;
 }
 ```
@@ -38,7 +38,7 @@ switch (block.type) {
 ```ts
 // ✅ Correct — split at the seam. Inline nodes live inside a prose block;
 // prose blocks and tool steps are what a message holds.
-const inlineNodeSchema = z.discriminatedUnion("type", [textNodeSchema, skillCallNodeSchema]);
+const inlineNodeSchema = z.discriminatedUnion("type", [textNodeSchema, mentionNodeSchema]);
 
 const paragraphSchema = z.object({
   type: z.literal("paragraph"),
@@ -61,7 +61,7 @@ merely discouraged:
 
 - A tool step cannot appear inside a paragraph, so it can never end up nested in a
   list item or a table cell when those arrive.
-- An inline node cannot appear at block level, so nothing can render a bare skill call
+- An inline node cannot appear at block level, so nothing can render a bare mention
   outside the text it was typed into.
 - New members go in exactly one place. Adding `list` touches the prose layer and gets
   the whole inline layer — marks, mentions, everything — for free.

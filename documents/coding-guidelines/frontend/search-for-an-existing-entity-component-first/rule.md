@@ -3,7 +3,7 @@ topic: Components
 order: 10
 ---
 
-# When you are about to render a row, card or label for an entity (user, member, workspace, invitation, role, tool), run ./scripts/find_existing.ts first and reuse what it finds.
+# When you are about to render a row, card or label for an entity (user, member, project, invitation, role, tool), run ./scripts/find_existing.ts first and reuse what it finds.
 
 **Before you write JSX that draws an entity, or an i18n map of its names or states, run:**
 
@@ -41,7 +41,7 @@ like:
 
 Add the slot, prop or variant to the existing component (and its demo under `routes/design`
 if it lives in `modules/ui`). A second component is right only when it draws a different
-entity, and then its name says which: `BillingWorkspaceInvitationRow`, not a second
+entity, and then its name says which: `BillingProjectInvitationRow`, not a second
 `InvitationRow`. Lint (`local(one-component-per-entity)`) rejects one component name
 declared in two files.
 

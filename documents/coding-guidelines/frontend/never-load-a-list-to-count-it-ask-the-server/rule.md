@@ -11,12 +11,12 @@ the network, keeps them all in memory, and gets slower as the list grows. All of
 a question the database can answer with one `count(*) … GROUP BY` or `EXISTS`.
 
 ```ts
-// ❌ Wrong — every workspace and invitation of the account, to compute one boolean
-const workspaces = useBillingAccountWorkspaces("account", billingAccountId);
-const invitations = useBillingAccountWorkspaceInvitations(billingAccountId);
+// ❌ Wrong — every project and invitation of the account, to compute one boolean
+const projects = useBillingAccountProjects("account", billingAccountId);
+const invitations = useBillingAccountProjectInvitations(billingAccountId);
 const uses = [
-  ...workspaces.records.flatMap(w => w.onboarding?.definitionId ?? []),
-  ...invitations.records.flatMap(i => i.workspace_onboarding_id ?? []),
+  ...projects.records.flatMap(p => p.onboarding?.definitionId ?? []),
+  ...invitations.records.flatMap(i => i.project_onboarding_id ?? []),
 ];
 const frozen = uses.includes(definition.id);
 ```

@@ -25,15 +25,15 @@ A plain `Error` becomes a 500 and loses the status; an expected condition is not
 import { ApiError } from "../../lib/api-error.js";
 
 const user = c.get("requireUser")();
-const chat = requireOrThrow(await chatsRepo.find(id), () => new ApiError(404, { type: "chat_not_found" }));
-if (chat.busy) throw new ApiError(409, { type: "chat_busy" });
+const thread = requireOrThrow(await threadsRepo.find(id), () => new ApiError(404, { type: "thread_not_found" }));
+if (thread.locked) throw new ApiError(409, { type: "thread_locked" });
 ```
 
 ```ts
 // ❌ becomes a 500, no status info
 const user = c.get("user");
 if (!user) throw new Error("Unauthorized");
-if (!chat) throw new Error("Not found");
+if (!thread) throw new Error("Not found");
 ```
 
 **When catching to branch on a specific expected failure, discriminate with

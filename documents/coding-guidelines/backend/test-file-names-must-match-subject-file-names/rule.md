@@ -9,12 +9,12 @@ Unit test files must be named after the source file they test: `foo.ts` → `__t
 
 ```
 # ✅ Correct
-src/lib/memory-to-docx.ts         → src/lib/__tests__/memory-to-docx.test.ts
-src/lib/onedrive.ts               → src/lib/__tests__/onedrive.test.ts
+src/lib/task-to-csv.ts            → src/lib/__tests__/task-to-csv.test.ts
+src/lib/slugify.ts                → src/lib/__tests__/slugify.test.ts
 ```
 
 ```
 # ❌ Wrong — split across multiple files
-src/lib/memory-to-docx.ts         → src/lib/__tests__/memory-to-docx.test.ts
-                                    src/lib/__tests__/memory-to-docx-html.test.ts
+src/lib/task-to-csv.ts            → src/lib/__tests__/task-to-csv.test.ts
+                                    src/lib/__tests__/task-to-csv-escape.test.ts
 ```

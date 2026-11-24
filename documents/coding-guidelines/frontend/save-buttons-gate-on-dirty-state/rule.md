@@ -11,7 +11,7 @@ Two halves of the same edit-form action, both recurring bugs:
 
 A Save/Submit button must be **disabled until the form actually differs from its loaded values**, and re-disable itself after a successful save. Don't leave Save permanently enabled — an enabled Save on an unchanged form invites no-op writes and gives the user no signal that there's nothing to save.
 
-With `react-hook-form` this is `formState.isDirty` — no bespoke "compare current values to the loaded agent" `useState`. After a successful in-place save, call `reset(savedValues)` so the saved values become the new baseline (`isDirty` flips back to `false`, Save disables again).
+With `react-hook-form` this is `formState.isDirty` — no bespoke "compare current values to the loaded task" `useState`. After a successful in-place save, call `reset(savedValues)` so the saved values become the new baseline (`isDirty` flips back to `false`, Save disables again).
 
 ```tsx
 // ✅ Correct — dirty gates Save; reset re-baselines after an in-place save

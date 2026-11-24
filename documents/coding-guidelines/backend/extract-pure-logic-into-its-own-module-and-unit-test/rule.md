@@ -38,13 +38,13 @@ Don't pile setup/mocking around it. If the module needs setup to test, it's not 
 
 ```ts
 // ❌ TZ math hidden inside a route handler — only reachable via HTTP
-route("/api/memories/search", "GET", {
+route("/api/tasks/search", "GET", {
   handler: async ({ query, c }) => {
     let fromUtc: Date | undefined, toUtc: Date | undefined;
     if (query.createdAt) {
       // ... 30 lines of timezone resolution, DST handling, regex parsing ...
     }
-    return await memoriesRepo.search(user.id, { query: query.q, createdAfter: fromUtc, createdBefore: toUtc });
+    return await tasksRepo.search(user.id, { query: query.q, createdAfter: fromUtc, createdBefore: toUtc });
   },
 }),
 ```
@@ -54,7 +54,7 @@ route("/api/memories/search", "GET", {
 ```ts
 // ✅ a pure module owns the TZ math; the route just reads the result
 const filter = parseCreatedAtQuery(query.createdAt);
-return await memoriesRepo.search(user.id, {
+return await tasksRepo.search(user.id, {
   query: query.q,
   createdAfter: filter?.from ? new Date(filter.from.utcMs) : undefined,
   createdBefore: filter?.to ? new Date(filter.to.utcMs) : undefined,

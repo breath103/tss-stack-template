@@ -14,30 +14,30 @@ The schema and its type ship from one module, named after the value, and every c
 both from there:
 
 ```typescript
-// ✅ modules/db/src/workspace-settings.ts
-export const workspaceSettingsSchema = z.object({
-  system_prompt: z.string().max(20_000).nullable(),
+// ✅ modules/db/src/project-settings.ts
+export const projectSettingsSchema = z.object({
+  description: z.string().max(20_000).nullable(),
 });
-export type WorkspaceSettings = z.infer<typeof workspaceSettingsSchema>;
+export type ProjectSettings = z.infer<typeof projectSettingsSchema>;
 
 // a route validates with the schema
-route("/api/workspaces/:workspaceId", "PATCH", {
-  body: { settings: workspaceSettingsSchema },
+route("/api/projects/:projectId", "PATCH", {
+  body: { settings: projectSettingsSchema },
   handler: /* … */,
 });
 
 // the repository, the jsonb column overlay and the frontend annotate with the type
-import type { WorkspaceSettings } from "@modules/db";
+import type { ProjectSettings } from "@modules/db";
 ```
 
 ```typescript
 // ❌ the same shape twice: an interface in a types file, a schema in the route
-export interface WorkspaceSettings {
-  system_prompt: string | null;
+export interface ProjectSettings {
+  description: string | null;
 }
 
-const workspaceSettingsSchema = z.object({
-  system_prompt: z.string().max(20_000).nullable(),
+const projectSettingsSchema = z.object({
+  description: z.string().max(20_000).nullable(),
 });
 ```
 

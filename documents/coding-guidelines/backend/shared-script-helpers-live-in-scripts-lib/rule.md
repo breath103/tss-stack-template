@@ -14,5 +14,5 @@ packages/backend/scripts/
 ├── db_stop.ts
 ├── db_migrate.ts
 └── lib/
-    └── db_supabase.ts
+    └── db_docker.ts
 ```

@@ -25,7 +25,6 @@ FILE_COMPONENTS=8
 # NEW offender fails. Never add a path here to get a change through; remove one when it is split.
 BASELINE="
 packages/frontend/src/components/VideoDitherer.tsx
-packages/frontend/src/routes/app/chat/ChatThread.tsx
 packages/frontend/src/routes/video-dither-playground/VideoDitherPlaygroundPage.tsx
 packages/frontend/src/routes/video-dither-playground/ui.tsx
 "

@@ -10,7 +10,7 @@ update, delete. A repository method never touches another table and never decide
 no "if the user exists do X, else do Y", no multi-step flow.
 
 Anything that combines more than one repository, or carries a business rule, is a **Service**
-class (`WorkspaceInvitationService`, `BillingAccountMembers`, `WorkspaceOnboardingFlow`). The
+class (`ProjectInvitationService`, `BillingAccountMembers`, `ProjectOnboardingFlow`). The
 service takes the repositories it needs as constructor params and calls their methods. It never
 re-writes their queries.
 
@@ -20,48 +20,48 @@ That is a service written in the wrong file.
 
 ```ts
 // ✅ Correct — each repository is one table, the flow lives in a service
-// workspaces/workspaces-repository.ts
-class WorkspacesRepository {
-  async create(input: { name: string; slug: string; billingAccountId: string | null }): Promise<WorkspaceRow> { … }
+// projects/projects-repository.ts
+class ProjectsRepository {
+  async create(input: { name: string; slug: string; billingAccountId: string | null }): Promise<ProjectRow> { … }
 }
 
-// workspaces/workspace-invitations-repository.ts
-class WorkspaceInvitationsRepository {
-  async create(input: { workspaceId: string; email: string; role: WorkspaceRole; invitedBy: string }): Promise<WorkspaceInvitationRow | null> { … }
+// projects/project-invitations-repository.ts
+class ProjectInvitationsRepository {
+  async create(input: { projectId: string; email: string; role: ProjectRole; invitedBy: string }): Promise<ProjectInvitationRow | null> { … }
 }
 
-// workspaces/workspace-invitation-service.ts
-class WorkspaceInvitationService {
+// projects/project-invitation-service.ts
+class ProjectInvitationService {
   constructor(
     private readonly users: UsersRepository,
-    private readonly workspaces: WorkspacesRepository,
-    private readonly memberships: WorkspaceMembershipsRepository,
-    private readonly invitations: WorkspaceInvitationsRepository
+    private readonly projects: ProjectsRepository,
+    private readonly memberships: ProjectMembershipsRepository,
+    private readonly invitations: ProjectInvitationsRepository
   ) {}
 
-  /** A workspace for `email`: they join as admin if they have an account, else get an invitation. */
+  /** A project for `email`: they join as admin if they have an account, else get an invitation. */
   async createFor(input: { billingAccountId: string; email: string; name: string; invitedBy: string }) {
-    const workspace = await this.workspaces.create({ … });
+    const project = await this.projects.create({ … });
     const user = await this.users.findByEmail(input.email);
-    if (user) return { workspace, membership: await this.memberships.create({ workspaceId: workspace.id, userId: user.id, role: "admin" }) };
-    return { workspace, invitation: await this.invitations.create({ workspaceId: workspace.id, email: input.email, role: "admin", invitedBy: input.invitedBy }) };
+    if (user) return { project, membership: await this.memberships.create({ projectId: project.id, userId: user.id, role: "admin" }) };
+    return { project, invitation: await this.invitations.create({ projectId: project.id, email: input.email, role: "admin", invitedBy: input.invitedBy }) };
   }
 }
 
-export const workspaceInvitationService = new WorkspaceInvitationService(usersRepo, workspacesRepo, workspaceMembershipsRepo, workspaceInvitationsRepo);
+export const projectInvitationService = new ProjectInvitationService(usersRepo, projectsRepo, projectMembershipsRepo, projectInvitationsRepo);
 ```
 
 ```ts
 // ❌ Wrong — one "repository" method that writes three tables and branches on a business rule,
 // re-implementing queries that `findUserByEmail`, `addMember` and `createInvitation` already have
-class WorkspacesRepository {
+class ProjectsRepository {
   async provision(input: { … }) {
-    const email = WorkspacesRepository.normalizeEmail(input.email); // copied from createInvitation
+    const email = ProjectsRepository.normalizeEmail(input.email); // copied from createInvitation
     return await db.get().transaction().execute(async trx => {
-      const workspace = await trx.insertInto("workspaces")…;
+      const project = await trx.insertInto("projects")…;
       const user = await trx.selectFrom("better_auth.user")…;                  // another table
-      if (user) return { membership: await trx.insertInto("user_workspace_memberships")… }; // another table
-      return { invitation: await trx.insertInto("workspace_invitations")… };   // another table
+      if (user) return { membership: await trx.insertInto("user_project_memberships")… }; // another table
+      return { invitation: await trx.insertInto("project_invitations")… };   // another table
     });
   }
 }

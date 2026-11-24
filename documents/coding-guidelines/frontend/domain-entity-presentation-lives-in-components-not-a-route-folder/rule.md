@@ -7,7 +7,7 @@ order: 20
 
 A component that draws an entity and sits inside another route's folder, exported or not
 (`ToolsListRow` in `routes/app/tools/ToolsLayout.tsx`, the invitation row in
-`routes/billing/$billingAccountId/workspaces/PolicySection.tsx`, the `row.connected` /
+`routes/billing/$billingAccountId/projects/PolicySection.tsx`, the `row.connected` /
 `row.notConnected` labels in `routes/app/tools/Tools.i18n.json`), moves to
 `components/<entity>/` in the PR that needs it a second time, with its i18n keys in a dict
 beside it. Update the importers, and render it from both pages. Finding it is
