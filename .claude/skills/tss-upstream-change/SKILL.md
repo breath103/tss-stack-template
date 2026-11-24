@@ -18,7 +18,7 @@ Sanity-check that this is genuinely a template change (shared config, lint rules
 Find the local checkout of `tss-stack-template`:
 
 ```bash
-git -C ~/Work/tss-stack-template rev-parse --show-toplevel 2>/dev/null
+ls -d ~/Work/tss-stack-template/.git
 ```
 
 - If found, use that path.
@@ -26,14 +26,20 @@ git -C ~/Work/tss-stack-template rev-parse --show-toplevel 2>/dev/null
 
 ## 3. Make the change in the template repo via /do-task
 
-`cd` into the template repo and make the requested change there using `/do-task`. Describe the change to `/do-task` exactly as the user described it here, translated into template terms (generic, not project-specific).
+Make the requested change in the template repo using `/do-task`, from this same session: `cd <template-checkout>` (an absolute path outside this repo, its own Bash call — the Bash hook allows it, while `git -C` stays rejected), work there, and `cd` back to this repo's root to prove it here. Describe the change to `/do-task` exactly as the user described it here, translated into template terms (generic, not project-specific).
 
 - Work on a branch in the template repo, not directly on `main`.
 - Follow the template's own CLAUDE.md / coding guidelines while doing it.
 
-## 4. Hand off for approval
+## 4. Prove it in this project, then hand off for approval
 
-Open the template PR for the user with the template's `./scripts/open-url.ts --focus "<pr-url>"` (run from the template repo) — never bash `open`, never the Chrome MCP tools. Then stop and let the **user review and approve** the template change, then get it **merged into the template's `main`** (PR merge per the template's rules — e.g. `gh pr merge` without `--squash`).
+Green template CI proves only the template, where the change usually has no real caller. Before asking to land, prove it **here**:
+
+1. On a scratch branch in this project: `git fetch template`, then `git merge --no-ff template/<branch>`, resolving conflicts per `tss-update-template`.
+2. `./scripts/ci_local.ts`, then exercise the change through this project's real callers: run the script, hit the code path that uses it. A typecheck is not exercising it.
+3. A failure is fixed on the template branch, and you repeat from 1.
+
+Then open the template PR with **this project's** `./scripts/open-url.ts --focus "<pr-url>"`, not the template's (it targets the checkout it lives in). Never bash `open`, never the Chrome MCP tools. Report what step 2 exercised, then stop and let the **user review and approve** the template change, then get it **merged into the template's `main`** (PR merge per the template's rules — e.g. `gh pr merge` without `--squash`).
 
 Do not proceed to step 5 until the change is actually merged upstream. If the user hasn't confirmed the merge, ask.
 

@@ -22,7 +22,7 @@ for the previous diff don't carry over.
 
 If the pivot touches a **new area of the codebase** (e.g. backend after a
 frontend-only branch), **re-run Step 4** for the newly-touched area before writing
-code — read whichever coding-guidelines file you didn't already read this session.
+code — read the guides that area brings in and you haven't read this session.
 
 If the pivot introduces a **codebase-wide gate or transform** (a new lint rule, a
 codemod, a sweep), **rebase onto latest `main` BEFORE measuring the blast

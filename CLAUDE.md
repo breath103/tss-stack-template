@@ -4,6 +4,12 @@
 
 For how to deploy, read `documents/deployment.md`.
 
+## General Approach
+
+- **Every PR runs the `/do-task` lifecycle.** The skill is the source of truth for its steps and gates — don't layer extra ones on top of it here.
+- **`documents/coding-guidelines/` is for cross-cutting standards, NOT for design decisions.** The default is to add nothing. A feature's design, a bug you just fixed, one script's flags, one file's layout — none of those are guides. That knowledge belongs in a comment **at the code site that would otherwise be changed wrongly**, plus the PR body. A guide earns a slug only if it generalizes past the change you just made, isn't obvious from the code, would catch a plausible future diff in an unrelated file, and cannot be a lint rule. A `check.sh` that greps one specific path is a unit test in the wrong directory — write a test. See the "Step 4 is READ-ONLY" section in `/do-task` for the full filter.
+- If you think a standard is genuinely missing, **say so in one line and let the user decide.** Don't author it and ship it inside an unrelated PR. When the user *does* approve one, it lands in the same PR as the work that motivated it — never a follow-up.
+
 ## Coding guides
 
 The guides are the standards a person has to hold in mind while writing: one per folder,
@@ -54,6 +60,64 @@ means the safety net stays off for the very code that needs it.
   feedback, a refactor pass — anything with a lifecycle — goes through `/do-task`,
   which drives sync → design → implement → verify → PR → land. Only skip it for
   trivial one-offs.
+- **State that has behavior attached to it is a class. Reach for OOP first.** The
+  failure mode to watch for is a pile of loose exported functions that all take the
+  same few arguments — `db`, `userId`, `logger`, `config` — threaded through every
+  call site: that is a class with its constructor written out longhand at every
+  call, and it gets worse each time an argument is added. Shared things become
+  `private readonly` constructor fields; the functions become methods. React
+  components and hooks, pure leaf helpers, and zod schemas stay functions. The full
+  rule — one public name per job, private steps, why tests get no vote on the
+  export list — is `sharing-code/logic-heavy-modules-are-classes-with-private-internals`.
+- **Comments are index entries, not narration.** A comment exists so someone
+  grepping six months from now lands on it and immediately knows what this code
+  is and why it's shaped this way. Lead with the keywords they'd search for —
+  the symbol, the header, the error code, the ticket, the third-party quirk —
+  then state the constraint in one or two crisp sentences. Do NOT narrate your
+  reasoning, restate the line below it, log what you tried, or leave "now we
+  handle the case where…" play-by-play. If the code already says it, delete the
+  comment; if the code can't say it (a non-obvious invariant, an upstream bug, a
+  deliberate deviation), that's exactly what the comment is for.
+
+  ```ts
+  // BAD — rambling, zero searchable keywords, restates the code
+  // We need to check if the user is present here, because if they aren't
+  // then later on things would break, so first we do a check and then we
+  // proceed with the rest of the logic below.
+
+  // GOOD — keyword-first, states the constraint and the reason
+  // better-auth session cookie: absent on the SSR pass, present after hydrate.
+  // Bail rather than throw — the client refetches on mount.
+  ```
+
+  **The default is NO comment. Ship the diff with zero comments and add one back
+  only when you can name the specific wrong edit it prevents.** "A reader might
+  wonder why" is not that. If the comment would be news only to someone watching
+  you work, delete it. Specifically, NEVER comment:
+
+  - **A styling or formatting choice.** `text-xs`, a spacing value, a class that
+    matches a neighbour. Nobody greps for this and nobody breaks anything by
+    changing it.
+  - **A tuning number you picked.** A timeout, a retry count, a page size. The
+    number is the decision; a paragraph justifying it is your worklog.
+  - **A compiler error you hit.** "This must stay optional or `gate.ts` won't
+    typecheck" — the typechecker already enforces that, louder and forever. If it
+    can't be changed wrongly without CI going red, it needs no comment.
+  - **A cross-reference the reader can grep in two seconds.** "Codes come from the
+    hook in `auth.ts`" earns nothing when the code string itself is the grep term.
+  - **A restatement of the diff or the PR body.** That's what the PR body is for.
+
+  A second comment stacked on an existing one is almost always the tell that you
+  are narrating. One block per constraint, or none.
+
+  Reviewers: comment noise is a **Strong** finding, same as a bug. Delete on sight.
+- **Banned phrase: "load-bearing".** In chat, comments, PR bodies, design docs,
+  commit messages — anywhere. It is a verbal tic that asserts importance instead of
+  stating the fact. Say what breaks: "`@apply border-border` fails without it",
+  "removing `relative` drops the header behind the shell". Same ban on its cousins —
+  "not cosmetic", "this is the crux", "this is the key insight", "worth noting". If
+  the sentence survives deleting the phrase, delete the phrase; if it doesn't, the
+  sentence had no content.
 - **Never put AI attribution on commits, PRs, or PR comments.** No
   `🤖 Generated with Claude Code` footer, no `claude.ai/code/session_…` link, no
   `Co-Authored-By: Claude` / `Claude-Session:` trailer — nothing that marks the
@@ -63,6 +127,11 @@ means the safety net stays off for the very code that needs it.
   the Chrome MCP tools.** Inside Orca it opens an Orca browser tab in this session's
   worktree (`--focus` also brings it to the front); elsewhere it falls back to
   the platform opener. Bash `open` lands in the wrong browser.
+- **Never ask the user to review, approve, merge or land a PR without opening it in Orca
+  in the same turn, right before the question:** `./scripts/open-url.ts --focus <pr-url>`,
+  or `cli.ts open-url` inside `/do-task`. Every time, even if it was opened earlier, and
+  this checkout's copy even for a PR in another repo: it targets this checkout's Orca
+  worktree, which is where the user is watching.
 - **Never call `npx` directly.** This project has scripts for everything. Use the provided scripts instead.
 - **No `"warn"` lint rules — ever.** Every rule is `"error"` (fix it) or `"off"`
   (we don't care). A `"warning"` severity is noise nobody acts on. Do NOT add a
@@ -94,6 +163,12 @@ means the safety net stays off for the very code that needs it.
   A branch like `fix/autoresize-input-height-matches-button-m` overflows it, so
   `deploy` fails *after* lint/test pass. A PR's head ref can't be renamed — the
   only fix is a new branch and a new PR.
+
+## Critical Rules
+
+- **NEVER run `tsc` or `npx tsc` directly.** Run from repo root: `./packages/{backend,frontend}/scripts/build-types.ts` for those two, `./scripts/build_types.ts` for the root tree, `./scripts/e2e_build_types.ts` for `e2e/`, and `npm run -w @modules/ui typecheck` for `modules/ui`.
+- **All scripts are executable via shebang** — run them directly, not via `npm run`.
+- **After pulling/merging remote changes**, run `npm install` from root before anything else. If a package appears missing, it's because you skipped `npm install` — do NOT add it as a new dependency.
 
 ## Pre-push CI parity — every `git push` runs the full CI suite locally
 
