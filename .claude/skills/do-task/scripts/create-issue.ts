@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { loadConfig, resolveColumnId } from "./lib.ts";
 
+export const CREATE_ISSUE_USAGE =
+  "create-issue --title <title> (--body <body> | --body-file <path>) [--column <status>] [--label <label>]...";
+
 export function createIssue(args: string[]): void {
   const { values } = parseArgs({
     args,
@@ -19,9 +22,7 @@ export function createIssue(args: string[]): void {
   const body = values["body-file"] ? readFileSync(values["body-file"], "utf-8") : values.body;
 
   if (!values.title || !body) {
-    console.error(
-      "Usage: create-issue --title <title> (--body <body> | --body-file <path>) [--column <status>] [--label <label>]"
-    );
+    console.error(`Usage: ${CREATE_ISSUE_USAGE}`);
     process.exit(1);
   }
 

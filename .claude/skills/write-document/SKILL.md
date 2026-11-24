@@ -26,6 +26,7 @@ Summarize the current conversation into a markdown document and save it to `./do
    - Summary section (2-3 sentences)
    - Relevant sections with details, code examples, diagrams as appropriate
    - Keep it concise — capture decisions and rationale, not the full back-and-forth
+   - A design doc (written before the code) has the shape in Step 3 of `.claude/skills/do-task/SKILL.md` and no other sections. It is defined there and nowhere else.
 5. Save with the Write tool
 6. Report the file path to the user
 

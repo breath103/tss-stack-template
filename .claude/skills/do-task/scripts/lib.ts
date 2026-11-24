@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -12,6 +12,28 @@ export interface Config {
   statusFieldId: string;
   columns: Record<string, string>;
   labels: string[];
+}
+
+// A branch behind origin/main was built and tested against stale code, and its conflicts
+// surface only at merge. `create-pr`, `land-pr` and `check-main` all stop here instead.
+export function requireUpToDateWithMain(): void {
+  execFileSync("git", ["fetch", "origin", "main"], { stdio: ["ignore", 2, 2] });
+  const behind = Number(execFileSync("git", ["rev-list", "--count", "HEAD..origin/main"], { encoding: "utf-8" }));
+  if (behind === 0) return;
+  console.error(
+    `This branch is ${behind} commit(s) behind origin/main. Run, one call each:\n` +
+      "  git rebase origin/main          (resolve any conflict, then `git rebase --continue`)\n" +
+      "  npm install\n" +
+      "  git push --force-with-lease     (only if the branch is already pushed; its pre-push hook runs ./scripts/ci_local.ts)\n" +
+      "then run this command again."
+  );
+  process.exit(1);
+}
+
+// The same `guides` gate as `./scripts/ci_local.ts`: the script prints what to run and exits 1.
+export function requireGuidesRechecked(): void {
+  const check = spawnSync(join(gitRoot(), "scripts/recheck_guides.ts"), ["--check"], { stdio: ["ignore", 2, 2] });
+  if (check.status !== 0) process.exit(1);
 }
 
 export function gitRoot(): string {

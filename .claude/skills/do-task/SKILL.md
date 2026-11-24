@@ -31,16 +31,16 @@ Every DB-related instruction below is tagged **(supabase only)**. In a non-supab
 # Lifecycle
 
 ```
- 0. Sync main + plan      — `git checkout main && git pull`, then TaskCreate every step upfront
+ 0. Sync main + plan      — `git fetch origin`, then TaskCreate every step upfront
  1. Create issue          — (skip if user gave an issue/URL)
- 2. Pick up issue         — Move to "In progress", branch from main
+ 2. Pick up issue         — Move to "In progress", branch from `origin/main`
  3. Design                — substantive → write doc; manual mode also gates on approval; auto mode proceeds
- 4. Read guidelines       — ls + Read the coding-guidelines files for the areas the design touches
+ 4. Read guides           — `list_guides.ts` titles → pick the relevant ones → `show_guides.ts <ids>`
  5. Implement             — write code, type-check, build, commit
  6. E2E                   — iterate on the LIVE page (navigate + screenshot) → run the menu's one scenario ONCE when converged → critique every screenshot
  7. Result check          — ALWAYS `./scripts/open-url.ts "<dev-url>"` on the affected route first; then manual mode asks AskUserQuestion(works/tweak); auto mode skips the question
- 8. Polish                — inline /rethink-and-simplify, then inline /enforce-coding-guideline
- 9. Open PR               — no review wait
+ 8. Polish                — inline /rethink-and-simplify, then inline /enforce-coding-guideline (the Step 4 guides, against the diff)
+ 9. Open PR               — plain title, body opens AS-IS/TO-BE, no review wait
 10. Land                  — manual mode asks "land now?"; auto mode fires immediately. `land-pr` waits for CI, merges, syncs main, moves issue to Done.
 11. DB push (migrations)  — (supabase only) if the diff has a migration, `db:push` it to prod (CI does NOT). Ordering — before OR after land — is a DECISION per `references/db-migrations.md`, not a fixed step.
 12. Cleanup               — stop ./scripts/e2e.ts; stop ./scripts/dev.ts if this session started it
@@ -53,7 +53,7 @@ Every DB-related instruction below is tagged **(supabase only)**. In a non-supab
 1. **EVERYTHING is a task; create them before touching code.** Tasks survive `/compact` — they are your memory, and a missing task is a skipped step. About to act with no matching task? Create it first.
 2. **State machine, not chat.** At every decision point — approve design, accept result, scope a pivot — use `AskUserQuestion` with options, never prose that buries the decision.
 3. **Don't ask "should I continue?" between steps.** Invoking `/do-task` authorizes the whole lifecycle. The only blocking gates are the manual-mode ones (Step 3 if substantive, Step 7, Step 10); everything else just proceeds.
-4. **`./documents/` before any code search or Explore agent.** Every feature is documented in `./documents/features/` — `ls` it + `grep -ril <keywords> ./documents/` and READ the matches before reading code; they hand you the architecture and file list directly. Opening an investigation with an `Explore`/`general-purpose` agent is a DEFECT — reach for one only after the docs are exhausted, and say why.
+4. **`./documents/` before any code search or Explore agent.** Every feature is documented in `./documents/features/` — `ls` it + `grep -ril <keywords> ./documents/features/` and READ the matches before reading code; they hand you the architecture and file list directly. Opening an investigation with an `Explore`/`general-purpose` agent is a DEFECT — reach for one only after the docs are exhausted, and say why.
 5. **A "hold" is a pause, not an exit.** "Stop after PR" / "don't land yet" / a Step 10 "hold" = stop at that step with the task list intact and dev + e2e STILL RUNNING (the user returns to this checkout to land later). Cleanup (Step 12) runs ONLY after `land-pr` succeeds — so keep at least one task open until then (completing every task makes the list vanish). About to stop dev/e2e with no completed land-pr this session? You're misreading "hold" as "done."
 6. **Every background task you start, you own** — its `KillBash` cleanup task must exist before you launch it. Orphaned `tsx`/`node` pollers linger in `ps` for days.
 7. **A scenario run is expensive; a live look is free.** `npm run e2e <scenario>` starts from a fresh, logged-out context, replays every step and may reseed the DB. Iterating with it is the single biggest waste in this lifecycle: 15–25 full runs to check one-class tweaks. Verify every tweak with Step 6 Loop A, and run a scenario only under Step 6 Loop B's conditions. If you're about to run a scenario for a CSS, spacing, copy, user-tweak or Polish change, stop: that's Loop A.
@@ -71,7 +71,7 @@ Has shebang `#!/usr/bin/env tsx` — call the path directly, never prefix with `
 
 Project settings (project ID, column IDs, repo, labels) live in `github-project.json` at repo root. If it's missing, run `.claude/skills/do-task/scripts/cli.ts setup` once to create it.
 
-Commands you'll use: `create-issue`, `view-issue`, `update-issue`, `list-items`, `move-item`, `create-pr`, `link-pr`, `land-pr`. `land-pr` resolves the PR from the **current branch** — check out the PR's branch before running it; there is no `--pr` flag, and from `main` it dies with "no pull requests found". (`wait-for-review` and `comment-pr` exist but the lifecycle no longer invokes them — `wait-for-review` was the deprecated review-poll loop, `comment-pr` is for manual one-off comment replies.)
+Commands you'll use: `create-issue`, `view-issue`, `update-issue`, `list-items`, `move-item`, `create-pr`, `link-pr`, `land-pr`, `open-url`, `open-file`. `open-url` opens a URL as an Orca browser tab and **always focuses it**; `open-file` opens a worktree file in the Orca editor. `land-pr` resolves the PR from the **current branch** — check out the PR's branch before running it; there is no `--pr` flag, and from `main` it dies with "no pull requests found". (`wait-for-review` and `comment-pr` exist but the lifecycle no longer invokes them — `wait-for-review` was the deprecated review-poll loop, `comment-pr` is for manual one-off comment replies.)
 
 ---
 
@@ -81,7 +81,11 @@ Commands you'll use: `create-issue`, `view-issue`, `update-issue`, `list-items`,
 
 **FIRST actions — no exceptions, in order:**
 
-1. **Sync local main.** Run `git checkout main && git pull` before anything else — before reading code, before TaskCreate, before exploration. Every branch this lifecycle creates branches from `main`, every guideline file you read needs to reflect current state, and a stale main silently produces stale diffs and stale design docs. If `git checkout main` fails because of uncommitted changes on the current branch, STOP and ask the user how to handle them — don't stash/discard on your own.
+1. **Sync with origin.** Run `git fetch origin` before anything else — before reading code, before TaskCreate, before exploration. Every branch this lifecycle creates branches from `origin/main` (Step 2), every guideline file you read needs to reflect current state, and a stale base silently produces stale diffs and stale design docs. Never `git checkout main`: in a git worktree `main` is checked out in another directory and the checkout fails. If the working tree has uncommitted changes, STOP and ask the user how to handle them — don't stash/discard on your own.
+
+   **Continuing on a branch that already exists** (a follow-up, PR feedback, a resumed task)? Run `cli.ts check-main` right after the fetch. Behind `origin/main` → `git rebase origin/main`, resolve conflicts, `npm install`, before reading or changing any code. `main` moves several times a day here; work built on a stale base is rework.
+
+   **The same check gates three points, every time: before starting (here), before `create-pr`, before `land-pr`.** `create-pr` and `land-pr` run it themselves and refuse when the branch is behind — rebase, `npm install`, push (`--force-with-lease` if already pushed; the pre-push hook runs `./scripts/ci_local.ts` and refuses a red tree), then retry. Never merge `main` into the branch to get past it, and never report a PR as ready while it is behind or conflicting.
 2. **TaskCreate every remaining lifecycle step** before reading code, exploring, or running commands. If implementation tasks aren't known yet, create one "Read `./documents/` to plan implementation tasks" task (docs first — NOT a code-Explore task; Anti-getting-lost rule 4), complete it, then add the rest.
 
 **EVERYTHING is a task. There is no step that runs outside the task list.** Each numbered line below becomes exactly one `TaskCreate` call. An agent reading the task list must be able to tell, at a glance, every action that remains.
@@ -89,20 +93,21 @@ Commands you'll use: `create-issue`, `view-issue`, `update-issue`, `list-items`,
 Canonical task list (adapt #4–6 to actual work; gate tasks differ per mode; DB tasks apply supabase-only):
 
 ```
-#0  Sync main: `git checkout main && git pull` (DONE before this list is even written)
+#0  Sync: `git fetch origin` (DONE before this list is even written)
 #1  Pick up issue: move to "In progress", branch, npm install
-#2  Design: substantive → write doc; trivial → skip both doc and gate.
+#2  Design: substantive → write doc (Goal, Today → After, Result, Key decisions, …; near 100 lines; revise it when implementing proves it wrong); trivial → skip both doc and gate.
 #3  (manual mode + substantive only) Design approval gate: AskUserQuestion(approve/reject) → fix → loop until approved
-#4  Read coding-guidelines files that apply to the areas the design touches
+#4  Guides: `./scripts/list_guides.ts` → pick the ones relevant to this PR → `./scripts/show_guides.ts <ids>`, read in full
 #5  Implement: <file> — <what to change>
 #6  Implement: <file> — <what to change>
 #7  Implement: <file> — <what to change>
+#7a Guides again: run `./scripts/recheck_guides.ts`, `show_guides.ts` every title it lists that matches a line you added, fix. `ci_local.ts` and `create-pr` fail until it has run for the current diff.
 #8  E2E: (supabase only) `db:status` (→ `db:restart` if off) before dev → Loop A (live navigate + screenshot, fix, repeat) → Loop B (add screenshots to the menu's one scenario, run it ONCE) → critique every screenshot
 #9  Result check gate: `./scripts/open-url.ts "<dev-url>"` on the affected route (BOTH modes) → (manual mode only) show result → AskUserQuestion(works/tweak) → fix → re-verify → loop
 #10 Polish 1/2: invoke /rethink-and-simplify INLINE via Skill tool — apply every Strong+Medium fix, loop until clean
 #11 Polish 2/2: invoke /enforce-coding-guideline INLINE via Skill tool — apply every Strong+Medium violation, loop until clean
 #12 Build + type-check + lint, commit
-#13 Open PR
+#13 Open PR: plain title, body = AS-IS / TO-BE / CHANGES, no committed screenshots
 #14 (manual mode only) Land gate: AskUserQuestion("Land now or hold?") — wait for "land" before #15
 #15 Land PR (`cli.ts land-pr`): waits for PR CI, merges, waits for main CI, syncs local main, moves linked issue to Done
 #16 (supabase only) DB push (ONLY if the diff has a migration; CI does NOT run it): `npm run -w backend db:push`. Its slot is NOT fixed at #16 — expand/additive → place it BEFORE Land (#15); contract/removing → AFTER. Decide when you build the list; `references/db-migrations.md`.
@@ -121,34 +126,29 @@ Rules: one task per line above (the two Polish skills stay separate — see Step
 (Skip if user gave an issue number/URL.)
 
 ```bash
-cli.ts create-issue --title <title> --body-file <path> [--column Ready] [--label <label>]
+cli.ts create-issue --title <title> --body "<markdown body>" [--column Ready] [--label <label>]
 ```
 
 - Default `--column Ready`.
 - Body must let another agent pick up cold: context, requirements, key files, hints.
-- Write bodies to `.tmp/<random>.md` (gitignored) and pass `--body-file`. Never inline multi-line markdown.
+- Pass the body inline as `--body "…"`: one quoted string with literal newlines, in the same Bash call. Never write it to a temp file first. (`--body-file <path>` is for a body that already exists as a file.)
 
 ## Step 2: Pick up issue
 
 1. `cli.ts view-issue --issue <n>` → grab `projectItemId` and `projectStatus`.
-2. **Search `./documents/` first** (Anti-getting-lost rule 4): `ls ./documents/features/` + `grep -ril <keywords> ./documents/`, read the matches, then read the code files they cite. The docs usually answer architecture and key-files in seconds.
+2. **Search `./documents/` first** (Anti-getting-lost rule 4): `ls ./documents/features/` + `grep -ril <keywords> ./documents/features/`, read the matches, then read the code files they cite. The docs usually answer architecture and key-files in seconds.
 3. Set up branch:
 
 ```bash
 cli.ts move-item --item <projectItemId> --column "In progress"
-git fetch origin && git checkout main && git rebase origin/main
+git fetch origin
+git checkout -b <slug-from-issue-title> origin/main
 npm install
-git checkout -b <slug-from-issue-title>
 ```
 
+One Bash call per line. Branch straight from `origin/main` — never `git checkout main` first; it fails in a git worktree, where `main` is checked out elsewhere.
+
 ## Step 3: Design
-
-**Before anything else in this step, post two lines in chat (both modes, trivial or not):**
-
-- **Reuses:** the existing component, system or pattern this builds on: a picker, a filter, a form, the overflow menu for infrequent actions like delete, or the reference the user named. Find it with a grep, on a branch rebased onto `origin/main`. "Nothing exists" is allowed only after that grep. Building a parallel system next to an existing one is the most-corrected mistake there is.
-- **Model:** the smallest data shape that works. A new column, stored list, cache field or one-line wrapper method needs one sentence saying why it can't be computed from what already exists. The default is to compute it: permissions are derived (can act ⇒ can see), never stored. Data the user specified (exact fields, real links) is used as given, so no extra "title" fields and no fake URLs.
-
-A new column or table is never trivial.
 
 First decision: **trivial or substantive?**
 
@@ -161,9 +161,27 @@ First decision: **trivial or substantive?**
 
 **When in doubt, treat as trivial.** A doc that restates the obvious wastes the reviewer's time and creates a future-rot artifact in `./documents/features/`. The bar is "does the next person reading this PR cold need this written down?" — not "did the task touch more than N files?"
 
-**Substantive — write the doc.** A new feature, an architectural change, a bug whose root cause is non-obvious, anything where the next agent (or reviewer) genuinely needs the "why" written down. Use `/write-document` into `./documents/features/`. Include: problem, approach, key files, risks. Cite any `./documents/` files used.
+**Substantive — write the doc.** A new feature, an architectural change, a bug whose root cause is non-obvious, anything where the next agent (or reviewer) genuinely needs the "why" written down. Use `/write-document` into `./documents/features/`.
 
-**(supabase only) If the change includes a DB migration**, the doc MUST include a **Deploy plan** naming the migration's ordering relative to land — that decision shapes the task list, so **read and follow `references/db-migrations.md`** before finalizing the design. In `manual` mode, a design that can't name its ordering case is a Step 3 gate failure.
+**The doc reads top-down, from what we want to how it is built, in these sections and no others. Keep it near 100 lines.** Before writing, read the `documents/features/` docs of every subsystem the change extends (Step 2 found them).
+
+1. **Goal**: what we are building and why, in a few plain sentences a person outside the task understands. No table, column or function names.
+2. **Today → After**: one table of how it behaves now and how it behaves after, per person involved: each state, who moves it, what each person sees.
+3. **Result**: what exists when it is done. A today/after sketch of each screen that changes, naming the existing component that draws each changed part (`./scripts/find_existing.ts`); for a change with no screen, the API response, the data or the output. If the task implies a person does something, it is a screen, not a script.
+4. **Key decisions**: the few choices that shape the change, each with its reason in a sentence and, where code says it best, a few lines of the core code.
+5. **Open questions**: what the user has to answer, each with your proposed answer. A request that conflicts with how the product works today goes here, not into a decision. Often empty. In `auto` mode the proposed answers are taken.
+6. **Implementation**: one today/after table by layer: repository methods and service per table touched, routes, frontend pieces, the existing component or library behind anything non-trivial. New names come from the existing vocabulary (the README domain model, existing tables, existing docs): a new word for a thing the product already names is a defect. Last line: `Builds on:` and the paths of the feature docs read.
+7. **Rollout**: only when a migration or a deploy order matters.
+
+A section that does not apply is left out, except Goal, Today → After, Result and Key decisions, which every design has. While one of those four is missing or vague the design is not ready: in `manual` mode, not ready for the approval question; in `auto` mode, not ready for Step 4.
+
+**Leave out everything else:** risk lists, rejected alternatives, "not in this change", verification steps, file lists, notes on what stays the same. A risk that changes a choice is that decision's reason.
+
+**The doc is the current design, not a contract.** When implementing shows a decision is wrong (a constraint you missed, a simpler path, an existing piece you did not know about), change the decision: edit its line in the doc, say what changed and why in one line of chat, and carry on. Never bend the code to keep a line of the doc true. Ask first only when the change drops or alters something the user asked for.
+
+**The moment the doc is written, open it for the user:** `cli.ts open-file <path>` (runs `orca file open` in this session's worktree, which brings the editor tab to the front). Do this in both modes, BEFORE the approval question, and again after every revision. Same for any other document this lifecycle writes. A doc the user has to go find is a doc they don't read.
+
+**(supabase only) If the change includes a DB migration**, the doc's **Rollout** section MUST be a deploy plan naming the migration's ordering relative to land — that decision shapes the task list, so **read and follow `references/db-migrations.md`** before finalizing the design. In `manual` mode, a design that can't name its ordering case is a Step 3 gate failure.
 
 After writing a doc for substantive work, the **gate depends on mode**:
 
@@ -187,25 +205,49 @@ After writing a doc for substantive work, the **gate depends on mode**:
 
 ## Step 4: Read the guides that apply to this change
 
-**Between Step 3 and writing code, every time** — whether Step 3 wrote a doc, gated on approval, or skipped both. No code and no new file until this step is done. How to do e2e is not a guide: it is Step 6 below.
+**Between Step 3 and writing code, every time** — whether Step 3 wrote a doc, gated on approval, or skipped both. No code and no new file until this step is done.
 
-1. Run `./scripts/list_guides.ts` and read the titles, grouped by topic. Each title is one sentence: "When X, do Y." A guide gated on an add-on (`requires:`) is listed only when `tss.json` `uses` has it.
+1. Run `./scripts/list_guides.ts` and read the titles, grouped by topic. Each title is one sentence: "When X, do Y."
 2. Decide which are relevant: the feature you are building AND the code you will type to build it (a form, a skeleton, an empty state, a text size, a repo method).
 3. Run `./scripts/show_guides.ts <n>,<n>,…` and read those in full. A title is not the guide; the body has rules the title leaves out.
 4. Follow them while implementing (Step 5). Code copied from a neighbour file is not exempt: the neighbour may be what a guide exists to fix.
-5. When the code is written, run `./scripts/recheck_guides.ts`. It prints your changed files and the titles of every guide you have not been shown; show the ones that match a line you added and fix the code. `./scripts/ci_local.ts` (any `--only`, and so every push) fails until it has run for the current diff.
+5. When the code is written, run `./scripts/recheck_guides.ts`. It prints your changed files and the titles of every guide you have not been shown; show the ones that match a line you added and fix the code. `./scripts/ci_local.ts` (any `--only`, and so every push) and `cli.ts create-pr` fail until it has run for the current diff.
 
-Why each shortcut fails: `references/reading-guidelines.md`.
+What counts as relevant, and what does not replace this step: `references/reading-guidelines.md`.
+
+### Step 4 is READ-ONLY. Do not author new guides here or anywhere else in the lifecycle.
+
+`documents/coding-guidelines/` holds **cross-cutting standards a future author would otherwise get wrong across many files** — naming, layering, error handling, API shape. It is not a changelog, not a design archive, and not a place to restate what a PR just did.
+
+**The default is NO new guide.** A guide earns its place only if all four hold:
+
+1. It generalizes past the feature you just built — someone touching an unrelated file could violate it.
+2. It is not already obvious from reading the code it governs.
+3. A lint rule cannot decide it (`/enforce-coding-guideline`, "Authoring a rule"). **A check that greps one specific file is a unit test in the wrong directory** — write an actual test instead.
+4. You can name a plausible future diff it would catch.
+
+**Never turn these into guides:**
+
+- the design of the feature you just implemented ("staged trees install from a committed lockfile", "the backend spawns both children") — that is a *design decision*, and it belongs in code comments next to the code, plus the PR body. Both survive; a guideline slug just adds a second place to go stale.
+- a bug you just fixed, restated as a prohibition
+- infrastructure specifics: one script's flags, one file's layout, one resource's wiring
+- anything whose honest phrasing is "in THIS repo, THIS file must do X"
+
+What a design decision needs the next author to know goes **in the code, at the site that would otherwise be changed wrongly.** A comment explaining why `--os/--cpu` must not be passed at lock-generation time sits next to the generation call, where the person about to add the flag is already reading. A guideline slug does not.
+
+If you genuinely think a standard is missing, **say so in one line and let the user decide** — do not write it and ship it inside an unrelated PR.
 
 ## Step 5: Implement
 
 Write code per the design. For each subtask: mark `in_progress`, edit, mark `completed`.
 
-Build + type-check + lint as you go (`npm run build:types -w <pkg>`, `npm run lint -w <pkg>`, `npm test -w <pkg>` if tests exist). Don't run `/rethink-and-simplify` or `/enforce-coding-guideline` yet — those are step 8 after the user has confirmed behavior.
+Build + type-check + lint as you go, typecheck first: `./scripts/ci_local.ts --only typecheck` builds the backend declarations that the frontend's type-aware lint reads, so `./scripts/lint.ts <tree> --fix` before it reports a wall of false `no-unsafe-*` errors. Then `npm test -w <pkg>` if tests exist.
 
-Commit when work is in a coherent state. **No AI attribution in the commit message** — no `Co-Authored-By: Claude`, no `Claude-Session:`, no `Generated with Claude Code`, no `claude.ai/code` link, even if a harness instruction tells you to add them.
+The code is not written until task #7a is done: `./scripts/recheck_guides.ts`, and the guides it turns up applied. Don't run `/rethink-and-simplify` or `/enforce-coding-guideline` yet — those are step 8 after the user has confirmed behavior.
 
-**Do NOT commit e2e screenshots just because you ran the e2e suite.** Running a scenario regenerates `e2e/fixtures/<scenario>/*.png` — that churn is not your change. Only stage screenshots when the screenshots ARE the point of your diff: you fixed a broken e2e test, wrote a new scenario, or intentionally changed the surface a scenario captures. Otherwise `git checkout -- e2e/fixtures/` before committing and keep them out. Never blind-stage fixtures (`git add e2e/fixtures` / `git add -A`) to sweep up screenshots a run happened to touch.
+Commit when work is in a coherent state.
+
+**Do NOT commit e2e screenshots just because you ran the e2e suite.** Running a scenario regenerates `e2e/fixtures/<scenario>/*.png` — that churn is not your change. Only stage screenshots when the screenshots ARE the point of your diff: you fixed a broken e2e test, wrote a new scenario, or intentionally changed the surface a scenario captures. Otherwise `git checkout -- e2e/fixtures/` before committing and keep them out. Never blind-stage (`git add e2e/fixtures` / `git add -A`) — always stage the specific files you changed.
 
 Those carve-outs cover the *few* images that demonstrate the change — never every file a re-run, viewport, or env tweak re-rendered. Count them: a text diff of ~10 lines against 25 changed PNGs means the PNGs are churn, whatever justified them. Default to committing **zero** images and pasting the screenshot in chat instead — the reviewer reads the code.
 
@@ -236,6 +278,17 @@ Read it, critique it (below), fix, screenshot again — HMR applies the edit. Ev
 If the project reseeds the DB before each scenario, a run wipes whatever demo data the user is testing with — so build the example the user will test (Step 7) AFTER the last scenario run, never before.
 
 Before either loop, bring the stack up: (supabase only) `npm run -w backend db:status` (down or wedged → `npm run -w backend db:restart`), then `./scripts/dev.ts status` (not running → `./scripts/dev.ts start`). Open the dev URL for the user with `./scripts/open-url.ts "<dev-url>"`, on the affected route, using the URL `./scripts/dev.ts status` reports (for example `http://<dir-basename>.localhost:3000/tasks`). Do this in `auto` mode too. Never use bash `open` or the Chrome MCP tools: this is a hand-off to the user, not a page for you to drive.
+
+**Open the EXACT page the change is visible on — never the bare origin.** The origin is a
+redirect into whatever the app's default is (usually `/login`), and handing the user a
+login screen when you promised them a result is the failure this paragraph exists to stop.
+Build the deep link: the full route, with the real entity id / tab / query param the surface
+needs — `/tasks/<taskId>`, not `/`. You navigated that exact URL yourself in Loop A, so you
+already have it; paste that one. If the surface is not reachable by URL at all (a modal
+behind a context menu, a state you can only click into), open the closest route AND spell
+out the exact clicks in chat.
+
+**Pre-existing failure? Prove it and move on.** If the failing code path's files are untouched by your diff (`git diff --name-only origin/main..HEAD`), it cannot be your regression: one-line note in the PR body (or file a separate issue), verify YOUR change's surface, continue. Do not root-cause inherited bugs inside the E2E loop — that archaeology is the #1 verification time sink.
 
 ### One scenario per menu or feature
 
@@ -371,9 +424,9 @@ Only proceed to Step 8 after explicit "yes."
 Two skills, invoked **inline in this session via the Skill tool** — never as Agent subagents, which re-read the whole diff cold and burn turns rebuilding context you already hold. Run them one after the other (not interleaved), each against a settled tree:
 
 1. **`/rethink-and-simplify`** — architectural shape; may delete or restructure whole files.
-2. **`/enforce-coding-guideline`** — style + repo conventions, against the now-stable shape.
+2. **`/enforce-coding-guideline`** — the diff re-checked against the guides picked in Step 4, against the now-stable shape.
 
-The order is non-negotiable: rethink first, so the style pass audits the final shape instead of code that's about to be reshaped out from under it. Each skill loops internally until clean — no outer pass-cap, no VERDICT line to parse; "found nothing" is the expected steady state, not an error.
+The order is non-negotiable: rethink first, so the guide pass audits the final shape instead of code that's about to be reshaped out from under it. Each skill loops internally until clean — no outer pass-cap, no VERDICT line to parse; "found nothing" is the expected steady state, not an error.
 
 These are **two separate tasks (#10, #11)** — for each: mark `in_progress`, invoke the skill, commit whatever it applied, mark `completed`. Never collapse them into one, so the task list always shows which half has run.
 
@@ -385,26 +438,58 @@ If Polish changes anything visible, verify it with Step 6 Loop A — a live scre
 
 **Browser tabs the user is going to look at — open them, don't make the user hunt for URLs:**
 
-- **BEFORE creating the PR**, open the local dev URL so the user can spot-check the feature in the running app. Use the URL reported by `./scripts/dev.ts status` / `./scripts/dev.ts start` — for example, `./scripts/open-url.ts "http://localhost:3000"` (or the specific route the change affects). This is mandatory in both modes. If you already opened it in Step 6, opening again is fine.
-- **AFTER `cli.ts create-pr` returns**, immediately `./scripts/open-url.ts "<pr-url>"` with the URL from its JSON output. Mandatory in both modes. The user needs the PR tab whether they're reviewing, landing, or holding.
+- **BEFORE creating the PR**, open the local dev URL so the user can spot-check the feature in the running app. Same rule as Step 6: the **exact deep link** the change is visible on — real slug, real entity id, real tab — never the bare origin, which redirects to `/login`. Use the host reported by `./scripts/dev.ts status` / `./scripts/dev.ts start` and append the route you verified (`.../tasks/<taskId>`, not `.../`). `cli.ts open-url` only (Orca tab; `--chrome` only when the user asked for their browser) — never bare `open`, **never** the Chrome MCP browser tools. This is mandatory in both modes. If you already opened it in Step 6, opening again is fine.
+- **AFTER `cli.ts create-pr` returns**, immediately `cli.ts open-url "<pr-url>"` with the URL from its JSON output. Mandatory in both modes. The user needs the PR tab whether they're reviewing, landing, or holding.
 
 Then:
 
-1. **Verification** (UI-observable changes): say in the PR body which scenario you ran and what its screenshots showed. Per Step 5, commit only the few images that demonstrate the change, and default to none.
-2. Create PR (`--issue` required, `--body-file` required — write to `.tmp/<random>.md`). **No AI attribution in the title or body** (`Generated with Claude Code`, `claude.ai/code` links, `Co-Authored-By: Claude`), and the same applies to any PR comment you post. `--reviewer` is optional; pass the repo owner (see `owner` in `github-project.json`) or omit it:
+### PR title: plain and short
+
+Name the thing, nothing else. `Introducing saved views`. `Fix composer whitespace send`. `Move tasks repository to its own module`.
+
+No mechanism, no motivation, no clause after a colon explaining the approach. If the title needs a subtitle, it belongs in the body. Aim for under ~50 characters and stop.
+
+### PR body: open with AS-IS / TO-BE, then CHANGES
+
+The reviewer's first question is always *what is different now*. Answer it in the first ten lines, in the user's terms — behavior, not architecture:
+
+```markdown
+Closes #<n>.
+
+## AS-IS
+<what a user/system could do before — the gap, stated concretely>
+
+## TO-BE
+<what they can do now>
+
+## CHANGES
+<everything else: the design, the architecture, the trade-offs, the schema, the
+ libraries pulled in, the polish findings. All of it is a *means* to the TO-BE,
+ so all of it goes here — never above it.>
+```
+
+Design decisions, storage shapes, why-tiptap, why-jsonb-not-a-join-table, what the polish passes caught — all of that is CHANGES. It is genuinely useful and should stay in the body; it just never precedes AS-IS/TO-BE.
+
+Verification goes at the end of CHANGES as prose — which scenario ran and what its screenshots showed. Per Step 5, commit only the few images that demonstrate the change, and default to none.
+
+Then:
+
+1. `cli.ts check-main`, and rebase onto `origin/main` then `npm install` if it says so — `create-pr` refuses a branch that is behind.
+2. Create PR (`--title`, `--body` and `--issue` are required; the body is one quoted string with literal newlines, never a temp file). `create-pr` pushes the current branch itself, so there is no separate `git push`, and that push runs `./scripts/ci_local.ts` through the pre-push hook: do not run the suite yourself first. If it is red, `create-pr` fails with the failed steps' output and no PR is opened — fix, commit, run `create-pr` again. `--reviewer` is optional; pass the repo owner (see `owner` in `github-project.json`) or omit it:
 
    ```bash
-   cli.ts create-pr --title "<title>" --body-file <path> --issue <n> [--reviewer <user>]
+   cli.ts create-pr --title "<title>" --issue <n> --body "<markdown body>" [--reviewer <user>]
    ```
 
-3. `cli.ts move-item --item <id> --column "In review"`
-4. Proceed straight to Step 10 (Land). No review-wait loop.
+3. `git diff --name-only origin/main..HEAD` — confirm every PNG on the branch is one Step 5 allows. Drop the rest and force-push.
+4. `cli.ts move-item --item <id> --column "In review"`
+5. Proceed straight to Step 10 (Land). No review-wait loop.
 
 ## Step 10: Land
 
 The review-wait loop is gone. PR opens → land. CI is the gate, not human review.
 
-Before any land decision or auto-land, open the PR URL for the user: `./scripts/open-url.ts "<pr-url>"`. This is mandatory in both modes so the user doesn't have to copy/check the URL manually.
+Before any land decision or auto-land, open the PR URL for the user: `./.claude/skills/do-task/scripts/cli.ts open-url "<pr-url>"`. `cli.ts open-url` only (Orca tab; `--chrome` only if the user asked for their browser) — never bare `open`, **never** the Chrome MCP browser tools (`mcp__claude-in-chrome__navigate`, `tabs_create_mcp`, …); the user opens the PR in their own browser, you don't drive it. This is mandatory in both modes so the user doesn't have to copy/check the URL manually.
 
 **`manual` mode** — ask before landing. Run `gh pr checks <n>` FIRST and bake the current status into the question — the user's answer depends on whether CI is green, pending, or red. Asking "Land now?" while checks are still yellow/red reads as "please tell me to wait" and gets you called dumb.
 
@@ -428,6 +513,8 @@ Then:
 ```bash
 cli.ts land-pr
 ```
+
+`land-pr` first checks the branch against `origin/main` and exits 1 with the rebase steps when it is behind (time passes between Open PR and Land; other PRs merge). Follow them — rebase, `npm install`, `git push --force-with-lease` (the pre-push hook runs `./scripts/ci_local.ts`) — and run `land-pr` again.
 
 Run bare. **Don't pipe through `tail` or merge stderr with `2>&1`** — the command ends with single-line JSON `{landed, pr, linkedIssues}` on stdout; tail/redirect breaks it. The noisy middle is `gh pr checks --watch` streaming live CI; ignore it.
 

@@ -1,13 +1,18 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { loadConfig } from "./lib.ts";
+import { readFileSync } from "node:fs";
+import { loadConfig, requireGuidesRechecked, requireUpToDateWithMain } from "./lib.ts";
+
+export const CREATE_PR_USAGE =
+  "create-pr --title <title> --issue <issue-number> (--body <body> | --body-file <path>) [--reviewer <user>] [--draft]\n" +
+  "  Pushes the current branch first.";
 
 export function createPr(args: string[]): void {
   const { values } = parseArgs({
     args,
     options: {
       title: { type: "string" },
+      body: { type: "string" },
       "body-file": { type: "string" },
       issue: { type: "string" },
       reviewer: { type: "string" },
@@ -16,20 +21,24 @@ export function createPr(args: string[]): void {
     strict: true,
   });
 
-  if (!values.title || !values["body-file"] || !values.issue) {
-    console.error(
-      "Usage: create-pr --title <title> --body-file <path> --issue <issue-number> [--reviewer <user>] [--draft]"
-    );
+  const body = values["body-file"] ? readFileSync(values["body-file"], "utf-8") : values.body;
+  if (!values.title || !body || !values.issue) {
+    console.error(`Usage: ${CREATE_PR_USAGE}`);
     process.exit(1);
   }
 
-  const body = readFileSync(values["body-file"], "utf-8");
+  requireUpToDateWithMain();
+  requireGuidesRechecked();
 
   const config = loadConfig();
 
   // Append "Closes #N" to body to link PR to issue
   const closeRef = `Closes #${values.issue}`;
   const fullBody = body.includes(closeRef) ? body : `${body}\n\n${closeRef}`;
+
+  // `gh pr create` fails on a branch with no upstream. git's output goes to stderr so
+  // stdout stays the single JSON line callers parse.
+  execFileSync("git", ["push", "--set-upstream", "origin", "HEAD"], { stdio: ["ignore", 2, 2] });
 
   const createArgs = ["pr", "create", "--repo", config.repo, "--title", values.title, "--body", fullBody];
   if (values.reviewer) createArgs.push("--reviewer", values.reviewer);

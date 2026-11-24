@@ -1,8 +1,11 @@
 import { execFileSync } from "node:child_process";
+import { requireUpToDateWithMain } from "./lib.ts";
 import { syncLocal } from "./sync-local.ts";
 import { waitMainCi } from "./wait-main-ci.ts";
 
 export function landPr(): void {
+  requireUpToDateWithMain();
+
   // 1. Identify the PR
   const prJson = execFileSync(
     "gh",
