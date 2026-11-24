@@ -15,5 +15,5 @@
       "@backend/*": ["../backend/dist/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "vite.config.ts"]
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S node --import tsx
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 import { resolveBin } from "shared/cli-utils";
@@ -20,12 +20,12 @@ import { ExistingCode } from "./lib/existing_code.js";
 // packs trees by it. Re-measure when a tree's lint time moves by a second or more.
 const LINT_TREES = {
   backend: { dir: "packages/backend", targets: ["src", "scripts"], checks: "all", seconds: 1.0 },
-  frontend: { dir: "packages/frontend", targets: ["src", "scripts"], checks: "all", seconds: 2.0 },
+  frontend: { dir: "packages/frontend", targets: ["src", "scripts", "vite.config.ts"], checks: "all", seconds: 2.0 },
   edge: { dir: "packages/edge", targets: ["src", "scripts"], checks: "all", seconds: 0.4 },
   shared: { dir: "packages/shared", targets: ["src"], checks: "all", seconds: 0.3 },
   ui: { dir: "modules/ui", targets: ["src"], checks: "all", seconds: 1.5 },
   e2e: { dir: "e2e", targets: ["."], checks: "all", seconds: 0.4 },
-  scripts: { dir: ".", targets: ["scripts"], checks: "all", seconds: 0.4 },
+  scripts: { dir: ".", targets: ["scripts", "documents/coding-guidelines"], checks: "all", seconds: 0.4 },
   skills: { dir: ".", targets: [".claude/skills"], checks: "all", seconds: 0.4 },
   // Format-only: untyped `.mjs` that CI runs directly. It sits in no TS program, so
   // oxlint's type-aware pass would read every expression in it as `error`-typed.
@@ -108,7 +108,7 @@ function dictGlyphs(name: LintTreeName): string[] {
   const tree = LINT_TREES[name];
   return tree.targets
     .map(target => path.join(REPO_ROOT, tree.dir, target))
-    .filter(dir => existsSync(dir))
+    .filter(target => existsSync(target) && statSync(target).isDirectory())
     .flatMap(walk)
     .flatMap(file => glyphsIn(JSON.parse(readFileSync(file, "utf8")), path.relative(REPO_ROOT, file)));
 }
